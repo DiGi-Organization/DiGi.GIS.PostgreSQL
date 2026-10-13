@@ -556,7 +556,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             }
             await npgsqlConnection_Db.OpenAsync(cancellationToken);
 
-            return await GetAggregateSummaryAsync<Core.IO.Table.Classes.Column>(npgsqlConnection_Db, columnUniqueId, multivalueAggregateFunction, countyId, separator, filterGroup, commandTimeout, cancellationToken);
+            return await GetAggregateSummaryAsync<Core.IO.Table.Classes.Column>(npgsqlConnection_Db, columnUniqueId, multivalueAggregateFunction, countyId, separator, filterGroup, commandTimeout: commandTimeout, cancellationToken: cancellationToken);
         }
 
         /// <summary>
