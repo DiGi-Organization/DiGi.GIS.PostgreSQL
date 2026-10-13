@@ -10795,6 +10795,47 @@ The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dot
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A task that represents the asynchronous operation\. The task result contains the row count, or \-1 when there is no such partition or no connection could be built\.
 
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.GetCountByFilterGroupAsync(DiGi.PostgreSQL.Table.Classes.FilterGroup,System.Nullable_int_,int,System.Threading.CancellationToken)'></a>
+
+## BuildingDataPostgreSQLConverter\.GetCountByFilterGroupAsync\(FilterGroup, Nullable\<int\>, int, CancellationToken\) Method
+
+Asynchronously counts the building data rows of a county partition, or of the whole table, matching an optional dynamic hierarchical filter group\.
+
+This is the filtered `COUNT(*)`: the answer is the row count of the scope and does not depend on any column being non-null, so a sparse column is not mistaken for the scope's row count. A `null` or empty [filterGroup](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.GetCountByFilterGroupAsync(DiGi.PostgreSQL.Table.Classes.FilterGroup,System.Nullable_int_,int,System.Threading.CancellationToken).filterGroup 'DiGi\.GIS\.PostgreSQL\.Classes\.BuildingDataPostgreSQLConverter\.GetCountByFilterGroupAsync\(DiGi\.PostgreSQL\.Table\.Classes\.FilterGroup, System\.Nullable\<int\>, int, System\.Threading\.CancellationToken\)\.filterGroup') counts the whole partition scope; a filter that matches nothing answers `0`.
+
+```csharp
+public System.Threading.Tasks.Task<System.Nullable<long>> GetCountByFilterGroupAsync(DiGi.PostgreSQL.Table.Classes.FilterGroup? filterGroup, System.Nullable<int> countyId=null, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.GetCountByFilterGroupAsync(DiGi.PostgreSQL.Table.Classes.FilterGroup,System.Nullable_int_,int,System.Threading.CancellationToken).filterGroup'></a>
+
+`filterGroup` [DiGi\.PostgreSQL\.Table\.Classes\.FilterGroup](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.table.classes.filtergroup 'DiGi\.PostgreSQL\.Table\.Classes\.FilterGroup')
+
+The optional dynamic hierarchical filters to apply prior to counting; `null` \(or an empty group\) counts the whole partition scope\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.GetCountByFilterGroupAsync(DiGi.PostgreSQL.Table.Classes.FilterGroup,System.Nullable_int_,int,System.Threading.CancellationToken).countyId'></a>
+
+`countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The optional identifier of the county partition to count\. If null, the count is across all partitions\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.GetCountByFilterGroupAsync(DiGi.PostgreSQL.Table.Classes.FilterGroup,System.Nullable_int_,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.GetCountByFilterGroupAsync(DiGi.PostgreSQL.Table.Classes.FilterGroup,System.Nullable_int_,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken') to observe while waiting for the task to complete\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result contains the row count, `0` when nothing matches, or null when no connection could be built or a filter column's stored type cannot be resolved\.
+
 <a name='DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.GetCountyIdsByReferenceAsync(string,int,System.Threading.CancellationToken)'></a>
 
 ## BuildingDataPostgreSQLConverter\.GetCountyIdsByReferenceAsync\(string, int, CancellationToken\) Method

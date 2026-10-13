@@ -611,6 +611,28 @@ namespace DiGi.GIS.PostgreSQL.Classes
         }
 
         /// <summary>
+        /// Asynchronously counts the building data rows of a county partition, or of the whole table, matching an optional dynamic hierarchical filter group.
+        /// <para>This is the filtered <c>COUNT(*)</c>: the answer is the row count of the scope and does not depend on any column being non-null, so a sparse column is not mistaken for the scope's row count. A <c>null</c> or empty <paramref name="filterGroup"/> counts the whole partition scope; a filter that matches nothing answers <c>0</c>.</para>
+        /// </summary>
+        /// <param name="filterGroup">The optional dynamic hierarchical filters to apply prior to counting; <c>null</c> (or an empty group) counts the whole partition scope.</param>
+        /// <param name="countyId">The optional identifier of the county partition to count. If null, the count is across all partitions.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the row count, <c>0</c> when nothing matches, or null when no connection could be built or a filter column's stored type cannot be resolved.</returns>
+        public async Task<long?> GetCountByFilterGroupAsync(FilterGroup? filterGroup, int? countyId = null, int commandTimeout = 30, CancellationToken cancellationToken = default)
+        {
+            await using NpgsqlConnection? npgsqlConnection = DiGi.PostgreSQL.Create.NpgsqlConnection(ConnectionData);
+            if (npgsqlConnection is null)
+            {
+                return null;
+            }
+
+            await npgsqlConnection.OpenAsync(cancellationToken);
+
+            return await GetCountAsync(npgsqlConnection, filterGroup, countyId, commandTimeout: commandTimeout, cancellationToken: cancellationToken);
+        }
+
+        /// <summary>
         /// Asynchronously reads the planner's row estimate for one county partition, or for the whole table.
         /// <para>Far cheaper than counting on a partition of millions and accurate to a few percent, but it reflects the last time the partition was analysed rather than this moment.</para>
         /// <para>The estimate comes from <c>pg_class.reltuples</c>, which a partitioned parent carries as -1 until something analyses it - so a null <paramref name="countyId"/>, and a county partition that has never been analysed, both answer -1 rather than a number. Pass <paramref name="analyze"/> to settle it, or count instead.</para>
