@@ -537,6 +537,28 @@ namespace DiGi.GIS.PostgreSQL.Classes
         }
 
         /// <summary>
+        /// Asynchronously computes several single-value aggregate measures - different columns, different functions - over the same scope (one optional partition, one optional filter) in a single database command and a single connection.
+        /// <para>The measures arrive as one <see cref="System.Text.Json.Nodes.JsonArray"/> in request order; an aggregate that yields SQL <c>NULL</c> (for example <c>Avg</c> over zero rows) is preserved as JSON <c>null</c>. A measure naming a column the table does not hold fails the whole call - never a partial result (ZiolkowskiJakub/DiGi.GIS.WebAPI#56).</para>
+        /// </summary>
+        /// <param name="measures">The single-value aggregate measures to compute, each pairing a column unique identifier with its function.</param>
+        /// <param name="countyId">The optional partition county identifier. If null, aggregation is performed across all partitions.</param>
+        /// <param name="filterGroup">The optional dynamic hierarchical filters applied to every measure.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
+        /// <returns>A task representing the async operation, returning the measures as a <see cref="System.Text.Json.Nodes.JsonArray"/> in request order, or <see langword="null"/> when the column metadata read failed.</returns>
+        public async Task<System.Text.Json.Nodes.JsonNode?> GetAggregateSummariesAsync(IReadOnlyList<AggregateMeasure> measures, int? countyId = null, FilterGroup? filterGroup = null, int commandTimeout = 30, CancellationToken cancellationToken = default)
+        {
+            await using NpgsqlConnection? npgsqlConnection_Db = DiGi.PostgreSQL.Create.NpgsqlConnection(ConnectionData);
+            if (npgsqlConnection_Db is null)
+            {
+                return null;
+            }
+            await npgsqlConnection_Db.OpenAsync(cancellationToken);
+
+            return await GetAggregateSummariesAsync(npgsqlConnection_Db, measures, countyId, filterGroup, commandTimeout, cancellationToken);
+        }
+
+        /// <summary>
         /// Asynchronously computes multi-value aggregate statistics on a specific building data column inside a county partition or across all partitions, applying optional dynamic filters.
         /// </summary>
         /// <param name="columnUniqueId">The unique identifier of the column to aggregate.</param>

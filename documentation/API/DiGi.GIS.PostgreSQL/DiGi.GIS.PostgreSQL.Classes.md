@@ -10652,6 +10652,53 @@ public override string TableName { get; }
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 ### Methods
 
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.GetAggregateSummariesAsync(System.Collections.Generic.IReadOnlyList_DiGi.PostgreSQL.Table.Classes.AggregateMeasure_,System.Nullable_int_,DiGi.PostgreSQL.Table.Classes.FilterGroup,int,System.Threading.CancellationToken)'></a>
+
+## BuildingDataPostgreSQLConverter\.GetAggregateSummariesAsync\(IReadOnlyList\<AggregateMeasure\>, Nullable\<int\>, FilterGroup, int, CancellationToken\) Method
+
+Asynchronously computes several single\-value aggregate measures \- different columns, different functions \- over the same scope \(one optional partition, one optional filter\) in a single database command and a single connection\.
+
+The measures arrive as one [System\.Text\.Json\.Nodes\.JsonArray](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.nodes.jsonarray 'System\.Text\.Json\.Nodes\.JsonArray') in request order; an aggregate that yields SQL `NULL` (for example `Avg` over zero rows) is preserved as JSON `null`. A measure naming a column the table does not hold fails the whole call - never a partial result (ZiolkowskiJakub/DiGi.GIS.WebAPI#56).
+
+```csharp
+public System.Threading.Tasks.Task<System.Text.Json.Nodes.JsonNode?> GetAggregateSummariesAsync(System.Collections.Generic.IReadOnlyList<DiGi.PostgreSQL.Table.Classes.AggregateMeasure> measures, System.Nullable<int> countyId=null, DiGi.PostgreSQL.Table.Classes.FilterGroup? filterGroup=null, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.GetAggregateSummariesAsync(System.Collections.Generic.IReadOnlyList_DiGi.PostgreSQL.Table.Classes.AggregateMeasure_,System.Nullable_int_,DiGi.PostgreSQL.Table.Classes.FilterGroup,int,System.Threading.CancellationToken).measures'></a>
+
+`measures` [System\.Collections\.Generic\.IReadOnlyList&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ireadonlylist-1 'System\.Collections\.Generic\.IReadOnlyList\`1')[DiGi\.PostgreSQL\.Table\.Classes\.AggregateMeasure](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.table.classes.aggregatemeasure 'DiGi\.PostgreSQL\.Table\.Classes\.AggregateMeasure')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ireadonlylist-1 'System\.Collections\.Generic\.IReadOnlyList\`1')
+
+The single\-value aggregate measures to compute, each pairing a column unique identifier with its function\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.GetAggregateSummariesAsync(System.Collections.Generic.IReadOnlyList_DiGi.PostgreSQL.Table.Classes.AggregateMeasure_,System.Nullable_int_,DiGi.PostgreSQL.Table.Classes.FilterGroup,int,System.Threading.CancellationToken).countyId'></a>
+
+`countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The optional partition county identifier\. If null, aggregation is performed across all partitions\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.GetAggregateSummariesAsync(System.Collections.Generic.IReadOnlyList_DiGi.PostgreSQL.Table.Classes.AggregateMeasure_,System.Nullable_int_,DiGi.PostgreSQL.Table.Classes.FilterGroup,int,System.Threading.CancellationToken).filterGroup'></a>
+
+`filterGroup` [DiGi\.PostgreSQL\.Table\.Classes\.FilterGroup](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.table.classes.filtergroup 'DiGi\.PostgreSQL\.Table\.Classes\.FilterGroup')
+
+The optional dynamic hierarchical filters applied to every measure\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.GetAggregateSummariesAsync(System.Collections.Generic.IReadOnlyList_DiGi.PostgreSQL.Table.Classes.AggregateMeasure_,System.Nullable_int_,DiGi.PostgreSQL.Table.Classes.FilterGroup,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.GetAggregateSummariesAsync(System.Collections.Generic.IReadOnlyList_DiGi.PostgreSQL.Table.Classes.AggregateMeasure_,System.Nullable_int_,DiGi.PostgreSQL.Table.Classes.FilterGroup,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken') to observe while waiting for the task to complete\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Text\.Json\.Nodes\.JsonNode](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.nodes.jsonnode 'System\.Text\.Json\.Nodes\.JsonNode')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task representing the async operation, returning the measures as a [System\.Text\.Json\.Nodes\.JsonArray](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.nodes.jsonarray 'System\.Text\.Json\.Nodes\.JsonArray') in request order, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when the column metadata read failed\.
+
 <a name='DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.GetAggregateSummaryAsync(string,DiGi.PostgreSQL.Table.Enums.MultivalueAggregateFunction,System.Nullable_int_,string,DiGi.PostgreSQL.Table.Classes.FilterGroup,int,System.Threading.CancellationToken)'></a>
 
 ## BuildingDataPostgreSQLConverter\.GetAggregateSummaryAsync\(string, MultivalueAggregateFunction, Nullable\<int\>, string, FilterGroup, int, CancellationToken\) Method
