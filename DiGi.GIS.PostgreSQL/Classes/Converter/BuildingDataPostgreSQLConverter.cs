@@ -538,7 +538,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
 
         /// <summary>
         /// Asynchronously computes several single-value aggregate measures - different columns, different functions - over the same scope (one optional partition, one optional filter) in a single database command and a single connection.
-        /// <para>The measures arrive as one <see cref="System.Text.Json.Nodes.JsonArray"/> in request order; an aggregate that yields SQL <c>NULL</c> (for example <c>Avg</c> over zero rows) is preserved as JSON <c>null</c>. A measure naming a column the table does not hold fails the whole call - never a partial result (ZiolkowskiJakub/DiGi.GIS.WebAPI#56).</para>
+        /// <para>The measures arrive as one <see cref="System.Text.Json.Nodes.JsonArray"/> in request order; an aggregate that yields SQL <c>NULL</c> (for example <c>Avg</c> over zero rows) is preserved as JSON <c>null</c>. A measure naming a column the table does not hold fails the whole call - never a partial result (DiGi-Organization/DiGi.GIS.WebAPI#56).</para>
         /// </summary>
         /// <param name="measures">The single-value aggregate measures to compute, each pairing a column unique identifier with its function.</param>
         /// <param name="countyId">The optional partition county identifier. If null, aggregation is performed across all partitions.</param>
@@ -583,7 +583,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
 
         /// <summary>
         /// Asynchronously generates a value distribution histogram for a specific building data column inside a county partition or across all partitions, applying optional dynamic filters.
-        /// <para>The buckets are of equal value width by default; <see cref="HistogramBucketing.EqualCount"/> asks for buckets of equal row count instead, which keeps the resolution of a skewed column (floor areas, heights) where its rows are (ZiolkowskiJakub/DiGi.PostgreSQL#7).</para>
+        /// <para>The buckets are of equal value width by default; <see cref="HistogramBucketing.EqualCount"/> asks for buckets of equal row count instead, which keeps the resolution of a skewed column (floor areas, heights) where its rows are (DiGi-Organization/DiGi.PostgreSQL#7).</para>
         /// </summary>
         /// <param name="columnUniqueId">The unique identifier of the column to aggregate.</param>
         /// <param name="bucketCount">The total number of buckets to segment the value range (or the value-ordered rows) into.</param>

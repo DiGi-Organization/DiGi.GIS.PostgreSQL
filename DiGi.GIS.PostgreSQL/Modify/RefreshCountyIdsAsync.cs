@@ -158,7 +158,7 @@ namespace DiGi.GIS.PostgreSQL
             // a nullable parameter tested with OR. An OR against a parameter is not something the planner
             // can prune a partitioned table on, so the version that had one read all 406 partitions of
             // building_data on every batch - which is how a national run spent ten minutes per county and
-            // then timed out (ZiolkowskiJakub/DiGi.GIS.PostgreSQL#68).
+            // then timed out (DiGi-Organization/DiGi.GIS.PostgreSQL#68).
             string condition_Source = countyIds_Source is null ? string.Empty : "\r\n                      AND t.county_id = ANY(@countyIds)";
 
             // NOT EXISTS is the collision guard for the unique key. It is cheap despite the surrounding

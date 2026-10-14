@@ -311,7 +311,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 // A county that has never been imported has no partition and is absent from the dictionary.
                 // An unanalysed partition answers -1. In either case the sum would be a lower bound, not a
                 // measurement of the counties named, so the overload answers -1 instead (decided in
-                // ZiolkowskiJakub/DiGi.GIS.PostgreSQL#44).
+                // DiGi-Organization/DiGi.GIS.PostgreSQL#44).
                 if (!counts.TryGetValue(countyId, out long count) || count < 0)
                 {
                     return -1;

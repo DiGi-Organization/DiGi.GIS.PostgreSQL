@@ -9,7 +9,7 @@ namespace DiGi.GIS.PostgreSQL
         /// Counts how many of the given buildings a spatial read of their own surroundings brought back.
         /// <para>The surroundings of a set of buildings are read over the area those buildings cover, so every one of them is inside it and a correct read returns all of them. What comes back short says which of two different things went wrong, and they are not answered by the same fix: none of them back means the read is not reaching the partition they are filed under - a county whose territory is disconnected is one row per polygon part, and pruning to the wrong part answers an empty set rather than an error. Some of them back is per building instead: <c>min_x</c> to <c>max_y</c> are nullable and the overlap test is made on them, so a building whose stored box is missing drops out of its own neighbourhood.</para>
         /// <para>Matched on county and reference together, because a reference is unique only within a county.</para>
-        /// <para>See https://github.com/ZiolkowskiJakub/DiGi.GIS.PostgreSQL/issues/64.</para>
+        /// <para>See https://github.com/DiGi-Organization/DiGi.GIS.PostgreSQL/issues/64.</para>
         /// </summary>
         /// <param name="building2Ds">The buildings the surroundings were read for. May be <see langword="null"/>.</param>
         /// <param name="building2Ds_Neighbour">The surroundings that came back. May be <see langword="null"/>.</param>

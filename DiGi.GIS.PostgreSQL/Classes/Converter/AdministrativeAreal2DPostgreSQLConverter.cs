@@ -19,7 +19,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
     /// <para><b>A code is not a key.</b> The table is loaded from BDOT10k, which stores an administrative unit whose territory is disconnected as one <c>OT_ADJA_A</c> feature per polygon part, and every feature becomes its own row. 18 of Poland's 380 counties are multi-part, so <c>type_id = 2</c> holds 406 rows for 380 codes, up to four rows sharing one code. The row count for a code always equals the feature count in that code's source package - none of this is a re-import artifact, and the extra rows carry real territory (for code <c>2412</c> the largest polygon is only 52% of the county), so they must never be deduplicated away.</para>
     /// <para><b>Every part carries its own ancestor chain.</b> <c>type_id = 0</c> and <c>type_id = 1</c> also hold 406 rows each - one country and one voivodeship per county part - so <c>country_id</c> and <c>voivodeship_id</c> on a county row point into that county's own private chain and differ between two rows of the same county. A county row's own <c>county_id</c> is null; its identity is <c>id</c>.</para>
     /// <para><b>Consequences for callers.</b> Resolve by <c>id</c> wherever possible. <see cref="GetIdByCodeAsync(NpgsqlConnection, string, AdministrativeArealType?, int, CancellationToken)"/> collapses a code to the lowest matching row and reports nothing; <see cref="GetIdsByCodeAsync(NpgsqlConnection, string, int?, AdministrativeArealType?, int, CancellationToken)"/> returns every part and is the one to use when ambiguity matters. Any new <c>LIMIT</c> or <c>FirstOrDefault</c> over this table needs an explicit <c>ORDER BY</c> - without one the row returned changes with the query plan, a vacuum or heap ordering, which is exactly how building models came to be filed under one part while its siblings read back empty.</para>
-    /// <para>Full analysis: https://github.com/ZiolkowskiJakub/DiGi.GIS.PostgreSQL/issues/1</para>
+    /// <para>Full analysis: https://github.com/DiGi-Organization/DiGi.GIS.PostgreSQL/issues/1</para>
     /// </summary>
     public class AdministrativeAreal2DPostgreSQLConverter : PostgreSQLConverter<AdministrativeAreal2D>, IGISPostgreSQLConverter<AdministrativeAreal2D>
     {
@@ -736,7 +736,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
 
         /// <summary>
         /// Gets AdministrativeAreal2D for given AdministrativeArealTypes (Iterative way). It will iterate in order through Country, Voivodeship, County, Municipality to reduce number of objects. BoundingBox2D in range Country check, then Voivodeship in this specific Country etc..
-        /// <para><b>An empty level does not end the search.</b> The levels below it are searched against the last level that did answer, because a level can be missing from the source data rather than from the area: m. Poznan (<c>3064</c>) holds no <c>gmina</c> feature in BDOT10k at all, so its 113 subdivisions hang off the county. Stopping at the first empty level returned nothing whatsoever - not even a subdivision - for every query inside a city of 82 075 buildings, which is also how <see cref="Building2DPostgreSQLConverter"/> came back empty there. See https://github.com/ZiolkowskiJakub/DiGi.GIS.PostgreSQL/issues/15.</para>
+        /// <para><b>An empty level does not end the search.</b> The levels below it are searched against the last level that did answer, because a level can be missing from the source data rather than from the area: m. Poznan (<c>3064</c>) holds no <c>gmina</c> feature in BDOT10k at all, so its 113 subdivisions hang off the county. Stopping at the first empty level returned nothing whatsoever - not even a subdivision - for every query inside a city of 82 075 buildings, which is also how <see cref="Building2DPostgreSQLConverter"/> came back empty there. See https://github.com/DiGi-Organization/DiGi.GIS.PostgreSQL/issues/15.</para>
         /// <para>The narrowing still assumes a unit sits inside its ancestor, which holds for this data with rare exceptions: the settlement layer (<c>OT_ADMS_A</c>) and the division layer (<c>OT_ADJA_A</c>) are digitised independently, so a handful of settlements fall marginally outside their own municipality.</para>
         /// </summary>
         /// <param name="npgsqlConnection">NpgsqlConnection</param>
@@ -772,7 +772,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             // inside the city finds nothing at Municipality and its subdivisions have to be reached from
             // the county instead. Stopping at the first empty level answered nothing at all for every
             // query inside a city of 82 075 buildings.
-            // See https://github.com/ZiolkowskiJakub/DiGi.GIS.PostgreSQL/issues/15.
+            // See https://github.com/DiGi-Organization/DiGi.GIS.PostgreSQL/issues/15.
             AdministrativeArealType administrativeArealType_Parent = AdministrativeArealType.Undefined;
 
             foreach (AdministrativeArealType administrativeArealType in AdministrativeAreal2DPostgreSQLConverter.administrativeArealTypes)
@@ -1028,7 +1028,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// Asynchronously retrieves the identifiers of every county polygon part a spatial query over the given bounding box has to read, including parts lying outside the box.
         /// <para>A county code is not a key - a county whose territory is disconnected is stored as one row per polygon part - and a building is filed under one of those parts, not necessarily the part whose polygon covers it. Deriving the partition list from the parts overlapping the box alone therefore leaves out the partition the buildings are actually in, and the read comes back empty with no error at all. The result is widened to every part sharing a code with an overlapping part, which is the <see cref="Query.SiblingCountyGroups(IEnumerable{AdministrativeAreal2DReference})"/> rule expressed in SQL.</para>
         /// <para>Widening is safe: it only adds partitions to prune to, and the bounding box predicate on the rows themselves still decides what comes back. Prune by this rather than by the <c>county_id</c> carried by the subdivisions in the box - that column names one part.</para>
-        /// <para>See https://github.com/ZiolkowskiJakub/DiGi.GIS.PostgreSQL/issues/64.</para>
+        /// <para>See https://github.com/DiGi-Organization/DiGi.GIS.PostgreSQL/issues/64.</para>
         /// </summary>
         /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> used to connect to the PostgreSQL database.</param>
         /// <param name="boundingBox2D">The <see cref="BoundingBox2D"/> defining the spatial area to search; may be null.</param>
@@ -2299,7 +2299,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// <summary>
         /// Asynchronously retrieves the identifiers of every county polygon part whose subdivision layer nests - where a subdivision lies inside another subdivision of the same municipality, as a city holds its districts and their neighbourhoods.
         /// <para>Decided on the stored bounding boxes: a subdivision counts as nested when its box lies within the strictly larger box of a sibling, expanded by <paramref name="tolerance"/>. A box inside a box does not prove a polygon inside a polygon, so this over-approximates - which is what a <b>scope</b> wants: every county that might hold a nesting is named, at the cost of the odd county that only looks like one from its boxes. It is not a membership test; <see cref="Query.ContainerIds(IReadOnlyDictionary{int, PolygonalFace2D}, double)"/> decides nesting on the polygons themselves.</para>
-        /// <para>Widened to every part sharing a code with a part named, the <see cref="GetCountyIdsByBoundingBox2DAsync(NpgsqlConnection?, BoundingBox2D?, double, int, CancellationToken)"/> rule: a subdivision's <c>county_id</c> names one part, and the buildings it holds may be filed under a sibling. See <see href="https://github.com/ZiolkowskiJakub/DiGi.GIS.PostgreSQL/issues/77">DiGi.GIS.PostgreSQL#77</see>.</para>
+        /// <para>Widened to every part sharing a code with a part named, the <see cref="GetCountyIdsByBoundingBox2DAsync(NpgsqlConnection?, BoundingBox2D?, double, int, CancellationToken)"/> rule: a subdivision's <c>county_id</c> names one part, and the buildings it holds may be filed under a sibling. See <see href="https://github.com/DiGi-Organization/DiGi.GIS.PostgreSQL/issues/77">DiGi.GIS.PostgreSQL#77</see>.</para>
         /// </summary>
         /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> used to connect to the PostgreSQL database.</param>
         /// <param name="tolerance">The distance a container's box is expanded by on every side before the inner box is tested against it.</param>
@@ -2585,7 +2585,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// Asynchronously refreshes the administrative areal 2D data within the PostgreSQL database.
         /// <para>Every row's parent chain (<c>country_id</c> / <c>voivodeship_id</c> / <c>county_id</c> / <c>municipality_id</c>) is cleared and rebuilt, so a re-run repairs whatever the previous one got wrong. Parents are searched one administrative level at a time, nearest level first, and the walk stops at the first level that yields a match - a row whose own level directly above holds no parent is filed under the nearest ancestor that does. Matching within a level, including its majority-overlap fallback, is <see cref="Modify.UpdateIds(AdministrativeAreal2D, IEnumerable{AdministrativeAreal2D}, double)"/>.</para>
         /// <para>At each level the candidates are first narrowed to the rows the row's own <c>code</c> names (<see cref="Query.AdministrativeCodeKey(string, AdministrativeArealType)"/>), and geometry only chooses between those - a code names several rows when a unit's territory is disconnected. Geometry alone is not enough: it silently files a row under whichever neighbour's bounding box happens to be the only one holding the sample point.</para>
-        /// <para>Real BDOT10k data needs all three. Poznan (<c>3064</c>) has no <c>gmina</c> feature at all, so its subdivisions have no Municipality to match; a handful of settlements sit in a gap between municipality polygons; and before this every one of Poznan's 113 subdivisions was wrong - 87 with a null chain (https://github.com/ZiolkowskiJakub/DiGi.GIS.PostgreSQL/issues/14) and 26 filed under county <c>3021</c>, along with 10 more rows elsewhere in the country (https://github.com/ZiolkowskiJakub/DiGi.GIS.PostgreSQL/issues/15).</para>
+        /// <para>Real BDOT10k data needs all three. Poznan (<c>3064</c>) has no <c>gmina</c> feature at all, so its subdivisions have no Municipality to match; a handful of settlements sit in a gap between municipality polygons; and before this every one of Poznan's 113 subdivisions was wrong - 87 with a null chain (https://github.com/DiGi-Organization/DiGi.GIS.PostgreSQL/issues/14) and 26 filed under county <c>3021</c>, along with 10 more rows elsewhere in the country (https://github.com/DiGi-Organization/DiGi.GIS.PostgreSQL/issues/15).</para>
         /// </summary>
         /// <param name="postgreSQLAdministrativeAreal2DRefreshOptions">The options used to configure the refresh process. If null, a new instance of <see cref="PostgreSQLAdministrativeAreal2DRefreshOptions"/> is initialized.</param>
         /// <param name="progress">The provider for reporting the progress of the refresh operation as a long value.</param>
@@ -2640,7 +2640,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
                             // yields a parent. Searching only the level directly above is not enough:
                             // Poznan (3064) has no gmina feature in BDOT10k at all, so its subdivisions
                             // have no Municipality to match and would keep every parent id null.
-                            // See https://github.com/ZiolkowskiJakub/DiGi.GIS.PostgreSQL/issues/14.
+                            // See https://github.com/DiGi-Organization/DiGi.GIS.PostgreSQL/issues/14.
                             for (int j = i - 1; j >= 0; j--)
                             {
                                 AdministrativeArealType administrativeArealType_Parent = administrativeArealTypes[j];
@@ -2655,7 +2655,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
                                     // filed under a neighbour whose bounding box happens to be the only one
                                     // holding the sample point, which is how every one of Poznan's 113
                                     // subdivisions ended up either unparented or under county 3021.
-                                    // See https://github.com/ZiolkowskiJakub/DiGi.GIS.PostgreSQL/issues/15.
+                                    // See https://github.com/DiGi-Organization/DiGi.GIS.PostgreSQL/issues/15.
                                     if (!dictionary_Code[administrativeArealType_Parent].TryGetValue(key, out administrativeAreal2Ds_Parent))
                                     {
                                         // The code names no row at this level - a city with no gmina feature

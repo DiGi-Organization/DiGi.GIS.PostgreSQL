@@ -519,7 +519,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 // A county that has never been imported has no partition and is absent from the dictionary.
                 // An unanalysed partition answers -1. In either case the sum would be a lower bound, not a
                 // measurement of the counties named, so the overload answers -1 instead (decided in
-                // ZiolkowskiJakub/DiGi.GIS.PostgreSQL#44).
+                // DiGi-Organization/DiGi.GIS.PostgreSQL#44).
                 if (!counts.TryGetValue(countyId, out long count) || count < 0)
                 {
                     return -1;
@@ -1009,7 +1009,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             // whose polygon covers the point - a county whose territory is disconnected is stored as one row
             // per polygon part, and the buildings can sit under a sibling part, in which case the covering
             // part reads back as no building at all. See
-            // https://github.com/ZiolkowskiJakub/DiGi.GIS.PostgreSQL/issues/64.
+            // https://github.com/DiGi-Organization/DiGi.GIS.PostgreSQL/issues/64.
             HashSet<int>? countyIds = await AdministrativeAreal2DPostgreSQLConverter.GetCountyIdsByBoundingBox2DAsync(npgsqlConnection, boundingBox2D, tolerance, commandTimeout, cancellationToken);
 
             if (countyIds is null || countyIds.Count == 0)
@@ -1501,7 +1501,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// <summary>
         /// Asynchronously retrieves a list of building 2D references associated with the specified administrative areal 2D identifiers.
         /// <para>An identifier above the subdivision level resolves through <b>Subdivision children</b>, not geometry: it is expanded to its <see cref="AdministrativeArealType.Subdivision"/> descendants and the buildings are then fetched per <c>county_id</c> plus <c>subdivision_id</c>. An identifier with no subdivisions therefore yields an empty list, which does <b>not</b> mean the area holds no buildings - compare with <c>GetBuilding2DReferencesByCountyIdAsync</c> before concluding anything about coverage.</para>
-        /// <para>A <see cref="AdministrativeArealType.Subdivision"/> identifier resolves by <b>geometry</b> instead - the buildings whose bounding-box centre lies inside its polygon, see <see cref="GetBuilding2DReferencesByPolygonalFace2DAsync(NpgsqlConnection?, PolygonalFace2D?, double, int, CancellationToken)"/>. The subdivision layer is nested (a city, its districts and their neighbourhoods are all subdivisions of one municipality) and <c>subdivision_id</c> names a single container per building, chosen by the lowest identifier among equal overlaps - so membership can never answer which buildings a district holds. See https://github.com/ZiolkowskiJakub/DiGi.GIS.PostgreSQL/issues/75.</para>
+        /// <para>A <see cref="AdministrativeArealType.Subdivision"/> identifier resolves by <b>geometry</b> instead - the buildings whose bounding-box centre lies inside its polygon, see <see cref="GetBuilding2DReferencesByPolygonalFace2DAsync(NpgsqlConnection?, PolygonalFace2D?, double, int, CancellationToken)"/>. The subdivision layer is nested (a city, its districts and their neighbourhoods are all subdivisions of one municipality) and <c>subdivision_id</c> names a single container per building, chosen by the lowest identifier among equal overlaps - so membership can never answer which buildings a district holds. See https://github.com/DiGi-Organization/DiGi.GIS.PostgreSQL/issues/75.</para>
         /// </summary>
         /// <param name="administrativeAreal2DIds">A collection of integers representing the administrative areal 2D identifiers to filter by.</param>
         /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
@@ -1947,7 +1947,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             // that column names one polygon part of a multi-part county, and the buildings can be filed
             // under a sibling part, in which case pruning to it answers nothing at all - silently, because
             // an empty result is indistinguishable from an area holding no buildings. See
-            // https://github.com/ZiolkowskiJakub/DiGi.GIS.PostgreSQL/issues/64.
+            // https://github.com/DiGi-Organization/DiGi.GIS.PostgreSQL/issues/64.
             HashSet<int>? countyIds = await AdministrativeAreal2DPostgreSQLConverter.GetCountyIdsByBoundingBox2DAsync(npgsqlConnection, boundingBox2D, tolerance, commandTimeout, cancellationToken);
 
             if (countyIds is null || countyIds.Count == 0)
@@ -2238,8 +2238,8 @@ namespace DiGi.GIS.PostgreSQL.Classes
 
         /// <summary>
         /// Asynchronously refreshes the 2D building data in the PostgreSQL database - today, the <c>subdivision_id</c> of each building, derived from its outline (the smallest subdivision containing it).
-        /// <para>The pick is made in memory by a <see cref="SubdivisionIdSolver"/> built once per county over the subdivisions whose boxes meet the county's; a building the layer cannot place - outside it, or covered only by an <see cref="GIS.Classes.AdministrativeDivision"/> row - goes through <c>GetSubdivisionIdAsync</c> against the database, the path every building took before (26 buildings a second in Warsaw, where each one re-read the 412 KB city outline; <see href="https://github.com/ZiolkowskiJakub/DiGi.GIS.PostgreSQL/issues/79">DiGi.GIS.PostgreSQL#79</see>). The layers loaded and the buildings that fell back are logged.</para>
-        /// <para>Walks the table one county polygon part at a time, each part in identifier order in batches, each batch under <c>FOR UPDATE SKIP LOCKED</c>. A part is one partition, so a batch is bounded by that partition's own index no matter how many parts are in scope, and the part's subdivision layer is loaded once for the whole part rather than being dropped and rebuilt as its buildings interleave with the others'. By default only buildings with no <c>subdivision_id</c> are visited; <see cref="PostgreSQLBuilding2DRefreshOptions.OverrideExistingSubdivisionIds"/> re-derives every one. The walk can be limited to county polygon parts with <see cref="PostgreSQLBuilding2DRefreshOptions.CountyIds"/>, or to the parts whose subdivision layer nests with <see cref="PostgreSQLBuilding2DRefreshOptions.NestedSubdivisionsOnly"/> - the counties where the previous lowest-identifier tie-break produced an arbitrary value (<see href="https://github.com/ZiolkowskiJakub/DiGi.GIS.PostgreSQL/issues/77">DiGi.GIS.PostgreSQL#77</see>), which is nearly all of them: a village and its named parts nest as a city and its districts do. The parts visited and the rows written per part are logged.</para>
+        /// <para>The pick is made in memory by a <see cref="SubdivisionIdSolver"/> built once per county over the subdivisions whose boxes meet the county's; a building the layer cannot place - outside it, or covered only by an <see cref="GIS.Classes.AdministrativeDivision"/> row - goes through <c>GetSubdivisionIdAsync</c> against the database, the path every building took before (26 buildings a second in Warsaw, where each one re-read the 412 KB city outline; <see href="https://github.com/DiGi-Organization/DiGi.GIS.PostgreSQL/issues/79">DiGi.GIS.PostgreSQL#79</see>). The layers loaded and the buildings that fell back are logged.</para>
+        /// <para>Walks the table one county polygon part at a time, each part in identifier order in batches, each batch under <c>FOR UPDATE SKIP LOCKED</c>. A part is one partition, so a batch is bounded by that partition's own index no matter how many parts are in scope, and the part's subdivision layer is loaded once for the whole part rather than being dropped and rebuilt as its buildings interleave with the others'. By default only buildings with no <c>subdivision_id</c> are visited; <see cref="PostgreSQLBuilding2DRefreshOptions.OverrideExistingSubdivisionIds"/> re-derives every one. The walk can be limited to county polygon parts with <see cref="PostgreSQLBuilding2DRefreshOptions.CountyIds"/>, or to the parts whose subdivision layer nests with <see cref="PostgreSQLBuilding2DRefreshOptions.NestedSubdivisionsOnly"/> - the counties where the previous lowest-identifier tie-break produced an arbitrary value (<see href="https://github.com/DiGi-Organization/DiGi.GIS.PostgreSQL/issues/77">DiGi.GIS.PostgreSQL#77</see>), which is nearly all of them: a village and its named parts nest as a city and its districts do. The parts visited and the rows written per part are logged.</para>
         /// </summary>
         /// <param name="postgreSQLBuilding2DRefreshOptions">The options to configure the refresh process for PostgreSQL 2D buildings. Can be null to use default settings.</param>
         /// <param name="progress">The progress reporter used to report the current progress as a long value representing the count of updated buildings. Can be null if no progress reporting is required.</param>
@@ -2623,7 +2623,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             // Tier 1 used to be taken on trust, and that is how a wrong answer became permanent: a caller
             // reads the part from the building_2d row it is about to overwrite, so a row filed under the
             // wrong part of a multi-part county rewrote itself there for as long as it was touched
-            // (ZiolkowskiJakub/DiGi.GIS.PostgreSQL#68). Checking it costs one cached lookup per distinct
+            // (DiGi-Organization/DiGi.GIS.PostgreSQL#68). Checking it costs one cached lookup per distinct
             // part named in the batch, and changes nothing for the 362 counties stored as a single part.
             foreach (Building2D building2D in building2Ds)
             {

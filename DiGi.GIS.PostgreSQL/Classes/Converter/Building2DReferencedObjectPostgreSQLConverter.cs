@@ -236,7 +236,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 // A county that has never been imported has no partition and is absent from the dictionary.
                 // An unanalysed partition answers -1. In either case the sum would be a lower bound, not a
                 // measurement of the counties named, so the overload answers -1 instead (decided in
-                // ZiolkowskiJakub/DiGi.GIS.PostgreSQL#44).
+                // DiGi-Organization/DiGi.GIS.PostgreSQL#44).
                 if (!counts.TryGetValue(countyId, out long count) || count < 0)
                 {
                     return -1;
@@ -928,7 +928,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             // The parts the rows can still be sitting under are written into the statement when the caller
             // knows them, because the index here leads with county_id: without a predicate on it there is
             // nothing to seek on and every partition is read. A batch carrying one reference measured close
-            // to a minute that way (ZiolkowskiJakub/DiGi.GIS.PostgreSQL#68). Callers that do not know where
+            // to a minute that way (DiGi-Organization/DiGi.GIS.PostgreSQL#68). Callers that do not know where
             // a row strayed to still pay for the whole table, which is the cost this parameter avoids.
             int[]? countyIds_Array = countyIds_Source is null ? null : [.. new HashSet<int>(countyIds_Source)];
 
@@ -973,7 +973,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             // Sent in batches rather than as one statement carrying every reference of the county. One
             // statement is fewer round trips, but it is also one timeout: a county of 157 354 buildings ran
             // for the whole ten minutes and then lost all of it, while the counties either side of it
-            // finished (ZiolkowskiJakub/DiGi.GIS.PostgreSQL#68). A batch that fits inside the timeout turns
+            // finished (DiGi-Organization/DiGi.GIS.PostgreSQL#68). A batch that fits inside the timeout turns
             // a county that cannot be carried at all into one carried a thousand references at a time.
             int batchSize_Effective = batchSize < 1 ? 1 : batchSize;
 
@@ -1088,7 +1088,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
 
             // The parts the rows can still be sitting under are written into the statement when the caller
             // knows them, because the index here leads with county_id: without a predicate on it there is
-            // nothing to seek on and every partition is read (ZiolkowskiJakub/DiGi.GIS.PostgreSQL#68).
+            // nothing to seek on and every partition is read (DiGi-Organization/DiGi.GIS.PostgreSQL#68).
             int[]? countyIds_Array = countyIds_Source is null ? null : [.. new HashSet<int>(countyIds_Source)];
 
             string condition_Source = countyIds_Array is null ? string.Empty : "\r\n                      AND t.county_id = ANY(@countyIds)";
@@ -1127,7 +1127,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
 
             // Sent in batches rather than as one statement carrying every reference of the county, for
             // the same reason the mover is: one statement is fewer round trips, but it is also one
-            // timeout to lose them all in (ZiolkowskiJakub/DiGi.GIS.PostgreSQL#68).
+            // timeout to lose them all in (DiGi-Organization/DiGi.GIS.PostgreSQL#68).
             int batchSize_Effective = batchSize < 1 ? 1 : batchSize;
 
             List<string> references_List = [.. references_Unique];
