@@ -566,10 +566,11 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// <param name="countyId">The optional partition county identifier. If null, aggregation is performed across all partitions.</param>
         /// <param name="separator">The optional custom string delimiter; if null, it is automatically detected.</param>
         /// <param name="filterGroup">The optional dynamic hierarchical filters to apply prior to aggregation.</param>
+        /// <param name="maxGroups">For <see cref="MultivalueAggregateFunction.SplitValueDistribution"/> only, the maximum number of distinct-value groups to return; the <c>(maxGroups + 1)</c>-th row is returned as a truncation marker, so a result longer than <c>maxGroups</c> means the distribution was cut and the caller drops the last element. Ignored by <see cref="MultivalueAggregateFunction.SplitDistinctCount"/>.</param>
         /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
         /// <returns>A task representing the async operation, returning the aggregate result as a <see cref="System.Text.Json.Nodes.JsonNode"/>.</returns>
-        public async Task<System.Text.Json.Nodes.JsonNode?> GetAggregateSummaryAsync(string columnUniqueId, MultivalueAggregateFunction multivalueAggregateFunction, int? countyId = null, string? separator = null, FilterGroup? filterGroup = null, int commandTimeout = 30, CancellationToken cancellationToken = default)
+        public async Task<System.Text.Json.Nodes.JsonNode?> GetAggregateSummaryAsync(string columnUniqueId, MultivalueAggregateFunction multivalueAggregateFunction, int? countyId = null, string? separator = null, FilterGroup? filterGroup = null, int maxGroups = 1000, int commandTimeout = 30, CancellationToken cancellationToken = default)
         {
             await using NpgsqlConnection? npgsqlConnection_Db = DiGi.PostgreSQL.Create.NpgsqlConnection(ConnectionData);
             if (npgsqlConnection_Db is null)
@@ -578,7 +579,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             }
             await npgsqlConnection_Db.OpenAsync(cancellationToken);
 
-            return await GetAggregateSummaryAsync<Core.IO.Table.Classes.Column>(npgsqlConnection_Db, columnUniqueId, multivalueAggregateFunction, countyId, separator, filterGroup, commandTimeout: commandTimeout, cancellationToken: cancellationToken);
+            return await GetAggregateSummaryAsync<Core.IO.Table.Classes.Column>(npgsqlConnection_Db, columnUniqueId, multivalueAggregateFunction, countyId, separator, filterGroup, maxGroups: maxGroups, commandTimeout: commandTimeout, cancellationToken: cancellationToken);
         }
 
         /// <summary>

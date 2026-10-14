@@ -10699,54 +10699,60 @@ The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dot
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Text\.Json\.Nodes\.JsonNode](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.nodes.jsonnode 'System\.Text\.Json\.Nodes\.JsonNode')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A task representing the async operation, returning the measures as a [System\.Text\.Json\.Nodes\.JsonArray](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.nodes.jsonarray 'System\.Text\.Json\.Nodes\.JsonArray') in request order, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when the column metadata read failed\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.GetAggregateSummaryAsync(string,DiGi.PostgreSQL.Table.Enums.MultivalueAggregateFunction,System.Nullable_int_,string,DiGi.PostgreSQL.Table.Classes.FilterGroup,int,System.Threading.CancellationToken)'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.GetAggregateSummaryAsync(string,DiGi.PostgreSQL.Table.Enums.MultivalueAggregateFunction,System.Nullable_int_,string,DiGi.PostgreSQL.Table.Classes.FilterGroup,int,int,System.Threading.CancellationToken)'></a>
 
-## BuildingDataPostgreSQLConverter\.GetAggregateSummaryAsync\(string, MultivalueAggregateFunction, Nullable\<int\>, string, FilterGroup, int, CancellationToken\) Method
+## BuildingDataPostgreSQLConverter\.GetAggregateSummaryAsync\(string, MultivalueAggregateFunction, Nullable\<int\>, string, FilterGroup, int, int, CancellationToken\) Method
 
 Asynchronously computes multi\-value aggregate statistics on a specific building data column inside a county partition or across all partitions, applying optional dynamic filters\.
 
 ```csharp
-public System.Threading.Tasks.Task<System.Text.Json.Nodes.JsonNode?> GetAggregateSummaryAsync(string columnUniqueId, DiGi.PostgreSQL.Table.Enums.MultivalueAggregateFunction multivalueAggregateFunction, System.Nullable<int> countyId=null, string? separator=null, DiGi.PostgreSQL.Table.Classes.FilterGroup? filterGroup=null, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+public System.Threading.Tasks.Task<System.Text.Json.Nodes.JsonNode?> GetAggregateSummaryAsync(string columnUniqueId, DiGi.PostgreSQL.Table.Enums.MultivalueAggregateFunction multivalueAggregateFunction, System.Nullable<int> countyId=null, string? separator=null, DiGi.PostgreSQL.Table.Classes.FilterGroup? filterGroup=null, int maxGroups=1000, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
 ```
 #### Parameters
 
-<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.GetAggregateSummaryAsync(string,DiGi.PostgreSQL.Table.Enums.MultivalueAggregateFunction,System.Nullable_int_,string,DiGi.PostgreSQL.Table.Classes.FilterGroup,int,System.Threading.CancellationToken).columnUniqueId'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.GetAggregateSummaryAsync(string,DiGi.PostgreSQL.Table.Enums.MultivalueAggregateFunction,System.Nullable_int_,string,DiGi.PostgreSQL.Table.Classes.FilterGroup,int,int,System.Threading.CancellationToken).columnUniqueId'></a>
 
 `columnUniqueId` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The unique identifier of the column to aggregate\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.GetAggregateSummaryAsync(string,DiGi.PostgreSQL.Table.Enums.MultivalueAggregateFunction,System.Nullable_int_,string,DiGi.PostgreSQL.Table.Classes.FilterGroup,int,System.Threading.CancellationToken).multivalueAggregateFunction'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.GetAggregateSummaryAsync(string,DiGi.PostgreSQL.Table.Enums.MultivalueAggregateFunction,System.Nullable_int_,string,DiGi.PostgreSQL.Table.Classes.FilterGroup,int,int,System.Threading.CancellationToken).multivalueAggregateFunction'></a>
 
 `multivalueAggregateFunction` [DiGi\.PostgreSQL\.Table\.Enums\.MultivalueAggregateFunction](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.table.enums.multivalueaggregatefunction 'DiGi\.PostgreSQL\.Table\.Enums\.MultivalueAggregateFunction')
 
 The multi\-value aggregate calculation function\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.GetAggregateSummaryAsync(string,DiGi.PostgreSQL.Table.Enums.MultivalueAggregateFunction,System.Nullable_int_,string,DiGi.PostgreSQL.Table.Classes.FilterGroup,int,System.Threading.CancellationToken).countyId'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.GetAggregateSummaryAsync(string,DiGi.PostgreSQL.Table.Enums.MultivalueAggregateFunction,System.Nullable_int_,string,DiGi.PostgreSQL.Table.Classes.FilterGroup,int,int,System.Threading.CancellationToken).countyId'></a>
 
 `countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
 The optional partition county identifier\. If null, aggregation is performed across all partitions\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.GetAggregateSummaryAsync(string,DiGi.PostgreSQL.Table.Enums.MultivalueAggregateFunction,System.Nullable_int_,string,DiGi.PostgreSQL.Table.Classes.FilterGroup,int,System.Threading.CancellationToken).separator'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.GetAggregateSummaryAsync(string,DiGi.PostgreSQL.Table.Enums.MultivalueAggregateFunction,System.Nullable_int_,string,DiGi.PostgreSQL.Table.Classes.FilterGroup,int,int,System.Threading.CancellationToken).separator'></a>
 
 `separator` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The optional custom string delimiter; if null, it is automatically detected\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.GetAggregateSummaryAsync(string,DiGi.PostgreSQL.Table.Enums.MultivalueAggregateFunction,System.Nullable_int_,string,DiGi.PostgreSQL.Table.Classes.FilterGroup,int,System.Threading.CancellationToken).filterGroup'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.GetAggregateSummaryAsync(string,DiGi.PostgreSQL.Table.Enums.MultivalueAggregateFunction,System.Nullable_int_,string,DiGi.PostgreSQL.Table.Classes.FilterGroup,int,int,System.Threading.CancellationToken).filterGroup'></a>
 
 `filterGroup` [DiGi\.PostgreSQL\.Table\.Classes\.FilterGroup](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.table.classes.filtergroup 'DiGi\.PostgreSQL\.Table\.Classes\.FilterGroup')
 
 The optional dynamic hierarchical filters to apply prior to aggregation\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.GetAggregateSummaryAsync(string,DiGi.PostgreSQL.Table.Enums.MultivalueAggregateFunction,System.Nullable_int_,string,DiGi.PostgreSQL.Table.Classes.FilterGroup,int,System.Threading.CancellationToken).commandTimeout'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.GetAggregateSummaryAsync(string,DiGi.PostgreSQL.Table.Enums.MultivalueAggregateFunction,System.Nullable_int_,string,DiGi.PostgreSQL.Table.Classes.FilterGroup,int,int,System.Threading.CancellationToken).maxGroups'></a>
+
+`maxGroups` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+For [DiGi\.PostgreSQL\.Table\.Enums\.MultivalueAggregateFunction\.SplitValueDistribution](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.table.enums.multivalueaggregatefunction.splitvaluedistribution 'DiGi\.PostgreSQL\.Table\.Enums\.MultivalueAggregateFunction\.SplitValueDistribution') only, the maximum number of distinct\-value groups to return; the `(maxGroups + 1)`\-th row is returned as a truncation marker, so a result longer than `maxGroups` means the distribution was cut and the caller drops the last element\. Ignored by [DiGi\.PostgreSQL\.Table\.Enums\.MultivalueAggregateFunction\.SplitDistinctCount](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.table.enums.multivalueaggregatefunction.splitdistinctcount 'DiGi\.PostgreSQL\.Table\.Enums\.MultivalueAggregateFunction\.SplitDistinctCount')\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.GetAggregateSummaryAsync(string,DiGi.PostgreSQL.Table.Enums.MultivalueAggregateFunction,System.Nullable_int_,string,DiGi.PostgreSQL.Table.Classes.FilterGroup,int,int,System.Threading.CancellationToken).commandTimeout'></a>
 
 `commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
 
 The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.GetAggregateSummaryAsync(string,DiGi.PostgreSQL.Table.Enums.MultivalueAggregateFunction,System.Nullable_int_,string,DiGi.PostgreSQL.Table.Classes.FilterGroup,int,System.Threading.CancellationToken).cancellationToken'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.GetAggregateSummaryAsync(string,DiGi.PostgreSQL.Table.Enums.MultivalueAggregateFunction,System.Nullable_int_,string,DiGi.PostgreSQL.Table.Classes.FilterGroup,int,int,System.Threading.CancellationToken).cancellationToken'></a>
 
 `cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
 
