@@ -284,6 +284,50 @@ The county identifier associated with the data\.
 [YearBuiltData](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.YearBuiltData 'DiGi\.GIS\.PostgreSQL\.Classes\.YearBuiltData')  
 A [YearBuiltData](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.YearBuiltData 'DiGi\.GIS\.PostgreSQL\.Classes\.YearBuiltData') instance if [yearBuiltData](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Convert.ToPostgreSQL(thisDiGi.GIS.Interfaces.IYearBuiltData,System.Nullable_int_).yearBuiltData 'DiGi\.GIS\.PostgreSQL\.Convert\.ToPostgreSQL\(this DiGi\.GIS\.Interfaces\.IYearBuiltData, System\.Nullable\<int\>\)\.yearBuiltData') is not null; otherwise, null\.
 
+<a name='DiGi.GIS.PostgreSQL.Convert.ToSystem_ByteArrays(thisbyte[])'></a>
+
+## Convert\.ToSystem\_ByteArrays\(this byte\[\]\) Method
+
+Unpacks the `shading_factors` value of the [BuildingSolarRadiation](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.TableName.BuildingSolarRadiation 'DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.BuildingSolarRadiation') table into the shading factors of each surface, the inverse of [ToSystem\_Bytes\(this IEnumerable&lt;byte\[\]&gt;\)](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Convert.ToSystem_Bytes(thisSystem.Collections.Generic.IEnumerable_byte[]_) 'DiGi\.GIS\.PostgreSQL\.Convert\.ToSystem\_Bytes\(this System\.Collections\.Generic\.IEnumerable\<byte\[\]\>\)')\.
+
+```csharp
+public static System.Collections.Generic.List<byte[]>? ToSystem_ByteArrays(this byte[]? bytes);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Convert.ToSystem_ByteArrays(thisbyte[]).bytes'></a>
+
+`bytes` [System\.Byte](https://learn.microsoft.com/en-us/dotnet/api/system.byte 'System\.Byte')[\[\]](https://learn.microsoft.com/en-us/dotnet/api/system.array 'System\.Array')
+
+The packed value: a little\-endian `uint32` hour count `n`, then `n` bytes per surface\.
+
+#### Returns
+[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[System\.Byte](https://learn.microsoft.com/en-us/dotnet/api/system.byte 'System\.Byte')[\[\]](https://learn.microsoft.com/en-us/dotnet/api/system.array 'System\.Array')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')  
+One array of `n` bytes per surface, in stored order, or null when [bytes](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Convert.ToSystem_ByteArrays(thisbyte[]).bytes 'DiGi\.GIS\.PostgreSQL\.Convert\.ToSystem\_ByteArrays\(this byte\[\]\)\.bytes') is null, shorter than its header, has a zero hour count, or its length is not a whole number of surfaces\.
+
+<a name='DiGi.GIS.PostgreSQL.Convert.ToSystem_Bytes(thisSystem.Collections.Generic.IEnumerable_byte[]_)'></a>
+
+## Convert\.ToSystem\_Bytes\(this IEnumerable\<byte\[\]\>\) Method
+
+Packs the shading factors of every surface of a stored solar radiation result into the single `shading_factors` value of the [BuildingSolarRadiation](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.TableName.BuildingSolarRadiation 'DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.BuildingSolarRadiation') table\.
+
+The layout is a little-endian `uint32` hour count `n`, then `n` bytes per surface in the order given (the order of the surfaces in the stored object). Keeping the count in the value makes it self-describing, so a later time step still unpacks with [ToSystem\_ByteArrays\(this byte\[\]\)](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Convert.ToSystem_ByteArrays(thisbyte[]) 'DiGi\.GIS\.PostgreSQL\.Convert\.ToSystem\_ByteArrays\(this byte\[\]\)').
+
+```csharp
+public static byte[]? ToSystem_Bytes(this System.Collections.Generic.IEnumerable<byte[]?>? shadingFactors);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Convert.ToSystem_Bytes(thisSystem.Collections.Generic.IEnumerable_byte[]_).shadingFactors'></a>
+
+`shadingFactors` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[System\.Byte](https://learn.microsoft.com/en-us/dotnet/api/system.byte 'System\.Byte')[\[\]](https://learn.microsoft.com/en-us/dotnet/api/system.array 'System\.Array')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The quantized shading factors of each surface, in surface order\.
+
+#### Returns
+[System\.Byte](https://learn.microsoft.com/en-us/dotnet/api/system.byte 'System\.Byte')[\[\]](https://learn.microsoft.com/en-us/dotnet/api/system.array 'System\.Array')  
+The packed value, or null when [shadingFactors](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Convert.ToSystem_Bytes(thisSystem.Collections.Generic.IEnumerable_byte[]_).shadingFactors 'DiGi\.GIS\.PostgreSQL\.Convert\.ToSystem\_Bytes\(this System\.Collections\.Generic\.IEnumerable\<byte\[\]\>\)\.shadingFactors') is null or empty, an element is null or empty, or the elements differ in length\.
+
 <a name='DiGi.GIS.PostgreSQL.Convert.ToSystem_Bytes(thisSystem.Text.Json.Nodes.JsonNode)'></a>
 
 ## Convert\.ToSystem\_Bytes\(this JsonNode\) Method
@@ -366,6 +410,41 @@ The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dot
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[BuildingDataCoverageResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.BuildingDataCoverageResult 'DiGi\.GIS\.PostgreSQL\.Classes\.BuildingDataCoverageResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A task that represents the asynchronous operation\. The task result contains the coverage, or null when either converter is missing or either side could not be read\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.BuildingSolarRadiationResult(thisDiGi.GIS.Classes.BuildingSolarRadiationResult,int,System.Collections.Generic.IList_byte[]_)'></a>
+
+## Create\.BuildingSolarRadiationResult\(this BuildingSolarRadiationResult, int, IList\<byte\[\]\>\) Method
+
+Creates a copy of a stored solar radiation result filed under the given county part and carrying the given shading factors, the two things that differ between the result a caller holds and the row the [BuildingSolarRadiation](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.TableName.BuildingSolarRadiation 'DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.BuildingSolarRadiation') table stores\.
+
+A write passes the resolved county part and null factors: the `object` column holds the result without factors, which go to the packed `shading_factors` column. A read passes the factors unpacked from that column back. Every other member is copied as it is.
+
+```csharp
+public static DiGi.GIS.Classes.BuildingSolarRadiationResult? BuildingSolarRadiationResult(this DiGi.GIS.Classes.BuildingSolarRadiationResult? buildingSolarRadiationResult, int countyId, System.Collections.Generic.IList<byte[]?>? shadingFactors);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Create.BuildingSolarRadiationResult(thisDiGi.GIS.Classes.BuildingSolarRadiationResult,int,System.Collections.Generic.IList_byte[]_).buildingSolarRadiationResult'></a>
+
+`buildingSolarRadiationResult` [DiGi\.GIS\.Classes\.BuildingSolarRadiationResult](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.buildingsolarradiationresult 'DiGi\.GIS\.Classes\.BuildingSolarRadiationResult')
+
+The result to copy\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.BuildingSolarRadiationResult(thisDiGi.GIS.Classes.BuildingSolarRadiationResult,int,System.Collections.Generic.IList_byte[]_).countyId'></a>
+
+`countyId` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The county part the copy is filed under\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.BuildingSolarRadiationResult(thisDiGi.GIS.Classes.BuildingSolarRadiationResult,int,System.Collections.Generic.IList_byte[]_).shadingFactors'></a>
+
+`shadingFactors` [System\.Collections\.Generic\.IList&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ilist-1 'System\.Collections\.Generic\.IList\`1')[System\.Byte](https://learn.microsoft.com/en-us/dotnet/api/system.byte 'System\.Byte')[\[\]](https://learn.microsoft.com/en-us/dotnet/api/system.array 'System\.Array')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ilist-1 'System\.Collections\.Generic\.IList\`1')
+
+The shading factors of each surface, in surface order, or null to remove every surface's factors\.
+
+#### Returns
+[DiGi\.GIS\.Classes\.BuildingSolarRadiationResult](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.buildingsolarradiationresult 'DiGi\.GIS\.Classes\.BuildingSolarRadiationResult')  
+The copy, or null when [buildingSolarRadiationResult](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Create.BuildingSolarRadiationResult(thisDiGi.GIS.Classes.BuildingSolarRadiationResult,int,System.Collections.Generic.IList_byte[]_).buildingSolarRadiationResult 'DiGi\.GIS\.PostgreSQL\.Create\.BuildingSolarRadiationResult\(this DiGi\.GIS\.Classes\.BuildingSolarRadiationResult, int, System\.Collections\.Generic\.IList\<byte\[\]\>\)\.buildingSolarRadiationResult') is null or [shadingFactors](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Create.BuildingSolarRadiationResult(thisDiGi.GIS.Classes.BuildingSolarRadiationResult,int,System.Collections.Generic.IList_byte[]_).shadingFactors 'DiGi\.GIS\.PostgreSQL\.Create\.BuildingSolarRadiationResult\(this DiGi\.GIS\.Classes\.BuildingSolarRadiationResult, int, System\.Collections\.Generic\.IList\<byte\[\]\>\)\.shadingFactors') does not hold one entry per surface\.
 
 <a name='DiGi.GIS.PostgreSQL.Create.GISPostgreSQLConverterManager()'></a>
 
@@ -731,6 +810,82 @@ The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dot
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A task that represents the asynchronous operation\. The task result is true if the Building2D partition was created successfully; otherwise, false\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_BuildingSolarRadiation(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken)'></a>
+
+## Create\.TableAsync\_BuildingSolarRadiation\(this NpgsqlConnection, int, CancellationToken\) Method
+
+Asynchronously creates the [BuildingSolarRadiation](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.TableName.BuildingSolarRadiation 'DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.BuildingSolarRadiation') table and its indexes, partitioned by county part\.
+
+One row holds one building's [DiGi\.GIS\.Classes\.BuildingSolarRadiationResult](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.buildingsolarradiationresult 'DiGi\.GIS\.Classes\.BuildingSolarRadiationResult'): the `object` column carries it with every surface's shading factors removed, and `shading_factors` carries those factors packed into one `bytea` ([ToSystem\_Bytes\(this IEnumerable&lt;byte\[\]&gt;\)](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Convert.ToSystem_Bytes(thisSystem.Collections.Generic.IEnumerable_byte[]_) 'DiGi\.GIS\.PostgreSQL\.Convert\.ToSystem\_Bytes\(this System\.Collections\.Generic\.IEnumerable\<byte\[\]\>\)')), compressed with lz4. Keeping the factors out of the JSONB avoids a third more for base64 and lets lz4 collapse the night-time zeros.
+
+The key `(county_id, building_model_id, radius, solver_version)` is unique and every column of it is NOT NULL, so `NULLS NOT DISTINCT` is not needed. The weather columns describe the stored summary and are not part of the key. Every statement is idempotent.
+
+```csharp
+public static System.Threading.Tasks.Task<bool> TableAsync_BuildingSolarRadiation(this Npgsql.NpgsqlConnection? npgsqlConnection, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_BuildingSolarRadiation(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken).npgsqlConnection'></a>
+
+`npgsqlConnection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
+
+The [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection') instance used to execute the command\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_BuildingSolarRadiation(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_BuildingSolarRadiation(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken') to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result is true if the table exists afterwards; otherwise, false\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_BuildingSolarRadiation_Partition(thisNpgsql.NpgsqlConnection,int,int,System.Threading.CancellationToken)'></a>
+
+## Create\.TableAsync\_BuildingSolarRadiation\_Partition\(this NpgsqlConnection, int, int, CancellationToken\) Method
+
+Asynchronously creates the partition of the [BuildingSolarRadiation](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.TableName.BuildingSolarRadiation 'DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.BuildingSolarRadiation') table for one county part\.
+
+```csharp
+public static System.Threading.Tasks.Task<bool> TableAsync_BuildingSolarRadiation_Partition(this Npgsql.NpgsqlConnection? npgsqlConnection, int countyId, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_BuildingSolarRadiation_Partition(thisNpgsql.NpgsqlConnection,int,int,System.Threading.CancellationToken).npgsqlConnection'></a>
+
+`npgsqlConnection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
+
+The [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection') instance used to execute the command\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_BuildingSolarRadiation_Partition(thisNpgsql.NpgsqlConnection,int,int,System.Threading.CancellationToken).countyId'></a>
+
+`countyId` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The id of the county part the partition holds\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_BuildingSolarRadiation_Partition(thisNpgsql.NpgsqlConnection,int,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_BuildingSolarRadiation_Partition(thisNpgsql.NpgsqlConnection,int,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken') to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result is true if the partition exists afterwards; otherwise, false\.
 
 <a name='DiGi.GIS.PostgreSQL.Create.TableAsync_Building_Partition(thisNpgsql.NpgsqlConnection,int,int,System.Threading.CancellationToken)'></a>
 

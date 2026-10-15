@@ -109,6 +109,45 @@ namespace DiGi.GIS.PostgreSQL.Classes
         }
 
         /// <summary>
+        /// Asynchronously retrieves the closest EPWFile to the given coordinate (x, y) together with the id of its <c>epw_file</c> row.
+        /// <para>The same nearest-neighbour lookup as <see cref="GetEPWFileAsync(NpgsqlConnection?, double, double, int, CancellationToken)"/>, which returns the file only, so a caller cannot tell which row it received. The id identifies the weather source of a stored solar radiation summary.</para>
+        /// </summary>
+        /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> used to connect to the database.</param>
+        /// <param name="x">The X coordinate (EPSG:2180 easting, in metres).</param>
+        /// <param name="y">The Y coordinate (EPSG:2180 northing, in metres).</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The cancellation token to monitor for cancellation requests.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the id of the closest row and its <see cref="EPWFile"/>, or null if not found.</returns>
+        public static async Task<(int Id, EPWFile EPWFile)?> GetEPWFileWithIdAsync(NpgsqlConnection? npgsqlConnection, double x, double y, int commandTimeout = 30, CancellationToken cancellationToken = default)
+        {
+            if (npgsqlConnection is null)
+            {
+                return null;
+            }
+
+            string commandText = $@"
+                SELECT id, object
+                FROM {TableName}
+                ORDER BY point(x, y) <-> point(@x, @y)
+                LIMIT 1;";
+
+            await using NpgsqlCommand npgsqlCommand = new(commandText, npgsqlConnection);
+            npgsqlCommand.CommandTimeout = commandTimeout;
+            npgsqlCommand.Parameters.Add(new NpgsqlParameter("x", NpgsqlDbType.Double) { Value = x });
+            npgsqlCommand.Parameters.Add(new NpgsqlParameter("y", NpgsqlDbType.Double) { Value = y });
+
+            await using NpgsqlDataReader npgsqlDataReader = await npgsqlCommand.ExecuteReaderAsync(cancellationToken);
+            if (await npgsqlDataReader.ReadAsync(cancellationToken))
+            {
+                int id = npgsqlDataReader.GetInt32(0);
+                JsonObject? jsonObject = JsonNode.Parse(npgsqlDataReader.GetString(1)) as JsonObject;
+                return (id, new EPWFile(jsonObject));
+            }
+
+            return null;
+        }
+
+        /// <summary>
         /// Asynchronously inserts or updates a collection of EPWFile objects in the database.
         /// </summary>
         /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> used to connect to the database.</param>
@@ -203,6 +242,26 @@ namespace DiGi.GIS.PostgreSQL.Classes
 
             await npgsqlConnection.OpenAsync(cancellationToken);
             return await ClearAsync(npgsqlConnection, commandTimeout, cancellationToken);
+        }
+
+        /// <summary>
+        /// Asynchronously retrieves the closest EPWFile to the given coordinate (x, y) together with the id of its <c>epw_file</c> row, automatically managing the connection.
+        /// </summary>
+        /// <param name="x">The X coordinate (EPSG:2180 easting, in metres).</param>
+        /// <param name="y">The Y coordinate (EPSG:2180 northing, in metres).</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The cancellation token to monitor for cancellation requests.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the id of the closest row and its <see cref="EPWFile"/>, or null if not found.</returns>
+        public async Task<(int Id, EPWFile EPWFile)?> GetEPWFileWithIdAsync(double x, double y, int commandTimeout = 30, CancellationToken cancellationToken = default)
+        {
+            await using NpgsqlConnection? npgsqlConnection = DiGi.PostgreSQL.Create.NpgsqlConnection(ConnectionData);
+            if (npgsqlConnection is null)
+            {
+                return null;
+            }
+
+            await npgsqlConnection.OpenAsync(cancellationToken);
+            return await GetEPWFileWithIdAsync(npgsqlConnection, x, y, commandTimeout, cancellationToken);
         }
 
         /// <summary>

@@ -120,6 +120,19 @@ public const string BuildingModel = "building_model";
 #### Field Value
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
+<a name='DiGi.GIS.PostgreSQL.Constants.TableName.BuildingSolarRadiation'></a>
+
+## TableName\.BuildingSolarRadiation Field
+
+The name of the building solar radiation table\. One row is the stored solar radiation of one building model for one neighbour radius and solver version, partitioned by county part\.
+
+```csharp
+public const string BuildingSolarRadiation = "building_solar_radiation";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
 <a name='DiGi.GIS.PostgreSQL.Constants.TableName.EPWFile'></a>
 
 ## TableName\.EPWFile Field

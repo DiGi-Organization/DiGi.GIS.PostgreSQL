@@ -448,6 +448,100 @@ namespace DiGi.GIS.PostgreSQL
         }
 
         /// <summary>
+        /// Asynchronously creates the <see cref="Constants.TableName.BuildingSolarRadiation"/> table and its indexes, partitioned by county part.
+        /// <para>One row holds one building's <see cref="GIS.Classes.BuildingSolarRadiationResult"/>: the <c>object</c> column carries it with every surface's shading factors removed, and <c>shading_factors</c> carries those factors packed into one <c>bytea</c> (<see cref="Convert.ToSystem_Bytes(System.Collections.Generic.IEnumerable{byte[]})"/>), compressed with lz4. Keeping the factors out of the JSONB avoids a third more for base64 and lets lz4 collapse the night-time zeros.</para>
+        /// <para>The key <c>(county_id, building_model_id, radius, solver_version)</c> is unique and every column of it is NOT NULL, so <c>NULLS NOT DISTINCT</c> is not needed. The weather columns describe the stored summary and are not part of the key. Every statement is idempotent.</para>
+        /// </summary>
+        /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> instance used to execute the command.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> to monitor for cancellation requests.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result is true if the table exists afterwards; otherwise, false.</returns>
+        public static async Task<bool> TableAsync_BuildingSolarRadiation(this NpgsqlConnection? npgsqlConnection, int commandTimeout = 30, CancellationToken cancellationToken = default)
+        {
+            if (npgsqlConnection is null)
+            {
+                return false;
+            }
+
+            string commandText = $@"
+                CREATE TABLE IF NOT EXISTS {Constants.TableName.BuildingSolarRadiation} (
+                    id BIGINT GENERATED ALWAYS AS IDENTITY,
+                    county_id INT NOT NULL,
+                    reference TEXT NOT NULL,
+                    building_model_id BIGINT NOT NULL,
+                    radius DOUBLE PRECISION NOT NULL,
+                    solver_version INT NOT NULL,
+                    weather_source_type INT NOT NULL,
+                    weather_source_id TEXT,
+                    weather_period_start timestamptz,
+                    weather_period_end timestamptz,
+                    user_email TEXT,
+                    object JSONB NOT NULL,
+                    shading_factors BYTEA COMPRESSION lz4 NOT NULL,
+                    created_at timestamptz DEFAULT now(),
+                    PRIMARY KEY (id, county_id)
+                ) PARTITION BY LIST (county_id);
+
+                -- The key of a stored result and the conflict target of every write: one row per building model, radius and solver version.
+                CREATE UNIQUE INDEX IF NOT EXISTS idx_{Constants.TableName.BuildingSolarRadiation}_key
+                ON {Constants.TableName.BuildingSolarRadiation} (county_id, building_model_id, radius, solver_version);
+
+                -- The fallback read, which looks for the building model under every county part.
+                CREATE INDEX IF NOT EXISTS idx_{Constants.TableName.BuildingSolarRadiation}_building_model_id
+                ON {Constants.TableName.BuildingSolarRadiation} (building_model_id);
+
+                CREATE INDEX IF NOT EXISTS idx_{Constants.TableName.BuildingSolarRadiation}_county_id_reference
+                ON {Constants.TableName.BuildingSolarRadiation} (county_id, reference);
+                ";
+
+            try
+            {
+                await using NpgsqlCommand npgsqlCommand = new(commandText, npgsqlConnection);
+                npgsqlCommand.CommandTimeout = commandTimeout;
+
+                await npgsqlCommand.ExecuteNonQueryAsync(cancellationToken);
+                return true;
+            }
+            catch (NpgsqlException ex)
+            {
+                Console.WriteLine($"Postgres Error ({nameof(TableAsync_BuildingSolarRadiation)}): {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Asynchronously creates the partition of the <see cref="Constants.TableName.BuildingSolarRadiation"/> table for one county part.
+        /// </summary>
+        /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> instance used to execute the command.</param>
+        /// <param name="countyId">The id of the county part the partition holds.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> to monitor for cancellation requests.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result is true if the partition exists afterwards; otherwise, false.</returns>
+        public static async Task<bool> TableAsync_BuildingSolarRadiation_Partition(this NpgsqlConnection? npgsqlConnection, int countyId, int commandTimeout = 30, CancellationToken cancellationToken = default)
+        {
+            if (npgsqlConnection is null)
+            {
+                return false;
+            }
+
+            string commandText = Query.PartitionCommandText(Constants.TableName.BuildingSolarRadiation, countyId);
+
+            try
+            {
+                await using NpgsqlCommand npgsqlCommand = new(commandText, npgsqlConnection);
+                npgsqlCommand.CommandTimeout = commandTimeout;
+
+                await npgsqlCommand.ExecuteNonQueryAsync(cancellationToken);
+                return true;
+            }
+            catch (NpgsqlException ex)
+            {
+                Console.WriteLine($"Postgres Error ({nameof(TableAsync_BuildingSolarRadiation_Partition)}): {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Asynchronously creates the epw_file table in the PostgreSQL database.
         /// </summary>
         /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> instance used to execute the command.</param>

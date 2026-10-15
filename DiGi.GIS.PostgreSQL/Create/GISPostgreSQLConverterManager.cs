@@ -60,6 +60,7 @@ namespace DiGi.GIS.PostgreSQL
                     result.Add(new OrtoDatasPostgreSQLConverter(connectionData), postgreSQLConfigurationFile_Storage);
                     result.Add(new BuildingDataPostgreSQLConverter(connectionData), postgreSQLConfigurationFile_Storage);
                     result.Add(new BuildingModelPostgreSQLConverter(connectionData, BuildingModelDetailLevel.Component), postgreSQLConfigurationFile_Storage);
+                    result.Add(new BuildingSolarRadiationPostgreSQLConverter(connectionData), postgreSQLConfigurationFile_Storage);
                     result.Add(new BuildingPostgreSQLConverter(connectionData), postgreSQLConfigurationFile_Storage);
                     result.Add(new TerrainPointPostgreSQLConverter(connectionData), postgreSQLConfigurationFile_Storage);
                 }

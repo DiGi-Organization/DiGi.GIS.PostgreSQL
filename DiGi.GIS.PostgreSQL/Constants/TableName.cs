@@ -66,6 +66,11 @@ namespace DiGi.GIS.PostgreSQL.Constants
         public const string BuildingModel = "building_model";
 
         /// <summary>
+        /// The name of the building solar radiation table. One row is the stored solar radiation of one building model for one neighbour radius and solver version, partitioned by county part.
+        /// </summary>
+        public const string BuildingSolarRadiation = "building_solar_radiation";
+
+        /// <summary>
         /// The name of the terrain point table. One row is a single terrain elevation point.
         /// </summary>
         public const string TerrainPoint = "terrain_point";
