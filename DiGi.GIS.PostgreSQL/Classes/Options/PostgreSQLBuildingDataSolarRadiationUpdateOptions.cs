@@ -1,0 +1,74 @@
+using DiGi.Core.Classes;
+using System.Collections.Generic;
+using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
+
+namespace DiGi.GIS.PostgreSQL.Classes
+{
+    /// <summary>
+    /// Provides options for updating the yearly solar radiation summary columns of the building data table from the stored solar radiation.
+    /// </summary>
+    public class PostgreSQLBuildingDataSolarRadiationUpdateOptions : SerializableOptions
+    {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PostgreSQLBuildingDataSolarRadiationUpdateOptions"/> class using a JSON object.
+        /// </summary>
+        /// <param name="jsonObject">The JSON object containing the configuration settings.</param>
+        public PostgreSQLBuildingDataSolarRadiationUpdateOptions(JsonObject jsonObject)
+            : base(jsonObject)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PostgreSQLBuildingDataSolarRadiationUpdateOptions"/> class.
+        /// </summary>
+        public PostgreSQLBuildingDataSolarRadiationUpdateOptions()
+            : base()
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PostgreSQLBuildingDataSolarRadiationUpdateOptions"/> class by copying an existing options instance.
+        /// </summary>
+        /// <param name="postgreSQLBuildingDataSolarRadiationUpdateOptions">The source options instance to copy from.</param>
+        public PostgreSQLBuildingDataSolarRadiationUpdateOptions(PostgreSQLBuildingDataSolarRadiationUpdateOptions postgreSQLBuildingDataSolarRadiationUpdateOptions)
+            : base(postgreSQLBuildingDataSolarRadiationUpdateOptions)
+        {
+            if (postgreSQLBuildingDataSolarRadiationUpdateOptions is not null)
+            {
+                BatchSize = postgreSQLBuildingDataSolarRadiationUpdateOptions.BatchSize;
+                CommandTimeout = postgreSQLBuildingDataSolarRadiationUpdateOptions.CommandTimeout;
+                SkipCompleted = postgreSQLBuildingDataSolarRadiationUpdateOptions.SkipCompleted;
+                CountyIds = postgreSQLBuildingDataSolarRadiationUpdateOptions.CountyIds == null ? null : [.. postgreSQLBuildingDataSolarRadiationUpdateOptions.CountyIds];
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the timeout in seconds applied to every statement the update issues. A value of 0 disables the timeout.
+        /// <para>Well above the 30 second default, because these are bulk reads and writes over a partitioned table: a county can carry tens of thousands of stored solar radiation results, and the push writes the summary columns of each of them.</para>
+        /// </summary>
+        [JsonInclude, JsonPropertyName(nameof(CommandTimeout))]
+        public int CommandTimeout { get; set; } = 600;
+
+        /// <summary>
+        /// Gets or sets the set of county identifiers the run is limited to. Null updates every county.
+        /// <para>Identifiers rather than codes: a county whose territory is in several pieces is held as one row per piece, each with its own identifier, so a code names several of them.</para>
+        /// </summary>
+        [JsonInclude, JsonPropertyName(nameof(CountyIds))]
+        public HashSet<int>? CountyIds { get; set; } = null;
+
+        /// <summary>
+        /// Gets or sets the number of references read, aggregated and written together. Values below 1 are treated as 1.
+        /// <para>This bounds the memory of the run: only one batch of stored solar radiation results is held at a time, so a county of any size costs the same. Lower it when a batch of large results still weighs too much.</para>
+        /// </summary>
+        [JsonInclude, JsonPropertyName(nameof(BatchSize))]
+        public int BatchSize { get; set; } = 1000;
+
+        /// <summary>
+        /// Gets or sets a value indicating whether references whose building data row already carries a yearly solar radiation total are stepped over.
+        /// <para>This resumes an interrupted run without recomputing what it finished. It is sound only while a non-null total means "written by this kind of run", that is, when the columns were empty before the first run. After the stored solar radiation changes, clear it to rewrite every row.</para>
+        /// </summary>
+        [JsonInclude, JsonPropertyName(nameof(SkipCompleted))]
+        public bool SkipCompleted { get; set; } = false;
+    }
+}

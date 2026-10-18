@@ -1727,6 +1727,37 @@ The PostgreSQL table to be updated\.
 
 A collection of [Building2DOccupancyData](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.Building2DOccupancyData 'DiGi\.GIS\.PostgreSQL\.Classes\.Building2DOccupancyData') objects containing the new occupancy information, most preferred record first\.
 
+<a name='DiGi.GIS.PostgreSQL.Modify.Update_SolarRadiation(thisDiGi.Core.IO.Table.Classes.Table,System.Collections.Generic.IEnumerable_DiGi.GIS.Classes.BuildingSolarRadiationResult_)'></a>
+
+## Modify\.Update\_SolarRadiation\(this Table, IEnumerable\<BuildingSolarRadiationResult\>\) Method
+
+Aggregates the yearly solar radiation of the stored [DiGi\.GIS\.Classes\.BuildingSolarRadiationResult](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.buildingsolarradiationresult 'DiGi\.GIS\.Classes\.BuildingSolarRadiationResult')s into the 22 “Solar radiation” columns of the given table, keyed by county identifier and reference\.
+
+Irradiation is the area-weighted average over the building’s usable surfaces (a finite area greater than zero); energy is their sum. A surface is filed under the cardinal sector of its outward normal’s azimuth, in the same eight sectors as the external components area columns. The first record of a given county and reference is the one written and the rest are stepped over, so the collection has to reach this method in the caller’s order of preference - the converter returns the newest first.
+
+A surface with no usable area is skipped and counted. A usable surface with no classifiable facing direction - a missing or vertical outward normal, typically a flat roof - counts toward the building totals but toward no direction sector. A direction with no usable surface is left null, and a building with no usable surface is left null rather than zeroed.
+
+```csharp
+public static DiGi.GIS.PostgreSQL.Classes.SolarRadiationSummaryResult Update_SolarRadiation(this DiGi.Core.IO.Table.Classes.Table? table, System.Collections.Generic.IEnumerable<DiGi.GIS.Classes.BuildingSolarRadiationResult>? results);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Modify.Update_SolarRadiation(thisDiGi.Core.IO.Table.Classes.Table,System.Collections.Generic.IEnumerable_DiGi.GIS.Classes.BuildingSolarRadiationResult_).table'></a>
+
+`table` [DiGi\.Core\.IO\.Table\.Classes\.Table](https://learn.microsoft.com/en-us/dotnet/api/digi.core.io.table.classes.table 'DiGi\.Core\.IO\.Table\.Classes\.Table')
+
+The table to fill with the yearly solar radiation summary\.
+
+<a name='DiGi.GIS.PostgreSQL.Modify.Update_SolarRadiation(thisDiGi.Core.IO.Table.Classes.Table,System.Collections.Generic.IEnumerable_DiGi.GIS.Classes.BuildingSolarRadiationResult_).results'></a>
+
+`results` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[DiGi\.GIS\.Classes\.BuildingSolarRadiationResult](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.buildingsolarradiationresult 'DiGi\.GIS\.Classes\.BuildingSolarRadiationResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The stored solar radiation results, most preferred record of a county and reference first\.
+
+#### Returns
+[SolarRadiationSummaryResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.SolarRadiationSummaryResult 'DiGi\.GIS\.PostgreSQL\.Classes\.SolarRadiationSummaryResult')  
+The outcome of the aggregation: the buildings written and the surfaces aggregated, plus the ones skipped or without a classifiable sector\.
+
 <a name='DiGi.GIS.PostgreSQL.Query'></a>
 
 ## Query Class

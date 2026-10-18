@@ -279,5 +279,172 @@ namespace DiGi.GIS.PostgreSQL.Classes
             await npgsqlConnection.OpenAsync(cancellationToken);
             return await UpdateAsync(npgsqlConnection, countyId, buildingSolarRadiationResult, commandTimeout, cancellationToken);
         }
+
+        /// <summary>
+        /// Asynchronously reads the references that carry a stored solar radiation in the given county part.
+        /// <para>The reference is the building's <c>building_2d</c> reference, the same key <c>building_data</c> is held under. A table that does not exist yet answers empty, the same as a county with no stored result.</para>
+        /// </summary>
+        /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> used to connect to the database.</param>
+        /// <param name="countyId">The county part to scope the read.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the references, empty when the county holds none or the table is missing, or null when the connection is null.</returns>
+        public static async Task<HashSet<string>?> GetReferencesAsync(
+            NpgsqlConnection? npgsqlConnection,
+            int countyId,
+            int commandTimeout = 30,
+            CancellationToken cancellationToken = default)
+        {
+            if (npgsqlConnection is null)
+            {
+                return null;
+            }
+
+            string commandText = $@"
+                SELECT DISTINCT reference
+                FROM {TableName}
+                WHERE county_id = @county_id
+                  AND reference IS NOT NULL
+                  AND reference <> ''";
+
+            HashSet<string> references = [];
+            try
+            {
+                await using NpgsqlCommand npgsqlCommand = new(commandText, npgsqlConnection);
+                npgsqlCommand.CommandTimeout = commandTimeout;
+                npgsqlCommand.Parameters.Add(new NpgsqlParameter("county_id", NpgsqlDbType.Integer) { Value = countyId });
+
+                await using NpgsqlDataReader npgsqlDataReader = await npgsqlCommand.ExecuteReaderAsync(cancellationToken);
+                while (await npgsqlDataReader.ReadAsync(cancellationToken))
+                {
+                    if (npgsqlDataReader.GetString(0) is string reference && !string.IsNullOrWhiteSpace(reference))
+                    {
+                        references.Add(reference);
+                    }
+                }
+            }
+            catch (PostgresException postgresException) when (postgresException.SqlState == PostgresErrorCodes.UndefinedTable)
+            {
+                return [];
+            }
+
+            return references;
+        }
+
+        /// <summary>
+        /// Asynchronously reads the latest stored solar radiation of each of the given references in the given county part.
+        /// <para>For a reference with several stored results (several solver versions), the one with the highest solver version wins, a tie broken by the newest creation time. The read is scoped to <paramref name="countyId"/>: a reference the county does not hold is simply absent from the result, not answered out of some other county. The shading factors are not read - the summary never needs them.</para>
+        /// </summary>
+        /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> used to connect to the database.</param>
+        /// <param name="references">The references to read.</param>
+        /// <param name="countyId">The county part to scope the read.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result holds the latest result of each reference, one entry per reference, or null when the connection is null or the table is missing.</returns>
+        public static async Task<List<GIS.Classes.BuildingSolarRadiationResult>?> GetItemsByReferencesAsync(
+            NpgsqlConnection? npgsqlConnection,
+            IEnumerable<string>? references,
+            int countyId,
+            int commandTimeout = 30,
+            CancellationToken cancellationToken = default)
+        {
+            if (npgsqlConnection is null || references is null)
+            {
+                return null;
+            }
+
+            List<string> references_List = [];
+            foreach (string? reference in references)
+            {
+                if (!string.IsNullOrWhiteSpace(reference))
+                {
+                    references_List.Add(reference);
+                }
+            }
+
+            if (references_List.Count == 0)
+            {
+                return [];
+            }
+
+            string commandText = $@"
+                SELECT object, reference
+                FROM {TableName}
+                WHERE county_id = @county_id
+                  AND reference = ANY(@references)
+                ORDER BY reference, solver_version DESC, created_at DESC";
+
+            List<GIS.Classes.BuildingSolarRadiationResult> results = [];
+            HashSet<string> seen = [];
+            try
+            {
+                await using NpgsqlCommand npgsqlCommand = new(commandText, npgsqlConnection);
+                npgsqlCommand.CommandTimeout = commandTimeout;
+                npgsqlCommand.Parameters.Add(new NpgsqlParameter("county_id", NpgsqlDbType.Integer) { Value = countyId });
+                npgsqlCommand.Parameters.Add(new NpgsqlParameter("references", NpgsqlDbType.Array | NpgsqlDbType.Text) { Value = references_List.ToArray() });
+
+                await using NpgsqlDataReader npgsqlDataReader = await npgsqlCommand.ExecuteReaderAsync(cancellationToken);
+                while (await npgsqlDataReader.ReadAsync(cancellationToken))
+                {
+                    // The rows are ordered latest-first per reference, so the first one of a reference is the latest; the rest are stepped over.
+                    if (npgsqlDataReader.GetString(1) is not string reference || !seen.Add(reference))
+                    {
+                        continue;
+                    }
+
+                    if (JsonNode.Parse(npgsqlDataReader.GetString(0)) is not JsonObject jsonObject)
+                    {
+                        continue;
+                    }
+
+                    results.Add(new GIS.Classes.BuildingSolarRadiationResult(jsonObject));
+                }
+            }
+            catch (PostgresException postgresException) when (postgresException.SqlState == PostgresErrorCodes.UndefinedTable)
+            {
+                return null;
+            }
+
+            return results;
+        }
+
+        /// <summary>
+        /// Asynchronously reads the references that carry a stored solar radiation in the given county part, automatically managing the connection.
+        /// </summary>
+        /// <param name="countyId">The county part to scope the read.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the references, empty when the county holds none or the table is missing, or null when the connection is null.</returns>
+        public async Task<HashSet<string>?> GetReferencesAsync(int countyId, int commandTimeout = 30, CancellationToken cancellationToken = default)
+        {
+            await using NpgsqlConnection? npgsqlConnection = DiGi.PostgreSQL.Create.NpgsqlConnection(ConnectionData);
+            if (npgsqlConnection is null)
+            {
+                return null;
+            }
+
+            await npgsqlConnection.OpenAsync(cancellationToken);
+            return await GetReferencesAsync(npgsqlConnection, countyId, commandTimeout, cancellationToken);
+        }
+
+        /// <summary>
+        /// Asynchronously reads the latest stored solar radiation of each of the given references in the given county part, automatically managing the connection.
+        /// </summary>
+        /// <param name="references">The references to read.</param>
+        /// <param name="countyId">The county part to scope the read.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result holds the latest result of each reference, one entry per reference, or null when the connection is null or the table is missing.</returns>
+        public async Task<List<GIS.Classes.BuildingSolarRadiationResult>?> GetItemsByReferencesAsync(IEnumerable<string>? references, int countyId, int commandTimeout = 30, CancellationToken cancellationToken = default)
+        {
+            await using NpgsqlConnection? npgsqlConnection = DiGi.PostgreSQL.Create.NpgsqlConnection(ConnectionData);
+            if (npgsqlConnection is null)
+            {
+                return null;
+            }
+
+            await npgsqlConnection.OpenAsync(cancellationToken);
+            return await GetItemsByReferencesAsync(npgsqlConnection, references, countyId, commandTimeout, cancellationToken);
+        }
     }
 }
