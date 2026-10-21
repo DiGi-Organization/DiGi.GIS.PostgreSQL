@@ -1731,7 +1731,7 @@ A collection of [Building2DOccupancyData](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GI
 
 ## Modify\.Update\_SolarRadiation\(this Table, IEnumerable\<BuildingSolarRadiationResult\>\) Method
 
-Aggregates the yearly solar radiation of the stored [DiGi\.GIS\.Classes\.BuildingSolarRadiationResult](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.buildingsolarradiationresult 'DiGi\.GIS\.Classes\.BuildingSolarRadiationResult')s into the 22 “Solar radiation” columns of the given table, keyed by county identifier and reference\.
+Aggregates the yearly solar radiation of the stored [DiGi\.GIS\.Classes\.BuildingSolarRadiationResult](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.buildingsolarradiationresult 'DiGi\.GIS\.Classes\.BuildingSolarRadiationResult')s into the 25 “Solar radiation” columns of the given table, keyed by county identifier and reference\.
 
 Irradiation is the area-weighted average over the building’s usable surfaces (a finite area greater than zero); energy is their sum. A surface is filed under the cardinal sector of its outward normal’s azimuth, in the same eight sectors as the external components area columns. The first record of a given county and reference is the one written and the rest are stepped over, so the collection has to reach this method in the caller’s order of preference - the converter returns the newest first.
 

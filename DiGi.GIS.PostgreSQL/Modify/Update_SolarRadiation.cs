@@ -10,7 +10,7 @@ namespace DiGi.GIS.PostgreSQL
     public static partial class Modify
     {
         /// <summary>
-        /// Aggregates the yearly solar radiation of the stored <see cref="GIS.Classes.BuildingSolarRadiationResult"/>s into the 22 “Solar radiation” columns of the given table, keyed by county identifier and reference.
+        /// Aggregates the yearly solar radiation of the stored <see cref="GIS.Classes.BuildingSolarRadiationResult"/>s into the 25 “Solar radiation” columns of the given table, keyed by county identifier and reference.
         /// <para>Irradiation is the area-weighted average over the building’s usable surfaces (a finite area greater than zero); energy is their sum. A surface is filed under the cardinal sector of its outward normal’s azimuth, in the same eight sectors as the external components area columns. The first record of a given county and reference is the one written and the rest are stepped over, so the collection has to reach this method in the caller’s order of preference - the converter returns the newest first.</para>
         /// <para>A surface with no usable area is skipped and counted. A usable surface with no classifiable facing direction - a missing or vertical outward normal, typically a flat roof - counts toward the building totals but toward no direction sector. A direction with no usable surface is left null, and a building with no usable surface is left null rather than zeroed.</para>
         /// </summary>
@@ -46,9 +46,10 @@ namespace DiGi.GIS.PostgreSQL
                 }
             }
 
-            // 22 columns: the six building totals (index 0-5), then the sixteen per-direction values
-            // (index 6-21; sector d carries its irradiation at 6 + 2d and its energy at 7 + 2d).
-            const int columnCount = 22;
+            // 25 columns: the six building totals (index 0-5), then the sixteen per-direction values
+            // (index 6-21; sector d carries its irradiation at 6 + 2d and its energy at 7 + 2d),
+            // then the three weather source and range metadata columns (index 22-24).
+            const int columnCount = 25;
             if (columns_Solar.Count != columnCount)
             {
                 return new SolarRadiationSummaryResult();
@@ -166,6 +167,18 @@ namespace DiGi.GIS.PostgreSQL
                         SetIfFinite(row, columns_Solar[6 + 2 * d], sectorIrradiationNumerator[d] / sectorArea[d]);
                         SetIfFinite(row, columns_Solar[7 + 2 * d], sectorEnergy[d]);
                     }
+                }
+
+                // The three metadata columns (index 22-24): the weather source identity and the surrounding building range.
+                // Set for every written row, independent of whether the building carries usable surfaces.
+                if (!string.IsNullOrWhiteSpace(result.WeatherSourceId))
+                {
+                    IO.Modify.SetValue(row, columns_Solar[22], result.WeatherSourceId);
+                }
+                IO.Modify.SetValue(row, columns_Solar[23], (int)result.WeatherSourceType);
+                if (double.IsFinite(result.Radius) && result.Radius > 0)
+                {
+                    IO.Modify.SetValue(row, columns_Solar[24], (float)result.Radius);
                 }
 
                 table.AddRow(row, false);
