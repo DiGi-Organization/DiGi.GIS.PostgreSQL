@@ -574,30 +574,13 @@ namespace DiGi.GIS.PostgreSQL.Classes
 
             static List<Building2DOccupancyData> CalculateBuilding2DOccupancyDatas(int countyId, List<Building2D> subdivisionBuildings, uint occupancy)
             {
-                List<GIS.Classes.Building2D> building2Ds = [];
-                List<double> occupancyAreas = [];
-
-                foreach (Building2D building2D_Raw in subdivisionBuildings)
-                {
-                    if (building2D_Raw?.ToDiGi() is not GIS.Classes.Building2D building2D || GIS.Query.OccupancyArea(building2D) is not double occupancyArea)
-                    {
-                        continue;
-                    }
-
-                    building2Ds.Add(building2D);
-                    occupancyAreas.Add(occupancyArea);
-                }
-
-                List<uint> occupancies = GIS.Query.Occupancies(occupancyAreas, occupancy);
-                if (occupancies.Count != building2Ds.Count)
-                {
-                    return [];
-                }
+                // Building order comes from storage (no ORDER BY); Query.Building2DOccupancies sorts by Reference, so the result does not depend on it (DiGi.GIS#13).
+                List<GIS.Classes.Building2D?> building2Ds = subdivisionBuildings.ConvertAll(x => x?.ToDiGi());
 
                 List<Building2DOccupancyData> result = [];
-                for (int i = 0; i < building2Ds.Count; i++)
+                foreach (Tuple<GIS.Classes.Building2D, double, uint> tuple_Building2D in GIS.Query.Building2DOccupancies(building2Ds, occupancy))
                 {
-                    if (new OccupancyData(building2Ds[i].Reference, occupancyAreas[i], occupancies[i]).ToPostgreSQL(countyId) is Building2DOccupancyData building2DOccupancyData)
+                    if (new OccupancyData(tuple_Building2D.Item1.Reference, tuple_Building2D.Item2, tuple_Building2D.Item3).ToPostgreSQL(countyId) is Building2DOccupancyData building2DOccupancyData)
                     {
                         result.Add(building2DOccupancyData);
                     }
