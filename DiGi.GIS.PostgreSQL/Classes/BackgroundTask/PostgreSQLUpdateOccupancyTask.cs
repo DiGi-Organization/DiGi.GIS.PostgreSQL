@@ -574,80 +574,30 @@ namespace DiGi.GIS.PostgreSQL.Classes
 
             static List<Building2DOccupancyData> CalculateBuilding2DOccupancyDatas(int countyId, List<Building2D> subdivisionBuildings, uint occupancy)
             {
-                List<Tuple<GIS.Classes.Building2D, double>> tuples_BuildingArea = [];
-                double totalArea = 0;
+                List<GIS.Classes.Building2D> building2Ds = [];
+                List<double> occupancyAreas = [];
 
                 foreach (Building2D building2D_Raw in subdivisionBuildings)
                 {
-                    if (building2D_Raw?.ToDiGi() is not GIS.Classes.Building2D building2D ||
-                        !GIS.Query.IsOccupied(building2D) ||
-                        building2D.PolygonalFace2D?.GetArea() is not double floorArea ||
-                        floorArea <= 0)
+                    if (building2D_Raw?.ToDiGi() is not GIS.Classes.Building2D building2D || GIS.Query.OccupancyArea(building2D) is not double occupancyArea)
                     {
                         continue;
                     }
 
-                    double buildingArea = floorArea * (building2D.Storeys is not > 0 ? 1 : building2D.Storeys);
-                    tuples_BuildingArea.Add(new Tuple<GIS.Classes.Building2D, double>(building2D, buildingArea));
-                    totalArea += buildingArea;
+                    building2Ds.Add(building2D);
+                    occupancyAreas.Add(occupancyArea);
                 }
 
-                if (tuples_BuildingArea.Count == 0 || totalArea <= 0)
+                List<uint> occupancies = GIS.Query.Occupancies(occupancyAreas, occupancy);
+                if (occupancies.Count != building2Ds.Count)
                 {
                     return [];
                 }
 
-                int remainingOccupancy = (int)occupancy;
-                double occupancyPerMeterSquared = (double)remainingOccupancy / totalArea;
-
-                List<OccupancyData> occupancyDatas = [];
-                bool canEnforceMin1 = remainingOccupancy >= tuples_BuildingArea.Count;
-
-                foreach (Tuple<GIS.Classes.Building2D, double> tuple_BuildingArea in tuples_BuildingArea)
-                {
-                    uint occupancy_Building2D = (uint)Math.Floor(tuple_BuildingArea.Item2 * occupancyPerMeterSquared);
-                    if (canEnforceMin1 && occupancy_Building2D == 0)
-                    {
-                        occupancy_Building2D = 1;
-                    }
-
-                    occupancyDatas.Add(new OccupancyData(tuple_BuildingArea.Item1.Reference, tuple_BuildingArea.Item2, occupancy_Building2D));
-                    remainingOccupancy -= (int)occupancy_Building2D;
-                }
-
-                if (remainingOccupancy < 0)
-                {
-                    occupancyDatas.Sort((x, y) => (y.Occupancy ?? 0).CompareTo(x.Occupancy ?? 0));
-                    for (int i = 0; i < occupancyDatas.Count && remainingOccupancy < 0; i++)
-                    {
-                        uint currentOccupancy = occupancyDatas[i].Occupancy ?? 0;
-                        if (currentOccupancy > 0)
-                        {
-                            occupancyDatas[i] = new OccupancyData(occupancyDatas[i].Reference, occupancyDatas[i].OccupancyArea, currentOccupancy - 1);
-                            remainingOccupancy++;
-                        }
-                    }
-                }
-
-                if (remainingOccupancy > 0)
-                {
-                    Random random = new(occupancyDatas.Count);
-                    Range<int> range = new(0, occupancyDatas.Count - 1);
-
-                    while (remainingOccupancy > 0)
-                    {
-                        int index = Core.Query.Random(random, range);
-                        uint currentOccupancy = occupancyDatas[index].Occupancy ?? 0;
-
-                        occupancyDatas[index] = new OccupancyData(occupancyDatas[index].Reference, occupancyDatas[index].OccupancyArea, currentOccupancy + 1);
-                        remainingOccupancy--;
-                    }
-                }
-
                 List<Building2DOccupancyData> result = [];
-                foreach (OccupancyData occupancyData_Building in occupancyDatas)
+                for (int i = 0; i < building2Ds.Count; i++)
                 {
-                    if (occupancyData_Building.ToPostgreSQL(countyId) is Building2DOccupancyData building2DOccupancyData)
+                    if (new OccupancyData(building2Ds[i].Reference, occupancyAreas[i], occupancies[i]).ToPostgreSQL(countyId) is Building2DOccupancyData building2DOccupancyData)
                     {
                         result.Add(building2DOccupancyData);
                     }
