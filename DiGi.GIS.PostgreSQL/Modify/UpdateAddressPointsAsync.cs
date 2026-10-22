@@ -91,7 +91,6 @@ namespace DiGi.GIS.PostgreSQL
                 addressPoints_CountyId.Add(addressPoints_Valid[i]);
             }
 
-            // TODO [AddressPointMaxDistance]: maxDistance defaults to the provisional, unmeasured 10 m of DiGi.GIS Create.AddressPointMatchResult. Remove this marker once the first county import has measured it (DiGi.GIS#10) and both defaults carry the measured value.
             int inside = 0;
             int nearest = 0;
             int unmatched = 0;
