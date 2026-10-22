@@ -25,6 +25,7 @@ namespace DiGi.GIS.PostgreSQL
             // Using timestamptz to ensure consistent time tracking across different time zones
             string commandText = $@"
                 CREATE EXTENSION IF NOT EXISTS unaccent;
+                CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
                 CREATE TABLE IF NOT EXISTS {Constants.TableName.AdministrativeAreal2D} (
                     id SERIAL PRIMARY KEY,
@@ -77,6 +78,74 @@ namespace DiGi.GIS.PostgreSQL
             }
             catch (NpgsqlException)
             {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Asynchronously creates the <see cref="Constants.TableName.AddressPoint"/> table and its indexes, together with the <c>pg_trgm</c> extension its search index needs.
+        /// <para>One row is one PRG address point. <c>reference_id</c> (the PRG local identifier) is the only unique key, so a re-import of a newer version replaces the row rather than appending one, and a point that now falls in a sibling county part moves with it. The table is therefore not partitioned: a partitioned table would have to put <c>county_id</c> into that key. <c>county_id</c> is the county <b>part</b> id, never a county code (<c>Coding - GIS Administrative Data.md</c>).</para>
+        /// <para><c>search_text</c> is normalised in C# by <see cref="Query.SearchText(string?)"/>, at import and at query time alike, and indexed with a GIN trigram index. <c>unaccent()</c> is not <c>IMMUTABLE</c>, so an index cannot be built on it, and a leading-wildcard <c>ILIKE</c> over it scans the whole table. Every statement is idempotent.</para>
+        /// </summary>
+        /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> instance used to execute the command.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> to monitor for cancellation requests.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result is true if the table exists afterwards; otherwise, false.</returns>
+        public static async Task<bool> TableAsync_AddressPoint(this NpgsqlConnection? npgsqlConnection, int commandTimeout = 30, CancellationToken cancellationToken = default)
+        {
+            if (npgsqlConnection is null)
+            {
+                return false;
+            }
+
+            string commandText = $@"
+                CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
+                CREATE TABLE IF NOT EXISTS {Constants.TableName.AddressPoint} (
+                    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+                    reference_id TEXT NOT NULL UNIQUE,
+                    version timestamptz,
+                    county_id INT NOT NULL,
+                    building_reference TEXT,
+                    match_type SMALLINT NOT NULL,
+                    distance DOUBLE PRECISION,
+                    street TEXT,
+                    ulic_id TEXT,
+                    house_number TEXT,
+                    locality TEXT,
+                    simc_id TEXT,
+                    postal_code TEXT,
+                    x DOUBLE PRECISION NOT NULL,
+                    y DOUBLE PRECISION NOT NULL,
+                    search_text TEXT NOT NULL,
+                    object JSONB NOT NULL,
+                    created_at timestamptz DEFAULT now()
+                );
+
+                -- Structured lookup: a street of a county part by its TERYT ULIC id and house number.
+                CREATE INDEX IF NOT EXISTS idx_{Constants.TableName.AddressPoint}_county_id_ulic_id_house_number
+                ON {Constants.TableName.AddressPoint} (county_id, ulic_id, house_number);
+
+                -- Reverse lookup: the address points of a building.
+                CREATE INDEX IF NOT EXISTS idx_{Constants.TableName.AddressPoint}_building_reference
+                ON {Constants.TableName.AddressPoint} (building_reference);
+
+                -- Serves both the similarity operator (%) and the partial match (LIKE '%text%') of the address search.
+                CREATE INDEX IF NOT EXISTS idx_{Constants.TableName.AddressPoint}_search_text
+                ON {Constants.TableName.AddressPoint} USING gin (search_text gin_trgm_ops);
+                ";
+
+            try
+            {
+                await using NpgsqlCommand npgsqlCommand = new(commandText, npgsqlConnection);
+                npgsqlCommand.CommandTimeout = commandTimeout;
+
+                await npgsqlCommand.ExecuteNonQueryAsync(cancellationToken);
+                return true;
+            }
+            catch (NpgsqlException ex)
+            {
+                Console.WriteLine($"Postgres Error ({nameof(TableAsync_AddressPoint)}): {ex.Message}");
                 return false;
             }
         }

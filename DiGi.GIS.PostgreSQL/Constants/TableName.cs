@@ -11,6 +11,11 @@ namespace DiGi.GIS.PostgreSQL.Constants
         public const string AdministrativeAreal2D = "administrative_areal_2d";
 
         /// <summary>
+        /// The name of the address point table. One row is one PRG address point, keyed by its PRG local identifier and filed under the county part it lies in, together with the <c>building_2d</c> reference it was matched to.
+        /// </summary>
+        public const string AddressPoint = "address_point";
+
+        /// <summary>
         /// The name of the building 2D table.
         /// </summary>
         public const string Building2D = "building_2d";

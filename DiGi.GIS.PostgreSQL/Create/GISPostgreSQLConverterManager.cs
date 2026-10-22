@@ -48,6 +48,7 @@ namespace DiGi.GIS.PostgreSQL
                     result.Add(new EPWFilePostgreSQLConverter(connectionData), postgreSQLConfigurationFile_Main);
                     result.Add(new UnitPostgreSQLConverter(connectionData), postgreSQLConfigurationFile_Main);
                     result.Add(new StatisticalDataCollectionPostgreSQLConverter(connectionData), postgreSQLConfigurationFile_Main);
+                    result.Add(new AddressPointPostgreSQLConverter(connectionData), postgreSQLConfigurationFile_Main);
                 }
             }
 

@@ -55,6 +55,19 @@ public static class TableName
 Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → TableName
 ### Fields
 
+<a name='DiGi.GIS.PostgreSQL.Constants.TableName.AddressPoint'></a>
+
+## TableName\.AddressPoint Field
+
+The name of the address point table\. One row is one PRG address point, keyed by its PRG local identifier and filed under the county part it lies in, together with the `building_2d` reference it was matched to\.
+
+```csharp
+public const string AddressPoint = "address_point";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
 <a name='DiGi.GIS.PostgreSQL.Constants.TableName.AdministrativeAreal2D'></a>
 
 ## TableName\.AdministrativeAreal2D Field
