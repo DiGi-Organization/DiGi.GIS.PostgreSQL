@@ -9509,54 +9509,60 @@ The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dot
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[TBuilding2DReferencedObject](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.Building2DReferencedObjectPostgreSQLConverter_TBuilding2DReferencedObject,TUniqueObject_.TBuilding2DReferencedObject 'DiGi\.GIS\.PostgreSQL\.Classes\.Building2DReferencedObjectPostgreSQLConverter\<TBuilding2DReferencedObject,TUniqueObject\>\.TBuilding2DReferencedObject')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A task that represents the asynchronous operation\. The task result contains a list of [TBuilding2DReferencedObject](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.Building2DReferencedObjectPostgreSQLConverter_TBuilding2DReferencedObject,TUniqueObject_.TBuilding2DReferencedObject 'DiGi\.GIS\.PostgreSQL\.Classes\.Building2DReferencedObjectPostgreSQLConverter\<TBuilding2DReferencedObject,TUniqueObject\>\.TBuilding2DReferencedObject') objects if matching items are found; otherwise, null\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.Building2DReferencedObjectPostgreSQLConverter_TBuilding2DReferencedObject,TUniqueObject_.GetItemsByReferencesAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_string_,System.Nullable_int_,System.Nullable_long_,bool,int,System.Threading.CancellationToken)'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.Building2DReferencedObjectPostgreSQLConverter_TBuilding2DReferencedObject,TUniqueObject_.GetItemsByReferencesAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_string_,System.Nullable_int_,System.Nullable_long_,bool,System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken)'></a>
 
-## Building2DReferencedObjectPostgreSQLConverter\<TBuilding2DReferencedObject,TUniqueObject\>\.GetItemsByReferencesAsync\(NpgsqlConnection, IEnumerable\<string\>, Nullable\<int\>, Nullable\<long\>, bool, int, CancellationToken\) Method
+## Building2DReferencedObjectPostgreSQLConverter\<TBuilding2DReferencedObject,TUniqueObject\>\.GetItemsByReferencesAsync\(NpgsqlConnection, IEnumerable\<string\>, Nullable\<int\>, Nullable\<long\>, bool, IEnumerable\<int\>, int, CancellationToken\) Method
 
 Asynchronously retrieves a list of items that implement [TBuilding2DReferencedObject](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.Building2DReferencedObjectPostgreSQLConverter_TBuilding2DReferencedObject,TUniqueObject_.TBuilding2DReferencedObject 'DiGi\.GIS\.PostgreSQL\.Classes\.Building2DReferencedObjectPostgreSQLConverter\<TBuilding2DReferencedObject,TUniqueObject\>\.TBuilding2DReferencedObject') based on the provided references and optional filters\.
 
 ```csharp
-public System.Threading.Tasks.Task<System.Collections.Generic.List<TBuilding2DReferencedObject>?> GetItemsByReferencesAsync(Npgsql.NpgsqlConnection? npgsqlConnection, System.Collections.Generic.IEnumerable<string>? references, System.Nullable<int> countyId, System.Nullable<long> limit=null, bool fallbackByReference=false, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+public System.Threading.Tasks.Task<System.Collections.Generic.List<TBuilding2DReferencedObject>?> GetItemsByReferencesAsync(Npgsql.NpgsqlConnection? npgsqlConnection, System.Collections.Generic.IEnumerable<string>? references, System.Nullable<int> countyId, System.Nullable<long> limit=null, bool fallbackByReference=false, System.Collections.Generic.IEnumerable<int>? fallbackCountyIds=null, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
 ```
 #### Parameters
 
-<a name='DiGi.GIS.PostgreSQL.Classes.Building2DReferencedObjectPostgreSQLConverter_TBuilding2DReferencedObject,TUniqueObject_.GetItemsByReferencesAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_string_,System.Nullable_int_,System.Nullable_long_,bool,int,System.Threading.CancellationToken).npgsqlConnection'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.Building2DReferencedObjectPostgreSQLConverter_TBuilding2DReferencedObject,TUniqueObject_.GetItemsByReferencesAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_string_,System.Nullable_int_,System.Nullable_long_,bool,System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken).npgsqlConnection'></a>
 
 `npgsqlConnection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
 
 The [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection') used to connect to the PostgreSQL database\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.Building2DReferencedObjectPostgreSQLConverter_TBuilding2DReferencedObject,TUniqueObject_.GetItemsByReferencesAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_string_,System.Nullable_int_,System.Nullable_long_,bool,int,System.Threading.CancellationToken).references'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.Building2DReferencedObjectPostgreSQLConverter_TBuilding2DReferencedObject,TUniqueObject_.GetItemsByReferencesAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_string_,System.Nullable_int_,System.Nullable_long_,bool,System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken).references'></a>
 
 `references` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
 
 A collection of [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String') representing the references of the items to be retrieved\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.Building2DReferencedObjectPostgreSQLConverter_TBuilding2DReferencedObject,TUniqueObject_.GetItemsByReferencesAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_string_,System.Nullable_int_,System.Nullable_long_,bool,int,System.Threading.CancellationToken).countyId'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.Building2DReferencedObjectPostgreSQLConverter_TBuilding2DReferencedObject,TUniqueObject_.GetItemsByReferencesAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_string_,System.Nullable_int_,System.Nullable_long_,bool,System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken).countyId'></a>
 
 `countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
 The optional integer identifier of the county used to filter the results\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.Building2DReferencedObjectPostgreSQLConverter_TBuilding2DReferencedObject,TUniqueObject_.GetItemsByReferencesAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_string_,System.Nullable_int_,System.Nullable_long_,bool,int,System.Threading.CancellationToken).limit'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.Building2DReferencedObjectPostgreSQLConverter_TBuilding2DReferencedObject,TUniqueObject_.GetItemsByReferencesAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_string_,System.Nullable_int_,System.Nullable_long_,bool,System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken).limit'></a>
 
 `limit` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
 The optional maximum number of items to retrieve as a [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.Building2DReferencedObjectPostgreSQLConverter_TBuilding2DReferencedObject,TUniqueObject_.GetItemsByReferencesAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_string_,System.Nullable_int_,System.Nullable_long_,bool,int,System.Threading.CancellationToken).fallbackByReference'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.Building2DReferencedObjectPostgreSQLConverter_TBuilding2DReferencedObject,TUniqueObject_.GetItemsByReferencesAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_string_,System.Nullable_int_,System.Nullable_long_,bool,System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken).fallbackByReference'></a>
 
 `fallbackByReference` [System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')
 
-A boolean value indicating whether to perform a fallback search by reference alone for any references not found in the initial search\.
+A boolean value indicating whether to perform a fallback search for any references not found in the initial search\. Only applies when [countyId](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.Building2DReferencedObjectPostgreSQLConverter_TBuilding2DReferencedObject,TUniqueObject_.GetItemsByReferencesAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_string_,System.Nullable_int_,System.Nullable_long_,bool,System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken).countyId 'DiGi\.GIS\.PostgreSQL\.Classes\.Building2DReferencedObjectPostgreSQLConverter\<TBuilding2DReferencedObject,TUniqueObject\>\.GetItemsByReferencesAsync\(Npgsql\.NpgsqlConnection, System\.Collections\.Generic\.IEnumerable\<string\>, System\.Nullable\<int\>, System\.Nullable\<long\>, bool, System\.Collections\.Generic\.IEnumerable\<int\>, int, System\.Threading\.CancellationToken\)\.countyId') is given\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.Building2DReferencedObjectPostgreSQLConverter_TBuilding2DReferencedObject,TUniqueObject_.GetItemsByReferencesAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_string_,System.Nullable_int_,System.Nullable_long_,bool,int,System.Threading.CancellationToken).commandTimeout'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.Building2DReferencedObjectPostgreSQLConverter_TBuilding2DReferencedObject,TUniqueObject_.GetItemsByReferencesAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_string_,System.Nullable_int_,System.Nullable_long_,bool,System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken).fallbackCountyIds'></a>
+
+`fallbackCountyIds` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The county parts the fallback searches \- normally every polygon part of [countyId](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.Building2DReferencedObjectPostgreSQLConverter_TBuilding2DReferencedObject,TUniqueObject_.GetItemsByReferencesAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_string_,System.Nullable_int_,System.Nullable_long_,bool,System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken).countyId 'DiGi\.GIS\.PostgreSQL\.Classes\.Building2DReferencedObjectPostgreSQLConverter\<TBuilding2DReferencedObject,TUniqueObject\>\.GetItemsByReferencesAsync\(Npgsql\.NpgsqlConnection, System\.Collections\.Generic\.IEnumerable\<string\>, System\.Nullable\<int\>, System\.Nullable\<long\>, bool, System\.Collections\.Generic\.IEnumerable\<int\>, int, System\.Threading\.CancellationToken\)\.countyId')'s county, which is where a row filed under a sibling part sits\. The search is then pruned to those partitions; [countyId](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.Building2DReferencedObjectPostgreSQLConverter_TBuilding2DReferencedObject,TUniqueObject_.GetItemsByReferencesAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_string_,System.Nullable_int_,System.Nullable_long_,bool,System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken).countyId 'DiGi\.GIS\.PostgreSQL\.Classes\.Building2DReferencedObjectPostgreSQLConverter\<TBuilding2DReferencedObject,TUniqueObject\>\.GetItemsByReferencesAsync\(Npgsql\.NpgsqlConnection, System\.Collections\.Generic\.IEnumerable\<string\>, System\.Nullable\<int\>, System\.Nullable\<long\>, bool, System\.Collections\.Generic\.IEnumerable\<int\>, int, System\.Threading\.CancellationToken\)\.countyId') itself is skipped, and a county with no other part needs no fallback at all\. When null the fallback matches the reference alone across every partition of the table, which for thousands of references not stored anywhere \- a county's first prediction run \- read 10 095 references in 29 s and timed out under load\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.Building2DReferencedObjectPostgreSQLConverter_TBuilding2DReferencedObject,TUniqueObject_.GetItemsByReferencesAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_string_,System.Nullable_int_,System.Nullable_long_,bool,System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken).commandTimeout'></a>
 
 `commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
 
 The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.Building2DReferencedObjectPostgreSQLConverter_TBuilding2DReferencedObject,TUniqueObject_.GetItemsByReferencesAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_string_,System.Nullable_int_,System.Nullable_long_,bool,int,System.Threading.CancellationToken).cancellationToken'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.Building2DReferencedObjectPostgreSQLConverter_TBuilding2DReferencedObject,TUniqueObject_.GetItemsByReferencesAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_string_,System.Nullable_int_,System.Nullable_long_,bool,System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken).cancellationToken'></a>
 
 `cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
 
@@ -9566,48 +9572,54 @@ The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dot
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[TBuilding2DReferencedObject](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.Building2DReferencedObjectPostgreSQLConverter_TBuilding2DReferencedObject,TUniqueObject_.TBuilding2DReferencedObject 'DiGi\.GIS\.PostgreSQL\.Classes\.Building2DReferencedObjectPostgreSQLConverter\<TBuilding2DReferencedObject,TUniqueObject\>\.TBuilding2DReferencedObject')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A task that represents the asynchronous operation\. The task result contains a [System\.Collections\.Generic\.List&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1') of matching items, or null if the connection or references are null\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.Building2DReferencedObjectPostgreSQLConverter_TBuilding2DReferencedObject,TUniqueObject_.GetItemsByReferencesAsync(System.Collections.Generic.IEnumerable_string_,System.Nullable_int_,System.Nullable_long_,bool,int,System.Threading.CancellationToken)'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.Building2DReferencedObjectPostgreSQLConverter_TBuilding2DReferencedObject,TUniqueObject_.GetItemsByReferencesAsync(System.Collections.Generic.IEnumerable_string_,System.Nullable_int_,System.Nullable_long_,bool,System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken)'></a>
 
-## Building2DReferencedObjectPostgreSQLConverter\<TBuilding2DReferencedObject,TUniqueObject\>\.GetItemsByReferencesAsync\(IEnumerable\<string\>, Nullable\<int\>, Nullable\<long\>, bool, int, CancellationToken\) Method
+## Building2DReferencedObjectPostgreSQLConverter\<TBuilding2DReferencedObject,TUniqueObject\>\.GetItemsByReferencesAsync\(IEnumerable\<string\>, Nullable\<int\>, Nullable\<long\>, bool, IEnumerable\<int\>, int, CancellationToken\) Method
 
 Asynchronously retrieves a list of items based on the provided references and county identifier\.
 
 ```csharp
-public System.Threading.Tasks.Task<System.Collections.Generic.List<TBuilding2DReferencedObject>?> GetItemsByReferencesAsync(System.Collections.Generic.IEnumerable<string>? references, System.Nullable<int> countyId, System.Nullable<long> limit=null, bool fallbackByReference=false, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+public System.Threading.Tasks.Task<System.Collections.Generic.List<TBuilding2DReferencedObject>?> GetItemsByReferencesAsync(System.Collections.Generic.IEnumerable<string>? references, System.Nullable<int> countyId, System.Nullable<long> limit=null, bool fallbackByReference=false, System.Collections.Generic.IEnumerable<int>? fallbackCountyIds=null, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
 ```
 #### Parameters
 
-<a name='DiGi.GIS.PostgreSQL.Classes.Building2DReferencedObjectPostgreSQLConverter_TBuilding2DReferencedObject,TUniqueObject_.GetItemsByReferencesAsync(System.Collections.Generic.IEnumerable_string_,System.Nullable_int_,System.Nullable_long_,bool,int,System.Threading.CancellationToken).references'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.Building2DReferencedObjectPostgreSQLConverter_TBuilding2DReferencedObject,TUniqueObject_.GetItemsByReferencesAsync(System.Collections.Generic.IEnumerable_string_,System.Nullable_int_,System.Nullable_long_,bool,System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken).references'></a>
 
 `references` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
 
 An optional collection of strings representing the unique references of the items to be retrieved\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.Building2DReferencedObjectPostgreSQLConverter_TBuilding2DReferencedObject,TUniqueObject_.GetItemsByReferencesAsync(System.Collections.Generic.IEnumerable_string_,System.Nullable_int_,System.Nullable_long_,bool,int,System.Threading.CancellationToken).countyId'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.Building2DReferencedObjectPostgreSQLConverter_TBuilding2DReferencedObject,TUniqueObject_.GetItemsByReferencesAsync(System.Collections.Generic.IEnumerable_string_,System.Nullable_int_,System.Nullable_long_,bool,System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken).countyId'></a>
 
 `countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
 An optional integer specifying the county identifier to filter the results\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.Building2DReferencedObjectPostgreSQLConverter_TBuilding2DReferencedObject,TUniqueObject_.GetItemsByReferencesAsync(System.Collections.Generic.IEnumerable_string_,System.Nullable_int_,System.Nullable_long_,bool,int,System.Threading.CancellationToken).limit'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.Building2DReferencedObjectPostgreSQLConverter_TBuilding2DReferencedObject,TUniqueObject_.GetItemsByReferencesAsync(System.Collections.Generic.IEnumerable_string_,System.Nullable_int_,System.Nullable_long_,bool,System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken).limit'></a>
 
 `limit` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
 An optional long value that specifies the maximum number of items to return\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.Building2DReferencedObjectPostgreSQLConverter_TBuilding2DReferencedObject,TUniqueObject_.GetItemsByReferencesAsync(System.Collections.Generic.IEnumerable_string_,System.Nullable_int_,System.Nullable_long_,bool,int,System.Threading.CancellationToken).fallbackByReference'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.Building2DReferencedObjectPostgreSQLConverter_TBuilding2DReferencedObject,TUniqueObject_.GetItemsByReferencesAsync(System.Collections.Generic.IEnumerable_string_,System.Nullable_int_,System.Nullable_long_,bool,System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken).fallbackByReference'></a>
 
 `fallbackByReference` [System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')
 
-A boolean value indicating whether to perform a fallback search by reference alone for any references not found in the initial search\.
+A boolean value indicating whether to perform a fallback search for any references not found in the initial search\. Only applies when [countyId](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.Building2DReferencedObjectPostgreSQLConverter_TBuilding2DReferencedObject,TUniqueObject_.GetItemsByReferencesAsync(System.Collections.Generic.IEnumerable_string_,System.Nullable_int_,System.Nullable_long_,bool,System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken).countyId 'DiGi\.GIS\.PostgreSQL\.Classes\.Building2DReferencedObjectPostgreSQLConverter\<TBuilding2DReferencedObject,TUniqueObject\>\.GetItemsByReferencesAsync\(System\.Collections\.Generic\.IEnumerable\<string\>, System\.Nullable\<int\>, System\.Nullable\<long\>, bool, System\.Collections\.Generic\.IEnumerable\<int\>, int, System\.Threading\.CancellationToken\)\.countyId') is given\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.Building2DReferencedObjectPostgreSQLConverter_TBuilding2DReferencedObject,TUniqueObject_.GetItemsByReferencesAsync(System.Collections.Generic.IEnumerable_string_,System.Nullable_int_,System.Nullable_long_,bool,int,System.Threading.CancellationToken).commandTimeout'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.Building2DReferencedObjectPostgreSQLConverter_TBuilding2DReferencedObject,TUniqueObject_.GetItemsByReferencesAsync(System.Collections.Generic.IEnumerable_string_,System.Nullable_int_,System.Nullable_long_,bool,System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken).fallbackCountyIds'></a>
+
+`fallbackCountyIds` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The county parts the fallback searches, normally every polygon part of [countyId](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.Building2DReferencedObjectPostgreSQLConverter_TBuilding2DReferencedObject,TUniqueObject_.GetItemsByReferencesAsync(System.Collections.Generic.IEnumerable_string_,System.Nullable_int_,System.Nullable_long_,bool,System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken).countyId 'DiGi\.GIS\.PostgreSQL\.Classes\.Building2DReferencedObjectPostgreSQLConverter\<TBuilding2DReferencedObject,TUniqueObject\>\.GetItemsByReferencesAsync\(System\.Collections\.Generic\.IEnumerable\<string\>, System\.Nullable\<int\>, System\.Nullable\<long\>, bool, System\.Collections\.Generic\.IEnumerable\<int\>, int, System\.Threading\.CancellationToken\)\.countyId')'s county; pruned to those partitions\. When null the fallback matches the reference alone across the whole table\. See the connection overload\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.Building2DReferencedObjectPostgreSQLConverter_TBuilding2DReferencedObject,TUniqueObject_.GetItemsByReferencesAsync(System.Collections.Generic.IEnumerable_string_,System.Nullable_int_,System.Nullable_long_,bool,System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken).commandTimeout'></a>
 
 `commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
 
 The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.Building2DReferencedObjectPostgreSQLConverter_TBuilding2DReferencedObject,TUniqueObject_.GetItemsByReferencesAsync(System.Collections.Generic.IEnumerable_string_,System.Nullable_int_,System.Nullable_long_,bool,int,System.Threading.CancellationToken).cancellationToken'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.Building2DReferencedObjectPostgreSQLConverter_TBuilding2DReferencedObject,TUniqueObject_.GetItemsByReferencesAsync(System.Collections.Generic.IEnumerable_string_,System.Nullable_int_,System.Nullable_long_,bool,System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken).cancellationToken'></a>
 
 `cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
 
