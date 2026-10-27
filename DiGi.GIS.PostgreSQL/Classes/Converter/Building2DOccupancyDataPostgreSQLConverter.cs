@@ -131,6 +131,95 @@ namespace DiGi.GIS.PostgreSQL.Classes
         }
 
         /// <summary>
+        /// Asynchronously reads, for one county part, every subdivision its buildings are filed under next to the occupancy figure the subdivision carries and the sum of the occupancy rows stored for those buildings.
+        /// <para>A subdivision holding no other one must have its figure stored in full, whatever the draw did: the check that the distribution conserves a total. A subdivision that holds others hands part of its figure to the buildings of the nested ones, so its stored sum is below the figure by design - <see cref="Building2DOccupancySubdivisionResult.ContainedSubdivisionCount"/> tells the two apart, deciding nesting on the bounding boxes of the subdivisions of the same municipality and county part, which over-approximates it.</para>
+        /// <para>Buildings are attributed by <c>building_2d.subdivision_id</c>, so buildings of an unfigured subdivision that borrow a container's figure are counted under their own subdivision, not the container.</para>
+        /// </summary>
+        /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> used to execute the query.</param>
+        /// <param name="countyId">The identifier of the county part the buildings are filed under.</param>
+        /// <param name="commandTimeout">The timeout in seconds applied to the command executed. A value of 0 disables the timeout. Defaults to 600 seconds.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
+        /// <returns>A task whose result holds one entry per subdivision ordered by identifier - an empty list when the county part holds none - or null when the connection is null or the timeout is negative.</returns>
+        public async Task<List<Building2DOccupancySubdivisionResult>?> GetOccupancySubdivisionSnapshotsAsync(NpgsqlConnection? npgsqlConnection, int countyId, int commandTimeout = 600, CancellationToken cancellationToken = default)
+        {
+            if (npgsqlConnection is null || commandTimeout < 0)
+            {
+                return null;
+            }
+
+            string commandText = $@"
+                WITH s AS (
+                    SELECT b.subdivision_id AS id,
+                           COUNT(*) AS stored_count,
+                           SUM((o.object ->> 'Occupancy')::double precision) AS stored_sum
+                    FROM {Constants.TableName.Building2D} b
+                    JOIN {TableName} o ON o.county_id = b.county_id AND o.reference = b.reference
+                    WHERE b.county_id = @countyId AND b.subdivision_id IS NOT NULL
+                    GROUP BY b.subdivision_id
+                )
+                SELECT s.id,
+                       a.county_id,
+                       (a.object ->> 'Occupancy')::double precision,
+                       s.stored_sum,
+                       s.stored_count,
+                       (SELECT COUNT(*)
+                        FROM {Constants.TableName.AdministrativeAreal2D} t
+                        WHERE t.type_id = @typeId
+                          AND t.id <> a.id
+                          AND t.county_id IS NOT DISTINCT FROM a.county_id
+                          AND t.municipality_id IS NOT DISTINCT FROM a.municipality_id
+                          AND t.min_x >= a.min_x AND t.min_y >= a.min_y AND t.max_x <= a.max_x AND t.max_y <= a.max_y)
+                FROM s
+                LEFT JOIN {Constants.TableName.AdministrativeAreal2D} a ON a.id = s.id
+                ORDER BY s.id;";
+
+            await using NpgsqlCommand npgsqlCommand = new(commandText, npgsqlConnection);
+            npgsqlCommand.CommandTimeout = commandTimeout;
+            npgsqlCommand.Parameters.Add(new NpgsqlParameter("countyId", NpgsqlDbType.Integer) { Value = countyId });
+            npgsqlCommand.Parameters.Add(new NpgsqlParameter("typeId", NpgsqlDbType.Smallint) { Value = (short)Enums.AdministrativeArealType.Subdivision });
+
+            List<Building2DOccupancySubdivisionResult> building2DOccupancySubdivisionResults = [];
+            await using NpgsqlDataReader npgsqlDataReader = await npgsqlCommand.ExecuteReaderAsync(cancellationToken);
+            while (await npgsqlDataReader.ReadAsync(cancellationToken))
+            {
+                building2DOccupancySubdivisionResults.Add(new Building2DOccupancySubdivisionResult(
+                    npgsqlDataReader.GetInt32(0),
+                    npgsqlDataReader.IsDBNull(1) ? null : npgsqlDataReader.GetInt32(1),
+                    npgsqlDataReader.IsDBNull(2) ? null : npgsqlDataReader.GetDouble(2),
+                    npgsqlDataReader.IsDBNull(3) ? 0 : npgsqlDataReader.GetDouble(3),
+                    npgsqlDataReader.GetInt64(4),
+                    npgsqlDataReader.IsDBNull(5) ? 0 : npgsqlDataReader.GetInt64(5)));
+            }
+
+            return building2DOccupancySubdivisionResults;
+        }
+
+        /// <summary>
+        /// Asynchronously reads the subdivision conservation figures of one county part. See <see cref="GetOccupancySubdivisionSnapshotsAsync(NpgsqlConnection?, int, int, CancellationToken)"/>.
+        /// </summary>
+        /// <param name="countyId">The identifier of the county part the buildings are filed under.</param>
+        /// <param name="commandTimeout">The timeout in seconds applied to the command executed. A value of 0 disables the timeout. Defaults to 600 seconds.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
+        /// <returns>A task whose result holds one entry per subdivision, or null when the connection could not be built or the timeout is negative.</returns>
+        public async Task<List<Building2DOccupancySubdivisionResult>?> GetOccupancySubdivisionSnapshotsAsync(int countyId, int commandTimeout = 600, CancellationToken cancellationToken = default)
+        {
+            if (commandTimeout < 0)
+            {
+                return null;
+            }
+
+            await using NpgsqlConnection? npgsqlConnection = DiGi.PostgreSQL.Create.NpgsqlConnection(ConnectionData);
+            if (npgsqlConnection is null)
+            {
+                return null;
+            }
+
+            await npgsqlConnection.OpenAsync(cancellationToken);
+
+            return await GetOccupancySubdivisionSnapshotsAsync(npgsqlConnection, countyId, commandTimeout, cancellationToken);
+        }
+
+        /// <summary>
         /// Asynchronously takes a read-only snapshot of the occupancy rows, one entry per county part. See <see cref="GetOccupancySnapshotsAsync(NpgsqlConnection?, int?, int, CancellationToken)"/>.
         /// </summary>
         /// <param name="countyId">The optional identifier of the county part to restrict the snapshot to. When null every county part is measured.</param>
