@@ -150,7 +150,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
 
         /// <summary>
         /// Asynchronously searches address points by a free-text street or locality name, tolerating typos, missing diacritics and partial names, optionally narrowed by house number and county part.
-        /// <para>Both <paramref name="text"/> and the stored <c>search_text</c> are reduced by <see cref="Query.SearchText(string?)"/>. A row qualifies when its trigram similarity reaches the <c>pg_trgm.similarity_threshold</c> (the <c>%</c> operator, 0.3 by default) or when it contains the normalised text (<c>LIKE '%text%'</c>); both are served by the GIN trigram index. The normalised text holds only letters, digits and single spaces, so it needs no <c>LIKE</c> escaping.</para>
+        /// <para>Both <paramref name="text"/> and the stored <c>search_text</c> are reduced by <see cref="Query.SearchText(string?)"/>. A row qualifies when its trigram similarity reaches the <c>pg_trgm.similarity_threshold</c> (the <c>%</c> operator, 0.3 by default, raised to 0.4 for this statement alone by <c>SET LOCAL</c> inside a short transaction on <paramref name="npgsqlConnection"/> - nothing persists beyond it, so a pooled connection never inherits it; measured on production, the statement went from about 1.5 s to 0.76 s for a common street, at full typo and partial-name recall) or when it contains the normalised text (<c>LIKE '%text%'</c>); both are served by the GIN trigram index. The <c>LIKE</c> branch is what serves short queries, whose trigram similarity is inherently low. The normalised text holds only letters, digits and single spaces, so it needs no <c>LIKE</c> escaping. Reference: DiGi.GIS.PostgreSQL#112.</para>
         /// <para>With a <paramref name="houseNumber"/>, only exact matches and prefix matches qualify, compared case-insensitively: <c>12</c> matches <c>12</c>, <c>12A</c> and <c>12/3</c>, but not <c>120</c> - the character after the prefix must not be a digit.</para>
         /// <para>Order: similarity descending, then an exact house number before a prefix match, then the house number. <paramref name="countyId"/> filters on one county part; a county with several parts is searched without it, or once per part (<c>Coding - GIS Administrative Data.md</c>). A table that does not exist yet answers empty.</para>
         /// </summary>
@@ -190,7 +190,19 @@ namespace DiGi.GIS.PostgreSQL.Classes
             List<AddressPointMatch> result = [];
             try
             {
-                await using NpgsqlCommand npgsqlCommand = new(commandText, npgsqlConnection);
+                // DiGi.GIS.PostgreSQL#112: the default similarity threshold of 0.3 made the % operator match 209 182
+                // candidates of an 8.6 M row table - about 1.5 s for a common street. 0.4 measured 0.76 s with the
+                // typo and the partial-name recall kept (0.4783 >= 0.4; 0.5 would have lost the Warszawa rows).
+                // SET LOCAL scopes the raise to this statement's own transaction, so no pooled connection inherits it.
+                await using NpgsqlTransaction npgsqlTransaction = await npgsqlConnection.BeginTransactionAsync(cancellationToken);
+
+                await using (NpgsqlCommand thresholdCommand = new("SET LOCAL pg_trgm.similarity_threshold = '0.4';", npgsqlConnection, npgsqlTransaction))
+                {
+                    thresholdCommand.CommandTimeout = commandTimeout;
+                    await thresholdCommand.ExecuteNonQueryAsync(cancellationToken);
+                }
+
+                await using NpgsqlCommand npgsqlCommand = new(commandText, npgsqlConnection, npgsqlTransaction);
                 npgsqlCommand.CommandTimeout = commandTimeout;
                 npgsqlCommand.Parameters.Add(new NpgsqlParameter("search_text", NpgsqlDbType.Text) { Value = searchText });
                 npgsqlCommand.Parameters.Add(new NpgsqlParameter("search_pattern", NpgsqlDbType.Text) { Value = $"%{searchText}%" });
@@ -206,6 +218,8 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 }
 
                 await ReadAsync(npgsqlCommand, result, cancellationToken);
+
+                await npgsqlTransaction.CommitAsync(cancellationToken);
             }
             catch (PostgresException postgresException) when (postgresException.SqlState == PostgresErrorCodes.UndefinedTable)
             {
