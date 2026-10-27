@@ -5777,6 +5777,239 @@ public override string TableName { get; }
 
 #### Property Value
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+### Methods
+
+<a name='DiGi.GIS.PostgreSQL.Classes.Building2DOccupancyDataPostgreSQLConverter.GetOccupancySnapshotsAsync(Npgsql.NpgsqlConnection,System.Nullable_int_,int,System.Threading.CancellationToken)'></a>
+
+## Building2DOccupancyDataPostgreSQLConverter\.GetOccupancySnapshotsAsync\(NpgsqlConnection, Nullable\<int\>, int, CancellationToken\) Method
+
+Asynchronously takes a read\-only snapshot of the occupancy rows, one entry per county part \(`county_id`\), to compare the stored occupancies before and after a re\-run\.
+
+Each entry carries the row count, the sum of the stored `Occupancy` values, a SHA-256 checksum and the number of figured subdivisions. The checksum hashes `reference` and the raw JSON text of `Occupancy`, joined by line feeds and ordered by `reference` in byte order (`COLLATE "C"`), so it does not depend on storage order or on any culture.
+
+A figured subdivision is a `building_2d.subdivision_id` reached by at least two of the county part's occupancy rows through `(county_id, reference)`; rows whose building has no subdivision are not counted. Rows are grouped by `county_id`, never by county code, because a code names one row per polygon part.
+
+```csharp
+public System.Threading.Tasks.Task<System.Collections.Generic.List<DiGi.GIS.PostgreSQL.Classes.Building2DOccupancySnapshotResult>?> GetOccupancySnapshotsAsync(Npgsql.NpgsqlConnection? npgsqlConnection, System.Nullable<int> countyId=null, int commandTimeout=600, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.Building2DOccupancyDataPostgreSQLConverter.GetOccupancySnapshotsAsync(Npgsql.NpgsqlConnection,System.Nullable_int_,int,System.Threading.CancellationToken).npgsqlConnection'></a>
+
+`npgsqlConnection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
+
+The [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection') used to execute the queries\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.Building2DOccupancyDataPostgreSQLConverter.GetOccupancySnapshotsAsync(Npgsql.NpgsqlConnection,System.Nullable_int_,int,System.Threading.CancellationToken).countyId'></a>
+
+`countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The optional identifier of the county part to restrict the snapshot to\. When null every county part is measured\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.Building2DOccupancyDataPostgreSQLConverter.GetOccupancySnapshotsAsync(Npgsql.NpgsqlConnection,System.Nullable_int_,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds applied to each command executed\. A value of 0 disables the timeout\. Defaults to 600 seconds\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.Building2DOccupancyDataPostgreSQLConverter.GetOccupancySnapshotsAsync(Npgsql.NpgsqlConnection,System.Nullable_int_,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken') to observe while waiting for the task to complete\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[Building2DOccupancySnapshotResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.Building2DOccupancySnapshotResult 'DiGi\.GIS\.PostgreSQL\.Classes\.Building2DOccupancySnapshotResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task whose result holds one entry per county part ordered by identifier \- an empty list when no row is stored \- or null when the connection is null or the timeout is negative\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.Building2DOccupancyDataPostgreSQLConverter.GetOccupancySnapshotsAsync(System.Nullable_int_,int,System.Threading.CancellationToken)'></a>
+
+## Building2DOccupancyDataPostgreSQLConverter\.GetOccupancySnapshotsAsync\(Nullable\<int\>, int, CancellationToken\) Method
+
+Asynchronously takes a read\-only snapshot of the occupancy rows, one entry per county part\. See [GetOccupancySnapshotsAsync\(NpgsqlConnection, Nullable&lt;int&gt;, int, CancellationToken\)](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.Building2DOccupancyDataPostgreSQLConverter.GetOccupancySnapshotsAsync(Npgsql.NpgsqlConnection,System.Nullable_int_,int,System.Threading.CancellationToken) 'DiGi\.GIS\.PostgreSQL\.Classes\.Building2DOccupancyDataPostgreSQLConverter\.GetOccupancySnapshotsAsync\(Npgsql\.NpgsqlConnection, System\.Nullable\<int\>, int, System\.Threading\.CancellationToken\)')\.
+
+```csharp
+public System.Threading.Tasks.Task<System.Collections.Generic.List<DiGi.GIS.PostgreSQL.Classes.Building2DOccupancySnapshotResult>?> GetOccupancySnapshotsAsync(System.Nullable<int> countyId=null, int commandTimeout=600, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.Building2DOccupancyDataPostgreSQLConverter.GetOccupancySnapshotsAsync(System.Nullable_int_,int,System.Threading.CancellationToken).countyId'></a>
+
+`countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The optional identifier of the county part to restrict the snapshot to\. When null every county part is measured\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.Building2DOccupancyDataPostgreSQLConverter.GetOccupancySnapshotsAsync(System.Nullable_int_,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds applied to each command executed\. A value of 0 disables the timeout\. Defaults to 600 seconds\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.Building2DOccupancyDataPostgreSQLConverter.GetOccupancySnapshotsAsync(System.Nullable_int_,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken') to observe while waiting for the task to complete\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[Building2DOccupancySnapshotResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.Building2DOccupancySnapshotResult 'DiGi\.GIS\.PostgreSQL\.Classes\.Building2DOccupancySnapshotResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task whose result holds one entry per county part, or null when the connection could not be built or the timeout is negative\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.Building2DOccupancySnapshotResult'></a>
+
+## Building2DOccupancySnapshotResult Class
+
+Represents a read\-only snapshot of the occupancy rows stored under one county part, taken to compare the stored occupancies before and after a re\-run\.
+
+```csharp
+public class Building2DOccupancySnapshotResult : DiGi.Core.Classes.SerializableResult, DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLSerializableObject, DiGi.Core.Interfaces.ISerializableObject, DiGi.Core.Interfaces.ICloneableObject<DiGi.Core.Interfaces.ISerializableObject>, DiGi.Core.Interfaces.ICloneableObject, DiGi.Core.Interfaces.IObject
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [DiGi\.Core\.Classes\.Object](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.object 'DiGi\.Core\.Classes\.Object') → [DiGi\.Core\.Classes\.SerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.serializableobject 'DiGi\.Core\.Classes\.SerializableObject') → [DiGi\.Core\.Classes\.SerializableResult](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.serializableresult 'DiGi\.Core\.Classes\.SerializableResult') → Building2DOccupancySnapshotResult
+
+Implements [IGISPostgreSQLSerializableObject](DiGi.GIS.PostgreSQL.Interfaces.md#DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLSerializableObject 'DiGi\.GIS\.PostgreSQL\.Interfaces\.IGISPostgreSQLSerializableObject'), [DiGi\.Core\.Interfaces\.ISerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iserializableobject 'DiGi\.Core\.Interfaces\.ISerializableObject'), [DiGi\.Core\.Interfaces\.ICloneableObject&lt;](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject-1 'DiGi\.Core\.Interfaces\.ICloneableObject\`1')[DiGi\.Core\.Interfaces\.ISerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iserializableobject 'DiGi\.Core\.Interfaces\.ISerializableObject')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject-1 'DiGi\.Core\.Interfaces\.ICloneableObject\`1'), [DiGi\.Core\.Interfaces\.ICloneableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject 'DiGi\.Core\.Interfaces\.ICloneableObject'), [DiGi\.Core\.Interfaces\.IObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iobject 'DiGi\.Core\.Interfaces\.IObject')
+### Constructors
+
+<a name='DiGi.GIS.PostgreSQL.Classes.Building2DOccupancySnapshotResult.Building2DOccupancySnapshotResult(DiGi.GIS.PostgreSQL.Classes.Building2DOccupancySnapshotResult)'></a>
+
+## Building2DOccupancySnapshotResult\(Building2DOccupancySnapshotResult\) Constructor
+
+Initializes a new instance of the [Building2DOccupancySnapshotResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.Building2DOccupancySnapshotResult 'DiGi\.GIS\.PostgreSQL\.Classes\.Building2DOccupancySnapshotResult') class by copying an existing one\.
+
+```csharp
+public Building2DOccupancySnapshotResult(DiGi.GIS.PostgreSQL.Classes.Building2DOccupancySnapshotResult? building2DOccupancySnapshotResult);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.Building2DOccupancySnapshotResult.Building2DOccupancySnapshotResult(DiGi.GIS.PostgreSQL.Classes.Building2DOccupancySnapshotResult).building2DOccupancySnapshotResult'></a>
+
+`building2DOccupancySnapshotResult` [Building2DOccupancySnapshotResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.Building2DOccupancySnapshotResult 'DiGi\.GIS\.PostgreSQL\.Classes\.Building2DOccupancySnapshotResult')
+
+The [Building2DOccupancySnapshotResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.Building2DOccupancySnapshotResult 'DiGi\.GIS\.PostgreSQL\.Classes\.Building2DOccupancySnapshotResult') instance to copy\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.Building2DOccupancySnapshotResult.Building2DOccupancySnapshotResult(int,long,double,string,long)'></a>
+
+## Building2DOccupancySnapshotResult\(int, long, double, string, long\) Constructor
+
+Initializes a new instance of the [Building2DOccupancySnapshotResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.Building2DOccupancySnapshotResult 'DiGi\.GIS\.PostgreSQL\.Classes\.Building2DOccupancySnapshotResult') class\.
+
+```csharp
+public Building2DOccupancySnapshotResult(int countyId, long count, double occupancySum, string? checksum, long figuredSubdivisionCount);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.Building2DOccupancySnapshotResult.Building2DOccupancySnapshotResult(int,long,double,string,long).countyId'></a>
+
+`countyId` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The identifier of the county part the rows are filed under\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.Building2DOccupancySnapshotResult.Building2DOccupancySnapshotResult(int,long,double,string,long).count'></a>
+
+`count` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+The number of occupancy rows\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.Building2DOccupancySnapshotResult.Building2DOccupancySnapshotResult(int,long,double,string,long).occupancySum'></a>
+
+`occupancySum` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The sum of the stored occupancies\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.Building2DOccupancySnapshotResult.Building2DOccupancySnapshotResult(int,long,double,string,long).checksum'></a>
+
+`checksum` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The lowercase hexadecimal SHA\-256 of the `(reference, occupancy)` pairs ordered by reference\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.Building2DOccupancySnapshotResult.Building2DOccupancySnapshotResult(int,long,double,string,long).figuredSubdivisionCount'></a>
+
+`figuredSubdivisionCount` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+The number of subdivisions holding at least two buildings with an occupancy row\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.Building2DOccupancySnapshotResult.Building2DOccupancySnapshotResult(System.Text.Json.Nodes.JsonObject)'></a>
+
+## Building2DOccupancySnapshotResult\(JsonObject\) Constructor
+
+Initializes a new instance of the [Building2DOccupancySnapshotResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.Building2DOccupancySnapshotResult 'DiGi\.GIS\.PostgreSQL\.Classes\.Building2DOccupancySnapshotResult') class from a [System\.Text\.Json\.Nodes\.JsonObject](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.nodes.jsonobject 'System\.Text\.Json\.Nodes\.JsonObject')\.
+
+```csharp
+public Building2DOccupancySnapshotResult(System.Text.Json.Nodes.JsonObject? jsonObject);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.Building2DOccupancySnapshotResult.Building2DOccupancySnapshotResult(System.Text.Json.Nodes.JsonObject).jsonObject'></a>
+
+`jsonObject` [System\.Text\.Json\.Nodes\.JsonObject](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.nodes.jsonobject 'System\.Text\.Json\.Nodes\.JsonObject')
+
+The JSON object containing the serialized data\.
+### Properties
+
+<a name='DiGi.GIS.PostgreSQL.Classes.Building2DOccupancySnapshotResult.Checksum'></a>
+
+## Building2DOccupancySnapshotResult\.Checksum Property
+
+Gets the lowercase hexadecimal SHA\-256 of the `(reference, occupancy)` pairs ordered by reference\. Identical data gives an identical value, whatever the storage order\.
+
+```csharp
+public string? Checksum { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.Building2DOccupancySnapshotResult.Count'></a>
+
+## Building2DOccupancySnapshotResult\.Count Property
+
+Gets the number of occupancy rows\.
+
+```csharp
+public long Count { get; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.Building2DOccupancySnapshotResult.CountyId'></a>
+
+## Building2DOccupancySnapshotResult\.CountyId Property
+
+Gets the identifier of the county part the rows are filed under\.
+
+```csharp
+public int CountyId { get; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.Building2DOccupancySnapshotResult.FiguredSubdivisionCount'></a>
+
+## Building2DOccupancySnapshotResult\.FiguredSubdivisionCount Property
+
+Gets the number of subdivisions holding at least two buildings with an occupancy row \- the ones in which the remainder draw can move occupancy between buildings\.
+
+```csharp
+public long FiguredSubdivisionCount { get; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.Building2DOccupancySnapshotResult.OccupancySum'></a>
+
+## Building2DOccupancySnapshotResult\.OccupancySum Property
+
+Gets the sum of the stored occupancies\.
+
+```csharp
+public double OccupancySum { get; }
+```
+
+#### Property Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
 
 <a name='DiGi.GIS.PostgreSQL.Classes.Building2DPostgreSQLConverter'></a>
 
