@@ -121,6 +121,7 @@ public interface IGISPostgreSQLSerializableObject : DiGi.Core.Interfaces.ISerial
 ```
 
 Derived  
+↳ [AddressPointCountResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointCountResult')  
 ↳ [AddressPointUpdateResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointUpdateResult 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointUpdateResult')  
 ↳ [AdministrativeAreal2DReferencePath](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DReferencePath 'DiGi\.GIS\.PostgreSQL\.Classes\.AdministrativeAreal2DReferencePath')  
 ↳ [Building2DCountyPartMismatchResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.Building2DCountyPartMismatchResult 'DiGi\.GIS\.PostgreSQL\.Classes\.Building2DCountyPartMismatchResult')  

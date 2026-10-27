@@ -3,6 +3,164 @@
 ## DiGi\.GIS\.PostgreSQL\.Classes Namespace
 ### Classes
 
+<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult'></a>
+
+## AddressPointCountResult Class
+
+The number of rows of `address_point`, by how each point was matched to a building footprint, for one county part or for the whole table\. See [GetCountResultAsync\(NpgsqlConnection, Nullable&lt;int&gt;, int, CancellationToken\)](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointPostgreSQLConverter.GetCountResultAsync(Npgsql.NpgsqlConnection,System.Nullable_int_,int,System.Threading.CancellationToken) 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointPostgreSQLConverter\.GetCountResultAsync\(Npgsql\.NpgsqlConnection, System\.Nullable\<int\>, int, System\.Threading\.CancellationToken\)')\.
+
+[Total](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult.Total 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointCountResult\.Total') counts every row, including any whose match type is none of [Inside](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult.Inside 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointCountResult\.Inside'), [Nearest](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult.Nearest 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointCountResult\.Nearest') and [Unmatched](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult.Unmatched 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointCountResult\.Unmatched'), so it can exceed their sum. The figures describe the database the converter was built for, and nothing else.
+
+```csharp
+public class AddressPointCountResult : DiGi.Core.Classes.SerializableResult, DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLSerializableObject, DiGi.Core.Interfaces.ISerializableObject, DiGi.Core.Interfaces.ICloneableObject<DiGi.Core.Interfaces.ISerializableObject>, DiGi.Core.Interfaces.ICloneableObject, DiGi.Core.Interfaces.IObject
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [DiGi\.Core\.Classes\.Object](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.object 'DiGi\.Core\.Classes\.Object') → [DiGi\.Core\.Classes\.SerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.serializableobject 'DiGi\.Core\.Classes\.SerializableObject') → [DiGi\.Core\.Classes\.SerializableResult](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.serializableresult 'DiGi\.Core\.Classes\.SerializableResult') → AddressPointCountResult
+
+Implements [IGISPostgreSQLSerializableObject](DiGi.GIS.PostgreSQL.Interfaces.md#DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLSerializableObject 'DiGi\.GIS\.PostgreSQL\.Interfaces\.IGISPostgreSQLSerializableObject'), [DiGi\.Core\.Interfaces\.ISerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iserializableobject 'DiGi\.Core\.Interfaces\.ISerializableObject'), [DiGi\.Core\.Interfaces\.ICloneableObject&lt;](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject-1 'DiGi\.Core\.Interfaces\.ICloneableObject\`1')[DiGi\.Core\.Interfaces\.ISerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iserializableobject 'DiGi\.Core\.Interfaces\.ISerializableObject')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject-1 'DiGi\.Core\.Interfaces\.ICloneableObject\`1'), [DiGi\.Core\.Interfaces\.ICloneableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject 'DiGi\.Core\.Interfaces\.ICloneableObject'), [DiGi\.Core\.Interfaces\.IObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iobject 'DiGi\.Core\.Interfaces\.IObject')
+### Constructors
+
+<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult.AddressPointCountResult(DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult)'></a>
+
+## AddressPointCountResult\(AddressPointCountResult\) Constructor
+
+Initializes a new instance of the [AddressPointCountResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointCountResult') class by copying an existing one\.
+
+```csharp
+public AddressPointCountResult(DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult? addressPointCountResult);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult.AddressPointCountResult(DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult).addressPointCountResult'></a>
+
+`addressPointCountResult` [AddressPointCountResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointCountResult')
+
+The [AddressPointCountResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointCountResult') to copy from\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult.AddressPointCountResult(System.Nullable_int_,long,long,long,long)'></a>
+
+## AddressPointCountResult\(Nullable\<int\>, long, long, long, long\) Constructor
+
+Initializes a new instance of the [AddressPointCountResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointCountResult') class\.
+
+```csharp
+public AddressPointCountResult(System.Nullable<int> countyId, long inside, long nearest, long unmatched, long total);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult.AddressPointCountResult(System.Nullable_int_,long,long,long,long).countyId'></a>
+
+`countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The county part id the rows were counted under, or null for the whole table\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult.AddressPointCountResult(System.Nullable_int_,long,long,long,long).inside'></a>
+
+`inside` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+The number of points that lie inside a building footprint\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult.AddressPointCountResult(System.Nullable_int_,long,long,long,long).nearest'></a>
+
+`nearest` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+The number of points assigned to the nearest building footprint within the maximum distance\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult.AddressPointCountResult(System.Nullable_int_,long,long,long,long).unmatched'></a>
+
+`unmatched` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+The number of points assigned to a county part but to no building\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult.AddressPointCountResult(System.Nullable_int_,long,long,long,long).total'></a>
+
+`total` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+The number of rows counted, whatever their match type\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult.AddressPointCountResult(System.Text.Json.Nodes.JsonObject)'></a>
+
+## AddressPointCountResult\(JsonObject\) Constructor
+
+Initializes a new instance of the [AddressPointCountResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointCountResult') class from a [System\.Text\.Json\.Nodes\.JsonObject](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.nodes.jsonobject 'System\.Text\.Json\.Nodes\.JsonObject')\.
+
+```csharp
+public AddressPointCountResult(System.Text.Json.Nodes.JsonObject? jsonObject);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult.AddressPointCountResult(System.Text.Json.Nodes.JsonObject).jsonObject'></a>
+
+`jsonObject` [System\.Text\.Json\.Nodes\.JsonObject](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.nodes.jsonobject 'System\.Text\.Json\.Nodes\.JsonObject')
+
+The [System\.Text\.Json\.Nodes\.JsonObject](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.nodes.jsonobject 'System\.Text\.Json\.Nodes\.JsonObject') containing the serialized data\.
+### Properties
+
+<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult.CountyId'></a>
+
+## AddressPointCountResult\.CountyId Property
+
+Gets the county part id the rows were counted under, or null for the whole table\.
+
+```csharp
+public System.Nullable<int> CountyId { get; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult.Inside'></a>
+
+## AddressPointCountResult\.Inside Property
+
+Gets the number of points that lie inside a building footprint\.
+
+```csharp
+public long Inside { get; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult.Nearest'></a>
+
+## AddressPointCountResult\.Nearest Property
+
+Gets the number of points assigned to the nearest building footprint within the maximum distance\.
+
+```csharp
+public long Nearest { get; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult.Total'></a>
+
+## AddressPointCountResult\.Total Property
+
+Gets the number of rows counted, whatever their match type\.
+
+```csharp
+public long Total { get; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult.Unmatched'></a>
+
+## AddressPointCountResult\.Unmatched Property
+
+Gets the number of points assigned to a county part but to no building\.
+
+```csharp
+public long Unmatched { get; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
 <a name='DiGi.GIS.PostgreSQL.Classes.AddressPointPostgreSQLConverter'></a>
 
 ## AddressPointPostgreSQLConverter Class
@@ -339,6 +497,80 @@ The cancellation token to monitor for cancellation requests\.
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[DiGi\.GIS\.Classes\.AddressPointMatch](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.addresspointmatch 'DiGi\.GIS\.Classes\.AddressPointMatch')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A task that represents the asynchronous operation\. The task result contains the matches, or null when nothing could be read\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointPostgreSQLConverter.GetCountResultAsync(Npgsql.NpgsqlConnection,System.Nullable_int_,int,System.Threading.CancellationToken)'></a>
+
+## AddressPointPostgreSQLConverter\.GetCountResultAsync\(NpgsqlConnection, Nullable\<int\>, int, CancellationToken\) Method
+
+Asynchronously counts the address points by how each was matched to a building footprint, for one county part or for the whole table\.
+
+One `GROUP BY match_type` pass, so the total and the unmatched share come from a single read. A whole-table count scans every row: raise [commandTimeout](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointPostgreSQLConverter.GetCountResultAsync(Npgsql.NpgsqlConnection,System.Nullable_int_,int,System.Threading.CancellationToken).commandTimeout 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointPostgreSQLConverter\.GetCountResultAsync\(Npgsql\.NpgsqlConnection, System\.Nullable\<int\>, int, System\.Threading\.CancellationToken\)\.commandTimeout') for a large table. A table that does not exist yet counts zero everywhere.
+
+```csharp
+public static System.Threading.Tasks.Task<DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult?> GetCountResultAsync(Npgsql.NpgsqlConnection? npgsqlConnection, System.Nullable<int> countyId, int commandTimeout=120, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointPostgreSQLConverter.GetCountResultAsync(Npgsql.NpgsqlConnection,System.Nullable_int_,int,System.Threading.CancellationToken).npgsqlConnection'></a>
+
+`npgsqlConnection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
+
+The [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection') used to connect to the database\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointPostgreSQLConverter.GetCountResultAsync(Npgsql.NpgsqlConnection,System.Nullable_int_,int,System.Threading.CancellationToken).countyId'></a>
+
+`countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The county part id to count under, or null for the whole table\. A county with several parts is counted once per part \(`Coding - GIS Administrative Data.md`\)\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointPostgreSQLConverter.GetCountResultAsync(Npgsql.NpgsqlConnection,System.Nullable_int_,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointPostgreSQLConverter.GetCountResultAsync(Npgsql.NpgsqlConnection,System.Nullable_int_,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The cancellation token to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[AddressPointCountResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointCountResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result contains the counts, or null when the connection is null\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointPostgreSQLConverter.GetCountResultAsync(System.Nullable_int_,int,System.Threading.CancellationToken)'></a>
+
+## AddressPointPostgreSQLConverter\.GetCountResultAsync\(Nullable\<int\>, int, CancellationToken\) Method
+
+Asynchronously counts the address points by match type for one county part or for the whole table, automatically managing the connection\.
+
+```csharp
+public System.Threading.Tasks.Task<DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult?> GetCountResultAsync(System.Nullable<int> countyId, int commandTimeout=120, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointPostgreSQLConverter.GetCountResultAsync(System.Nullable_int_,int,System.Threading.CancellationToken).countyId'></a>
+
+`countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The county part id to count under, or null for the whole table\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointPostgreSQLConverter.GetCountResultAsync(System.Nullable_int_,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointPostgreSQLConverter.GetCountResultAsync(System.Nullable_int_,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The cancellation token to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[AddressPointCountResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointCountResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result contains the counts, or null when nothing could be counted\.
 
 <a name='DiGi.GIS.PostgreSQL.Classes.AddressPointPostgreSQLConverter.ReadAsync(Npgsql.NpgsqlCommand,System.Collections.Generic.List_DiGi.GIS.Classes.AddressPointMatch_,System.Threading.CancellationToken)'></a>
 

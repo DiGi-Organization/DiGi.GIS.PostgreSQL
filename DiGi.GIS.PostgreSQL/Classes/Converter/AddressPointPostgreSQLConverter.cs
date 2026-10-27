@@ -1,4 +1,5 @@
 using DiGi.GIS.Classes;
+using DiGi.GIS.Enums;
 using DiGi.GIS.PostgreSQL.Interfaces;
 using DiGi.PostgreSQL.Classes;
 using Npgsql;
@@ -78,6 +79,73 @@ namespace DiGi.GIS.PostgreSQL.Classes
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Asynchronously counts the address points by how each was matched to a building footprint, for one county part or for the whole table.
+        /// <para>One <c>GROUP BY match_type</c> pass, so the total and the unmatched share come from a single read. A whole-table count scans every row: raise <paramref name="commandTimeout"/> for a large table. A table that does not exist yet counts zero everywhere.</para>
+        /// </summary>
+        /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> used to connect to the database.</param>
+        /// <param name="countyId">The county part id to count under, or null for the whole table. A county with several parts is counted once per part (<c>Coding - GIS Administrative Data.md</c>).</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The cancellation token to monitor for cancellation requests.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the counts, or null when the connection is null.</returns>
+        public static async Task<AddressPointCountResult?> GetCountResultAsync(NpgsqlConnection? npgsqlConnection, int? countyId, int commandTimeout = 120, CancellationToken cancellationToken = default)
+        {
+            if (npgsqlConnection is null)
+            {
+                return null;
+            }
+
+            string whereCountyId = countyId is null ? string.Empty : "WHERE county_id = @county_id";
+
+            string commandText = $@"
+                SELECT match_type, count(*)
+                FROM {TableName}
+                {whereCountyId}
+                GROUP BY match_type;";
+
+            long inside = 0;
+            long nearest = 0;
+            long unmatched = 0;
+            long total = 0;
+            try
+            {
+                await using NpgsqlCommand npgsqlCommand = new(commandText, npgsqlConnection);
+                npgsqlCommand.CommandTimeout = commandTimeout;
+                if (countyId is not null)
+                {
+                    npgsqlCommand.Parameters.Add(new NpgsqlParameter("county_id", NpgsqlDbType.Integer) { Value = countyId.Value });
+                }
+
+                await using NpgsqlDataReader npgsqlDataReader = await npgsqlCommand.ExecuteReaderAsync(cancellationToken);
+                while (await npgsqlDataReader.ReadAsync(cancellationToken))
+                {
+                    long count = npgsqlDataReader.GetInt64(1);
+                    total += count;
+
+                    switch ((AddressPointMatchType)npgsqlDataReader.GetInt16(0))
+                    {
+                        case AddressPointMatchType.Inside:
+                            inside += count;
+                            break;
+
+                        case AddressPointMatchType.Nearest:
+                            nearest += count;
+                            break;
+
+                        case AddressPointMatchType.Unmatched:
+                            unmatched += count;
+                            break;
+                    }
+                }
+            }
+            catch (PostgresException postgresException) when (postgresException.SqlState == PostgresErrorCodes.UndefinedTable)
+            {
+                return new AddressPointCountResult(countyId, 0, 0, 0, 0);
+            }
+
+            return new AddressPointCountResult(countyId, inside, nearest, unmatched, total);
         }
 
         /// <summary>
@@ -352,6 +420,25 @@ namespace DiGi.GIS.PostgreSQL.Classes
 
             await npgsqlConnection.OpenAsync(cancellationToken);
             return await DeleteByReferenceIdsAsync(npgsqlConnection, referenceIds, batchSize, commandTimeout, cancellationToken);
+        }
+
+        /// <summary>
+        /// Asynchronously counts the address points by match type for one county part or for the whole table, automatically managing the connection.
+        /// </summary>
+        /// <param name="countyId">The county part id to count under, or null for the whole table.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The cancellation token to monitor for cancellation requests.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the counts, or null when nothing could be counted.</returns>
+        public async Task<AddressPointCountResult?> GetCountResultAsync(int? countyId, int commandTimeout = 120, CancellationToken cancellationToken = default)
+        {
+            await using NpgsqlConnection? npgsqlConnection = DiGi.PostgreSQL.Create.NpgsqlConnection(ConnectionData);
+            if (npgsqlConnection is null)
+            {
+                return null;
+            }
+
+            await npgsqlConnection.OpenAsync(cancellationToken);
+            return await GetCountResultAsync(npgsqlConnection, countyId, commandTimeout, cancellationToken);
         }
 
         /// <summary>
