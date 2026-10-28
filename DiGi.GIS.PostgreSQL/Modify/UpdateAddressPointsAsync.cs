@@ -13,7 +13,7 @@ namespace DiGi.GIS.PostgreSQL
     {
         /// <summary>
         /// Imports the PRG address points of one county into <c>address_point</c>: assigns every point to the county part it lies in, matches the points of each part to that part's <c>building_2d</c> footprints with <see cref="GIS.Create.AddressPointMatchResult(IEnumerable{AddressPoint?}?, IEnumerable{GIS.Classes.Building2D?}?, double, double)"/>, and stores the matches.
-        /// <para><paramref name="countyIds"/> are county part ids, normally every polygon part of one county, never a county code: 18 counties have disconnected territory stored as one row per part (<c>Coding - GIS Administrative Data.md</c>). A point is assigned to the part whose face contains it (<see cref="Query.IdsByPoint2Ds(IDictionary{int, PolygonalFace2D}?, IReadOnlyList{Point2D}?, double)"/>, lowest id on overlap); a point in none of the parts is counted as outside and not written.</para>
+        /// <para><paramref name="countyIds"/> are county part ids, normally every polygon part of one county, never a county code: 18 counties have disconnected territory stored as one row per part (<c>Coding - GIS Administrative Data.md</c>). A point is assigned to the part whose face contains it (<see cref="Query.IdsByPoint2Ds(IDictionary{int, PolygonalFace2D}?, IReadOnlyList{Point2D}?, double)"/>, lowest id on overlap); a point in none of the parts is, when <paramref name="retryOutside"/> is true, retried against the parts of other counties containing it and filed under the part it lies in (<see cref="AddressPointUpdateResult.Rescued"/>), because the commune code of a point can name a county whose boundary differs from the BDOT10k polygon its building is filed under (DiGi.GIS.PostgreSQL#109); only a point in no county part is counted as outside and not written.</para>
         /// <para>Known limit: a point is matched only against the buildings of its own part, so a point within <paramref name="maxDistance"/> of a building filed under a sibling part, across the part boundary, is matched to its own part's nearest building or left unmatched.</para>
         /// <para>Known limit: PRG places many points on a plot, road or verge rather than on a building, so a share of every county stays <see cref="AddressPointMatchType.Unmatched"/> (8.5 % nationally, 5 % to 11.5 % per voivodeship, up to 36 % in a few counties; DiGi.GIS.PostgreSQL#111, #113). In the sampled worst counties the far points lie on empty plots, fields or roads, or 25 m to 60 m from a mapped building; BDOT10k coverage did not explain them, and it is not reported upstream. The 10 m <paramref name="maxDistance"/> is kept (a larger value risks matching a neighbour's building in towns, DiGi.GIS.PostgreSQL#114).</para>
         /// <para>Re-running an import replaces each point's row unless the stored PRG version is newer (<see cref="AddressPointPostgreSQLConverter.UpdateAsync(Npgsql.NpgsqlConnection?, int, IEnumerable{AddressPointMatch?}?, int, int, CancellationToken)"/>). All three converters read and write the Main database.</para>
@@ -24,6 +24,7 @@ namespace DiGi.GIS.PostgreSQL
         /// <param name="addressPoints">The address points of the county.</param>
         /// <param name="countyIds">The county part ids of the county.</param>
         /// <param name="maxDistance">The distance, in m, within which a point outside every footprint is assigned to the nearest one.</param>
+        /// <param name="retryOutside">True to retry a point that lies in none of <paramref name="countyIds"/> against the county parts of other counties that contain it; false to count it as outside.</param>
         /// <param name="batchSize">The number of rows written per statement.</param>
         /// <param name="commandTimeout">The timeout in seconds for each command. A value of 0 disables the timeout.</param>
         /// <param name="cancellationToken">The cancellation token to observe.</param>
@@ -35,6 +36,7 @@ namespace DiGi.GIS.PostgreSQL
             IEnumerable<AddressPoint?>? addressPoints,
             IEnumerable<int>? countyIds,
             double maxDistance = 10.0,
+            bool retryOutside = true,
             int batchSize = 1000,
             int commandTimeout = 600,
             CancellationToken cancellationToken = default)
@@ -54,42 +56,60 @@ namespace DiGi.GIS.PostgreSQL
 
             int skipped = 0;
             List<AddressPoint> addressPoints_Valid = [];
-            List<Point2D> point2Ds = [];
             foreach (AddressPoint? addressPoint in addressPoints)
             {
-                if (addressPoint?.Location is not Point2D point2D || string.IsNullOrWhiteSpace(addressPoint.ReferenceId) || addressPoint.SearchText() is null)
+                if (addressPoint?.Location is null || string.IsNullOrWhiteSpace(addressPoint.ReferenceId) || addressPoint.SearchText() is null)
                 {
                     skipped++;
                     continue;
                 }
 
                 addressPoints_Valid.Add(addressPoint);
-                point2Ds.Add(point2D);
             }
 
-            int?[]? ids = polygonalFace2Ds_ById.IdsByPoint2Ds(point2Ds);
-            if (ids is null)
+            (Dictionary<int, List<AddressPoint>> AddressPoints_ByCountyId, List<AddressPoint> AddressPoints_Outside)? addressPointsByCountyId = polygonalFace2Ds_ById.AddressPointsByCountyId(addressPoints_Valid);
+            if (addressPointsByCountyId is null)
             {
                 return null;
             }
 
-            int outside = 0;
-            Dictionary<int, List<AddressPoint>> addressPoints_ByCountyId = [];
-            for (int i = 0; i < ids.Length; i++)
+            Dictionary<int, List<AddressPoint>> addressPoints_ByCountyId = addressPointsByCountyId.Value.AddressPoints_ByCountyId;
+            int outside = addressPointsByCountyId.Value.AddressPoints_Outside.Count;
+            int rescued = 0;
+            if (retryOutside && outside != 0)
             {
-                if (ids[i] is not int countyId)
+                // The commune code of a point can name a county whose polygon does not contain it, while the building under it is filed
+                // under the county that does: the PRG and BDOT10k boundaries differ (DiGi.GIS.PostgreSQL#109). Such a point is filed under the part it lies in.
+                BoundingBox2D boundingBox2D = new(addressPointsByCountyId.Value.AddressPoints_Outside.Select(x => x.Location).OfType<Point2D>());
+                HashSet<int>? countyIds_Rescue = await administrativeAreal2DPostgreSQLConverter.GetCountyIdsByBoundingBox2DAsync(boundingBox2D, commandTimeout: commandTimeout, cancellationToken: cancellationToken);
+                if (countyIds_Rescue is null)
                 {
-                    outside++;
-                    continue;
+                    return null;
                 }
 
-                if (!addressPoints_ByCountyId.TryGetValue(countyId, out List<AddressPoint>? addressPoints_CountyId))
+                countyIds_Rescue.ExceptWith(polygonalFace2Ds_ById.Keys);
+                if (countyIds_Rescue.Count != 0)
                 {
-                    addressPoints_CountyId = [];
-                    addressPoints_ByCountyId[countyId] = addressPoints_CountyId;
-                }
+                    List<Classes.AdministrativeAreal2D>? administrativeAreal2Ds_Rescue = await administrativeAreal2DPostgreSQLConverter.GetAdministrativeAreal2DsByIdsAsync(countyIds_Rescue, commandTimeout, cancellationToken);
+                    if (administrativeAreal2Ds_Rescue is null)
+                    {
+                        return null;
+                    }
 
-                addressPoints_CountyId.Add(addressPoints_Valid[i]);
+                    (Dictionary<int, List<AddressPoint>> AddressPoints_ByCountyId, List<AddressPoint> AddressPoints_Outside)? addressPointsByCountyId_Rescue = administrativeAreal2Ds_Rescue.PolygonalFace2DsById().AddressPointsByCountyId(addressPointsByCountyId.Value.AddressPoints_Outside);
+                    if (addressPointsByCountyId_Rescue is null)
+                    {
+                        return null;
+                    }
+
+                    foreach (KeyValuePair<int, List<AddressPoint>> keyValuePair in addressPointsByCountyId_Rescue.Value.AddressPoints_ByCountyId)
+                    {
+                        addressPoints_ByCountyId[keyValuePair.Key] = keyValuePair.Value;
+                        rescued += keyValuePair.Value.Count;
+                    }
+
+                    outside = addressPointsByCountyId_Rescue.Value.AddressPoints_Outside.Count;
+                }
             }
 
             int inside = 0;
@@ -141,7 +161,7 @@ namespace DiGi.GIS.PostgreSQL
                 written += written_CountyId.Value;
             }
 
-            return new AddressPointUpdateResult(addressPoints_ByCountyId.Keys.OrderBy(x => x), inside, nearest, unmatched, outside, skipped, written);
+            return new AddressPointUpdateResult(addressPoints_ByCountyId.Keys.OrderBy(x => x), inside, nearest, unmatched, outside, rescued, skipped, written);
         }
     }
 }

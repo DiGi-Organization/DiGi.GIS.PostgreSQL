@@ -8,7 +8,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
 {
     /// <summary>
     /// The outcome of importing the PRG address points of one county into <c>address_point</c>. See <c>Modify.UpdateAddressPointsAsync</c>.
-    /// <para><see cref="Inside"/>, <see cref="Nearest"/> and <see cref="Unmatched"/> count the points assigned to a county part, by how they were matched to a building. <see cref="Outside"/> counts the points that lie in none of the county's parts and <see cref="Skipped"/> those without a PRG local identifier, a location or a name; neither is written. <see cref="Written"/> is the number of rows inserted or replaced, which is lower than the matched points when the table already holds a newer version of some of them.</para>
+    /// <para><see cref="Inside"/>, <see cref="Nearest"/> and <see cref="Unmatched"/> count the points assigned to a county part, by how they were matched to a building. <see cref="Outside"/> counts the points that lie in none of the county's parts, nor, when the retry is on, in any other county part, and <see cref="Skipped"/> those without a PRG local identifier, a location or a name; neither is written. <see cref="Rescued"/> counts the points the retry filed under a part of a neighbouring county; they are also counted in the three match figures. <see cref="Written"/> is the number of rows inserted or replaced, which is lower than the matched points when the table already holds a newer version of some of them.</para>
     /// </summary>
     public class AddressPointUpdateResult : SerializableResult, IGISPostgreSQLSerializableObject
     {
@@ -27,6 +27,9 @@ namespace DiGi.GIS.PostgreSQL.Classes
         [JsonInclude, JsonPropertyName(nameof(Outside))]
         private readonly int outside;
 
+        [JsonInclude, JsonPropertyName(nameof(Rescued))]
+        private readonly int rescued;
+
         [JsonInclude, JsonPropertyName(nameof(Skipped))]
         private readonly int skipped;
 
@@ -40,16 +43,18 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// <param name="inside">The number of points that lie inside a building footprint.</param>
         /// <param name="nearest">The number of points assigned to the nearest building footprint within the maximum distance.</param>
         /// <param name="unmatched">The number of points assigned to a county part but to no building.</param>
-        /// <param name="outside">The number of points that lie in none of the county parts, which were not written.</param>
+        /// <param name="outside">The number of points that lie in none of the county parts, nor in any other county part when the retry is on, which were not written.</param>
+        /// <param name="rescued">The number of points counted in <paramref name="inside"/>, <paramref name="nearest"/> or <paramref name="unmatched"/> that lay in none of the given county parts and were filed under the part of another county that contains them.</param>
         /// <param name="skipped">The number of points without a PRG local identifier, a location or a street or locality name, which were not written.</param>
         /// <param name="written">The number of rows inserted or replaced.</param>
-        public AddressPointUpdateResult(IEnumerable<int>? countyIds, int inside, int nearest, int unmatched, int outside, int skipped, long written)
+        public AddressPointUpdateResult(IEnumerable<int>? countyIds, int inside, int nearest, int unmatched, int outside, int rescued, int skipped, long written)
         {
             this.countyIds = countyIds is null ? null : [.. countyIds];
             this.inside = inside;
             this.nearest = nearest;
             this.unmatched = unmatched;
             this.outside = outside;
+            this.rescued = rescued;
             this.skipped = skipped;
             this.written = written;
         }
@@ -68,6 +73,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 nearest = addressPointUpdateResult.nearest;
                 unmatched = addressPointUpdateResult.unmatched;
                 outside = addressPointUpdateResult.outside;
+                rescued = addressPointUpdateResult.rescued;
                 skipped = addressPointUpdateResult.skipped;
                 written = addressPointUpdateResult.written;
             }
@@ -111,6 +117,12 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// </summary>
         [JsonIgnore]
         public int Outside => outside;
+
+        /// <summary>
+        /// Gets the number of points that lay in none of the given county parts but in a part of another county, and were filed under that part. They are also counted in <see cref="Inside"/>, <see cref="Nearest"/> or <see cref="Unmatched"/>.
+        /// </summary>
+        [JsonIgnore]
+        public int Rescued => rescued;
 
         /// <summary>
         /// Gets the number of points without a PRG local identifier, a location or a street or locality name, which were not written.

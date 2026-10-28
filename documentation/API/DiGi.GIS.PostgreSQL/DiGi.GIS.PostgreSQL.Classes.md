@@ -713,7 +713,7 @@ A task that represents the asynchronous operation\. The task result contains the
 
 The outcome of importing the PRG address points of one county into `address_point`\. See `Modify.UpdateAddressPointsAsync`\.
 
-[Inside](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointUpdateResult.Inside 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointUpdateResult\.Inside'), [Nearest](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointUpdateResult.Nearest 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointUpdateResult\.Nearest') and [Unmatched](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointUpdateResult.Unmatched 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointUpdateResult\.Unmatched') count the points assigned to a county part, by how they were matched to a building. [Outside](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointUpdateResult.Outside 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointUpdateResult\.Outside') counts the points that lie in none of the county's parts and [Skipped](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointUpdateResult.Skipped 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointUpdateResult\.Skipped') those without a PRG local identifier, a location or a name; neither is written. [Written](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointUpdateResult.Written 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointUpdateResult\.Written') is the number of rows inserted or replaced, which is lower than the matched points when the table already holds a newer version of some of them.
+[Inside](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointUpdateResult.Inside 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointUpdateResult\.Inside'), [Nearest](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointUpdateResult.Nearest 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointUpdateResult\.Nearest') and [Unmatched](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointUpdateResult.Unmatched 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointUpdateResult\.Unmatched') count the points assigned to a county part, by how they were matched to a building. [Outside](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointUpdateResult.Outside 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointUpdateResult\.Outside') counts the points that lie in none of the county's parts, nor, when the retry is on, in any other county part, and [Skipped](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointUpdateResult.Skipped 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointUpdateResult\.Skipped') those without a PRG local identifier, a location or a name; neither is written. [Rescued](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointUpdateResult.Rescued 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointUpdateResult\.Rescued') counts the points the retry filed under a part of a neighbouring county; they are also counted in the three match figures. [Written](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointUpdateResult.Written 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointUpdateResult\.Written') is the number of rows inserted or replaced, which is lower than the matched points when the table already holds a newer version of some of them.
 
 ```csharp
 public class AddressPointUpdateResult : DiGi.Core.Classes.SerializableResult, DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLSerializableObject, DiGi.Core.Interfaces.ISerializableObject, DiGi.Core.Interfaces.ICloneableObject<DiGi.Core.Interfaces.ISerializableObject>, DiGi.Core.Interfaces.ICloneableObject, DiGi.Core.Interfaces.IObject
@@ -741,54 +741,60 @@ public AddressPointUpdateResult(DiGi.GIS.PostgreSQL.Classes.AddressPointUpdateRe
 
 The [AddressPointUpdateResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointUpdateResult 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointUpdateResult') to copy from\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointUpdateResult.AddressPointUpdateResult(System.Collections.Generic.IEnumerable_int_,int,int,int,int,int,long)'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointUpdateResult.AddressPointUpdateResult(System.Collections.Generic.IEnumerable_int_,int,int,int,int,int,int,long)'></a>
 
-## AddressPointUpdateResult\(IEnumerable\<int\>, int, int, int, int, int, long\) Constructor
+## AddressPointUpdateResult\(IEnumerable\<int\>, int, int, int, int, int, int, long\) Constructor
 
 Initializes a new instance of the [AddressPointUpdateResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointUpdateResult 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointUpdateResult') class\.
 
 ```csharp
-public AddressPointUpdateResult(System.Collections.Generic.IEnumerable<int>? countyIds, int inside, int nearest, int unmatched, int outside, int skipped, long written);
+public AddressPointUpdateResult(System.Collections.Generic.IEnumerable<int>? countyIds, int inside, int nearest, int unmatched, int outside, int rescued, int skipped, long written);
 ```
 #### Parameters
 
-<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointUpdateResult.AddressPointUpdateResult(System.Collections.Generic.IEnumerable_int_,int,int,int,int,int,long).countyIds'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointUpdateResult.AddressPointUpdateResult(System.Collections.Generic.IEnumerable_int_,int,int,int,int,int,int,long).countyIds'></a>
 
 `countyIds` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
 
 The county part ids the points were assigned to\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointUpdateResult.AddressPointUpdateResult(System.Collections.Generic.IEnumerable_int_,int,int,int,int,int,long).inside'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointUpdateResult.AddressPointUpdateResult(System.Collections.Generic.IEnumerable_int_,int,int,int,int,int,int,long).inside'></a>
 
 `inside` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
 
 The number of points that lie inside a building footprint\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointUpdateResult.AddressPointUpdateResult(System.Collections.Generic.IEnumerable_int_,int,int,int,int,int,long).nearest'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointUpdateResult.AddressPointUpdateResult(System.Collections.Generic.IEnumerable_int_,int,int,int,int,int,int,long).nearest'></a>
 
 `nearest` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
 
 The number of points assigned to the nearest building footprint within the maximum distance\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointUpdateResult.AddressPointUpdateResult(System.Collections.Generic.IEnumerable_int_,int,int,int,int,int,long).unmatched'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointUpdateResult.AddressPointUpdateResult(System.Collections.Generic.IEnumerable_int_,int,int,int,int,int,int,long).unmatched'></a>
 
 `unmatched` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
 
 The number of points assigned to a county part but to no building\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointUpdateResult.AddressPointUpdateResult(System.Collections.Generic.IEnumerable_int_,int,int,int,int,int,long).outside'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointUpdateResult.AddressPointUpdateResult(System.Collections.Generic.IEnumerable_int_,int,int,int,int,int,int,long).outside'></a>
 
 `outside` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
 
-The number of points that lie in none of the county parts, which were not written\.
+The number of points that lie in none of the county parts, nor in any other county part when the retry is on, which were not written\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointUpdateResult.AddressPointUpdateResult(System.Collections.Generic.IEnumerable_int_,int,int,int,int,int,long).skipped'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointUpdateResult.AddressPointUpdateResult(System.Collections.Generic.IEnumerable_int_,int,int,int,int,int,int,long).rescued'></a>
+
+`rescued` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The number of points counted in [inside](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointUpdateResult.AddressPointUpdateResult(System.Collections.Generic.IEnumerable_int_,int,int,int,int,int,int,long).inside 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointUpdateResult\.AddressPointUpdateResult\(System\.Collections\.Generic\.IEnumerable\<int\>, int, int, int, int, int, int, long\)\.inside'), [nearest](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointUpdateResult.AddressPointUpdateResult(System.Collections.Generic.IEnumerable_int_,int,int,int,int,int,int,long).nearest 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointUpdateResult\.AddressPointUpdateResult\(System\.Collections\.Generic\.IEnumerable\<int\>, int, int, int, int, int, int, long\)\.nearest') or [unmatched](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointUpdateResult.AddressPointUpdateResult(System.Collections.Generic.IEnumerable_int_,int,int,int,int,int,int,long).unmatched 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointUpdateResult\.AddressPointUpdateResult\(System\.Collections\.Generic\.IEnumerable\<int\>, int, int, int, int, int, int, long\)\.unmatched') that lay in none of the given county parts and were filed under the part of another county that contains them\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointUpdateResult.AddressPointUpdateResult(System.Collections.Generic.IEnumerable_int_,int,int,int,int,int,int,long).skipped'></a>
 
 `skipped` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
 
 The number of points without a PRG local identifier, a location or a street or locality name, which were not written\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointUpdateResult.AddressPointUpdateResult(System.Collections.Generic.IEnumerable_int_,int,int,int,int,int,long).written'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointUpdateResult.AddressPointUpdateResult(System.Collections.Generic.IEnumerable_int_,int,int,int,int,int,int,long).written'></a>
 
 `written` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
 
@@ -859,6 +865,19 @@ Gets the number of points that lie in none of the county parts, which were not w
 
 ```csharp
 public int Outside { get; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointUpdateResult.Rescued'></a>
+
+## AddressPointUpdateResult\.Rescued Property
+
+Gets the number of points that lay in none of the given county parts but in a part of another county, and were filed under that part\. They are also counted in [Inside](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointUpdateResult.Inside 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointUpdateResult\.Inside'), [Nearest](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointUpdateResult.Nearest 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointUpdateResult\.Nearest') or [Unmatched](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointUpdateResult.Unmatched 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointUpdateResult\.Unmatched')\.
+
+```csharp
+public int Rescued { get; }
 ```
 
 #### Property Value
