@@ -21992,449 +21992,6 @@ A cancellation token that can be used to cancel the operation\.
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A task representing the asynchronous operation\. Returns true if the population was successful; otherwise, false\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointCreateTableOptions'></a>
-
-## PostgreSQLTerrainPointCreateTableOptions Class
-
-Provides options for filling the terrain point table by sampling elevations on a regular grid\.
-
-```csharp
-public class PostgreSQLTerrainPointCreateTableOptions : DiGi.Core.Classes.SerializableOptions
-```
-
-Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [DiGi\.Core\.Classes\.Object](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.object 'DiGi\.Core\.Classes\.Object') → [DiGi\.Core\.Classes\.SerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.serializableobject 'DiGi\.Core\.Classes\.SerializableObject') → [DiGi\.Core\.Classes\.SerializableOptions](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.serializableoptions 'DiGi\.Core\.Classes\.SerializableOptions') → PostgreSQLTerrainPointCreateTableOptions
-### Constructors
-
-<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointCreateTableOptions.PostgreSQLTerrainPointCreateTableOptions()'></a>
-
-## PostgreSQLTerrainPointCreateTableOptions\(\) Constructor
-
-Initializes a new instance of the [PostgreSQLTerrainPointCreateTableOptions](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointCreateTableOptions 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLTerrainPointCreateTableOptions') class\.
-
-```csharp
-public PostgreSQLTerrainPointCreateTableOptions();
-```
-
-<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointCreateTableOptions.PostgreSQLTerrainPointCreateTableOptions(DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointCreateTableOptions)'></a>
-
-## PostgreSQLTerrainPointCreateTableOptions\(PostgreSQLTerrainPointCreateTableOptions\) Constructor
-
-Initializes a new instance of the [PostgreSQLTerrainPointCreateTableOptions](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointCreateTableOptions 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLTerrainPointCreateTableOptions') class by copying an existing options instance\.
-
-```csharp
-public PostgreSQLTerrainPointCreateTableOptions(DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointCreateTableOptions postgreSQLTerrainPointCreateTableOptions);
-```
-#### Parameters
-
-<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointCreateTableOptions.PostgreSQLTerrainPointCreateTableOptions(DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointCreateTableOptions).postgreSQLTerrainPointCreateTableOptions'></a>
-
-`postgreSQLTerrainPointCreateTableOptions` [PostgreSQLTerrainPointCreateTableOptions](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointCreateTableOptions 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLTerrainPointCreateTableOptions')
-
-The source options instance to copy from\.
-
-<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointCreateTableOptions.PostgreSQLTerrainPointCreateTableOptions(System.Text.Json.Nodes.JsonObject)'></a>
-
-## PostgreSQLTerrainPointCreateTableOptions\(JsonObject\) Constructor
-
-Initializes a new instance of the [PostgreSQLTerrainPointCreateTableOptions](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointCreateTableOptions 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLTerrainPointCreateTableOptions') class using a JSON object\.
-
-```csharp
-public PostgreSQLTerrainPointCreateTableOptions(System.Text.Json.Nodes.JsonObject jsonObject);
-```
-#### Parameters
-
-<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointCreateTableOptions.PostgreSQLTerrainPointCreateTableOptions(System.Text.Json.Nodes.JsonObject).jsonObject'></a>
-
-`jsonObject` [System\.Text\.Json\.Nodes\.JsonObject](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.nodes.jsonobject 'System\.Text\.Json\.Nodes\.JsonObject')
-
-The JSON object containing the configuration settings\.
-### Properties
-
-<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointCreateTableOptions.CountyIds'></a>
-
-## PostgreSQLTerrainPointCreateTableOptions\.CountyIds Property
-
-Gets or sets the counties to sample, by identifier\. Null samples every county\.
-
-Identifiers rather than codes: a county whose territory is in several pieces is held as one row per piece, each with its own identifier and its own subdivisions, so a code names several of them.
-
-Each identifier names one polygon part, and the part is widened to every part sharing its code before the run starts - the county is sampled once as a whole, and each point is filed under the part containing it.
-
-Naming a few counties is the ordinary way to use this task at a fine grid size - see [GridSize](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointCreateTableOptions.GridSize 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLTerrainPointCreateTableOptions\.GridSize').
-
-```csharp
-public System.Collections.Generic.HashSet<int>? CountyIds { get; set; }
-```
-
-#### Property Value
-[System\.Collections\.Generic\.HashSet&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.hashset-1 'System\.Collections\.Generic\.HashSet\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.hashset-1 'System\.Collections\.Generic\.HashSet\`1')
-
-<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointCreateTableOptions.GridSize'></a>
-
-## PostgreSQLTerrainPointCreateTableOptions\.GridSize Property
-
-Gets or sets the spacing of the sampling grid, in model units\.
-
-Cost rises with the square of how fine this is, and every point is one request to the elevation service. Over a whole country 100 gives about 31 million points, 50 about 125 million, and 10 about 3.1 billion - the last is a setting for a named county, not for a country.
-
-Keep it a whole multiple of the finest value ever intended, and leave [OriginX](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointCreateTableOptions.OriginX 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLTerrainPointCreateTableOptions\.OriginX') and [OriginY](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointCreateTableOptions.OriginY 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLTerrainPointCreateTableOptions\.OriginY') alone, so that a county sampled coarsely can later be sampled finely without re-visiting the points it already holds. 100, 50 and 10 nest that way; 30 and 100 do not.
-
-```csharp
-public double GridSize { get; set; }
-```
-
-#### Property Value
-[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
-
-<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointCreateTableOptions.MaxConcurrentRequests'></a>
-
-## PostgreSQLTerrainPointCreateTableOptions\.MaxConcurrentRequests Property
-
-Gets or sets how many elevation requests may be in flight at once\.
-
-This is the whole of the throughput of the task, and it is asked of a public service - raising it shortens a run in proportion until the service starts refusing, at which point [RetryCount](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointCreateTableOptions.RetryCount 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLTerrainPointCreateTableOptions\.RetryCount') turns the refusals into a longer run rather than into missing points.
-
-```csharp
-public int MaxConcurrentRequests { get; set; }
-```
-
-#### Property Value
-[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
-
-<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointCreateTableOptions.OriginX'></a>
-
-## PostgreSQLTerrainPointCreateTableOptions\.OriginX Property
-
-Gets or sets the X coordinate the sampling grid is anchored at\.
-
-Leave at zero. Every tile of every county is cut from the one grid this anchors, which is what lets counties meet without a seam, lets a run be repeated without shifting, and lets a coarse sampling be reused by a finer one. Moving the anchor - to sample cell centres, say - gives up the last of those.
-
-```csharp
-public double OriginX { get; set; }
-```
-
-#### Property Value
-[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
-
-<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointCreateTableOptions.OriginY'></a>
-
-## PostgreSQLTerrainPointCreateTableOptions\.OriginY Property
-
-Gets or sets the Y coordinate the sampling grid is anchored at\.
-
-Leave at zero, for the reasons given on [OriginX](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointCreateTableOptions.OriginX 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLTerrainPointCreateTableOptions\.OriginX').
-
-```csharp
-public double OriginY { get; set; }
-```
-
-#### Property Value
-[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
-
-<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointCreateTableOptions.OverrideExisting'></a>
-
-## PostgreSQLTerrainPointCreateTableOptions\.OverrideExisting Property
-
-Gets or sets a value indicating whether points already stored are sampled again\.
-
-Left false the task reads back what a tile already holds and asks the elevation service only for the rest, so a run that was stopped picks up where it left off and a county sampled coarsely can be densified cheaply. Set true to pay for every point again.
-
-```csharp
-public bool OverrideExisting { get; set; }
-```
-
-#### Property Value
-[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')
-
-<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointCreateTableOptions.RetryCount'></a>
-
-## PostgreSQLTerrainPointCreateTableOptions\.RetryCount Property
-
-Gets or sets how many times a request the elevation service refused for a transient reason is sent again\.
-
-Zero sends each request once, which over a long run turns a burst of refusals into a band of points that have no elevation and that nothing goes back for.
-
-```csharp
-public int RetryCount { get; set; }
-```
-
-#### Property Value
-[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
-
-<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointCreateTableOptions.RetryDelayMilliseconds'></a>
-
-## PostgreSQLTerrainPointCreateTableOptions\.RetryDelayMilliseconds Property
-
-Gets or sets the delay before the first retry, in milliseconds, doubling for each attempt after that\.
-
-```csharp
-public double RetryDelayMilliseconds { get; set; }
-```
-
-#### Property Value
-[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
-
-<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointCreateTableOptions.TileSize'></a>
-
-## PostgreSQLTerrainPointCreateTableOptions\.TileSize Property
-
-Gets or sets the edge of one work tile, counted in grid steps\.
-
-One tile is one read of what is already stored, one batch of elevation requests and one write, so this governs how much is held at once and how often progress is reported. The default of 128 is 16 384 points per tile.
-
-```csharp
-public int TileSize { get; set; }
-```
-
-#### Property Value
-[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
-
-<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointCreateTableOptions.Tolerance'></a>
-
-## PostgreSQLTerrainPointCreateTableOptions\.Tolerance Property
-
-Gets or sets the distance tolerance\.
-
-Used both when deciding whether a sampled point falls within an area and when reading back the points a tile already holds. It is capped at half of [GridSize](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointCreateTableOptions.GridSize 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLTerrainPointCreateTableOptions\.GridSize') while the task runs, so that a point can never be taken for a point of the neighbouring tile.
-
-```csharp
-public double Tolerance { get; set; }
-```
-
-#### Property Value
-[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
-
-<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointCreateTableTask'></a>
-
-## PostgreSQLTerrainPointCreateTableTask Class
-
-Represents a background task that fills the terrain point table by sampling elevations on a regular grid\.
-
-The work is driven per county code rather than by one grid over the whole area. A county held in several pieces is one row per piece sharing one code, so its pieces are walked as one group: the county's subdivisions are read once, the pieces' own outlines are read once, and each point is then decided in memory against both - against the subdivisions for whether it is on land at all, and against the pieces for which piece contains it, which is the partition it is filed under. A point costs no database round trip at all, where deciding it through the database costs six of them plus the deserializing of an outline of thousands of vertices.
-
-Every county is sampled on tiles cut from one grid shared by all of them, anchored by [OriginX](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointCreateTableOptions.OriginX 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLTerrainPointCreateTableOptions\.OriginX') and [OriginY](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointCreateTableOptions.OriginY 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLTerrainPointCreateTableOptions\.OriginY'). Neighbouring counties therefore produce the same coordinates for a shared point instead of two grids that do not line up, and a tile that was already sampled is recognised and skipped - so a run that was stopped resumes, and a county sampled coarsely can later be sampled finely without paying for the points it already holds.
-
-What remains is one request to the elevation service per point, which is the whole of the running time. [MaxConcurrentRequests](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointCreateTableOptions.MaxConcurrentRequests 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLTerrainPointCreateTableOptions\.MaxConcurrentRequests') governs it.
-
-A run reports success unless it was cancelled. A county or a tile that cannot be sampled is counted in [FailedBatchCount](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointCreateTableTask.FailedBatchCount 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLTerrainPointCreateTableTask\.FailedBatchCount'), logged with the exception that caused it, and stepped over - so a run of many hours is not reduced to a single word by one batch out of hundreds of thousands, and what did go wrong is named in the log rather than inferred from a count nothing reads.
-
-```csharp
-public class PostgreSQLTerrainPointCreateTableTask : DiGi.Core.Classes.ReportableBackgroundTask<long>, DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLObject, DiGi.Core.Interfaces.IObject
-```
-
-Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [DiGi\.Core\.Classes\.BackgroundTask](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.backgroundtask 'DiGi\.Core\.Classes\.BackgroundTask') → [DiGi\.Core\.Classes\.CancelableBackgroundTask](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.cancelablebackgroundtask 'DiGi\.Core\.Classes\.CancelableBackgroundTask') → [DiGi\.Core\.Classes\.ReportableBackgroundTask&lt;](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.reportablebackgroundtask-1 'DiGi\.Core\.Classes\.ReportableBackgroundTask\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.reportablebackgroundtask-1 'DiGi\.Core\.Classes\.ReportableBackgroundTask\`1') → PostgreSQLTerrainPointCreateTableTask
-
-Implements [IGISPostgreSQLObject](DiGi.GIS.PostgreSQL.Interfaces.md#DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLObject 'DiGi\.GIS\.PostgreSQL\.Interfaces\.IGISPostgreSQLObject'), [DiGi\.Core\.Interfaces\.IObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iobject 'DiGi\.Core\.Interfaces\.IObject')
-### Constructors
-
-<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointCreateTableTask.PostgreSQLTerrainPointCreateTableTask(System.Net.Http.HttpClient,DiGi.GIS.PostgreSQL.Classes.GISPostgreSQLConverterManager)'></a>
-
-## PostgreSQLTerrainPointCreateTableTask\(HttpClient, GISPostgreSQLConverterManager\) Constructor
-
-Constructor with Dependency Injection\.
-
-```csharp
-public PostgreSQLTerrainPointCreateTableTask(System.Net.Http.HttpClient? httpClient, DiGi.GIS.PostgreSQL.Classes.GISPostgreSQLConverterManager? gISPostgreSQLConverterManager);
-```
-#### Parameters
-
-<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointCreateTableTask.PostgreSQLTerrainPointCreateTableTask(System.Net.Http.HttpClient,DiGi.GIS.PostgreSQL.Classes.GISPostgreSQLConverterManager).httpClient'></a>
-
-`httpClient` [System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient')
-
-The HTTP client used to reach the elevation service\.
-
-<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointCreateTableTask.PostgreSQLTerrainPointCreateTableTask(System.Net.Http.HttpClient,DiGi.GIS.PostgreSQL.Classes.GISPostgreSQLConverterManager).gISPostgreSQLConverterManager'></a>
-
-`gISPostgreSQLConverterManager` [GISPostgreSQLConverterManager](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.GISPostgreSQLConverterManager 'DiGi\.GIS\.PostgreSQL\.Classes\.GISPostgreSQLConverterManager')
-
-The GIS PostgreSQL converter manager used to read the areas and write the points\.
-### Fields
-
-<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointCreateTableTask.commandTimeout'></a>
-
-## PostgreSQLTerrainPointCreateTableTask\.commandTimeout Field
-
-Bulk reads over a whole county exceed the 30 second default; allow up to 10 minutes per statement\.
-
-```csharp
-private const int commandTimeout = 600;
-```
-
-#### Field Value
-[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
-
-<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointCreateTableTask.count_Point2Ds_Unresolved_Logged'></a>
-
-## PostgreSQLTerrainPointCreateTableTask\.count\_Point2Ds\_Unresolved\_Logged Field
-
-The most unresolved coordinates named in a single log entry, so one bad tile cannot fill the log\.
-
-```csharp
-private const int count_Point2Ds_Unresolved_Logged = 20;
-```
-
-#### Field Value
-[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
-
-<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointCreateTableTask.count_Point2Ds_Unresolved_Maximum'></a>
-
-## PostgreSQLTerrainPointCreateTableTask\.count\_Point2Ds\_Unresolved\_Maximum Field
-
-The most unresolved coordinates kept in memory for the caller\. The count is never capped, only the list\.
-
-```csharp
-private const int count_Point2Ds_Unresolved_Maximum = 1000;
-```
-
-#### Field Value
-[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
-### Properties
-
-<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointCreateTableTask.FailedBatchCount'></a>
-
-## PostgreSQLTerrainPointCreateTableTask\.FailedBatchCount Property
-
-Gets the number of counties and tiles that failed outright and were stepped over\.
-
-Each one is logged with its county, its tile and the exception that caused it, so this figure is a count of entries to go and read rather than the whole of what is known.
-
-```csharp
-public long FailedBatchCount { get; private set; }
-```
-
-#### Property Value
-[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
-
-<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointCreateTableTask.Point2Ds_Unresolved'></a>
-
-## PostgreSQLTerrainPointCreateTableTask\.Point2Ds\_Unresolved Property
-
-Gets the coordinates of the points the elevation service returned nothing for, up to the first thousand of them\.
-
-Counting them says a run lost something without saying what, and a point that was never answered for is indistinguishable afterwards from one that was never asked about - telling the two apart otherwise costs a full sweep of the county against the lattice. These are the coordinates to go back for.
-
-Capped, so a run that loses a great many does not hold them all. [UnresolvedPointCount](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointCreateTableTask.UnresolvedPointCount 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLTerrainPointCreateTableTask\.UnresolvedPointCount') is the true figure, and the log names them tile by tile.
-
-```csharp
-public System.Collections.Generic.IReadOnlyList<DiGi.Geometry.Planar.Classes.Point2D> Point2Ds_Unresolved { get; }
-```
-
-#### Property Value
-[System\.Collections\.Generic\.IReadOnlyList&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ireadonlylist-1 'System\.Collections\.Generic\.IReadOnlyList\`1')[DiGi\.Geometry\.Planar\.Classes\.Point2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.point2d 'DiGi\.Geometry\.Planar\.Classes\.Point2D')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ireadonlylist-1 'System\.Collections\.Generic\.IReadOnlyList\`1')
-
-<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointCreateTableTask.PointCount'></a>
-
-## PostgreSQLTerrainPointCreateTableTask\.PointCount Property
-
-Gets the number of points the database accepted\.
-
-Points already stored are not counted - the write leaves them as they are - so a run over a county that is already complete reports zero.
-
-```csharp
-public long PointCount { get; private set; }
-```
-
-#### Property Value
-[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
-
-<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointCreateTableTask.PostgreSQLTerrainPointCreateTableOptions'></a>
-
-## PostgreSQLTerrainPointCreateTableTask\.PostgreSQLTerrainPointCreateTableOptions Property
-
-Gets the configuration for the PostgreSQL operation\.
-These options will be used when the task is started\.
-
-```csharp
-public DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointCreateTableOptions PostgreSQLTerrainPointCreateTableOptions { get; set; }
-```
-
-#### Property Value
-[PostgreSQLTerrainPointCreateTableOptions](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointCreateTableOptions 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLTerrainPointCreateTableOptions')
-
-<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointCreateTableTask.RejectionCount'></a>
-
-## PostgreSQLTerrainPointCreateTableTask\.RejectionCount Property
-
-Gets the number of points the database declined to store\.
-
-```csharp
-public long RejectionCount { get; private set; }
-```
-
-#### Property Value
-[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
-
-<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointCreateTableTask.UnresolvedPointCount'></a>
-
-## PostgreSQLTerrainPointCreateTableTask\.UnresolvedPointCount Property
-
-Gets the number of points that lie inside a subdivision but for which the elevation service returned nothing, even after the retries allowed\.
-
-These are gaps in the terrain rather than points outside the sampled area. They are reported rather than gated on: a run of tens of millions of requests to a public service will meet a few, and treating that as a failed run says nothing about which points were missed. The log names the tile each one belongs to.
-
-```csharp
-public long UnresolvedPointCount { get; private set; }
-```
-
-#### Property Value
-[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
-### Methods
-
-<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointCreateTableTask.ExecuteAsync(System.IProgress_long_,System.Threading.CancellationToken)'></a>
-
-## PostgreSQLTerrainPointCreateTableTask\.ExecuteAsync\(IProgress\<long\>, CancellationToken\) Method
-
-Executes the background task, sampling elevations county by county and writing them to the terrain point table\.
-
-```csharp
-protected override System.Threading.Tasks.Task<bool> ExecuteAsync(System.IProgress<long> progress, System.Threading.CancellationToken cancellationToken);
-```
-#### Parameters
-
-<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointCreateTableTask.ExecuteAsync(System.IProgress_long_,System.Threading.CancellationToken).progress'></a>
-
-`progress` [System\.IProgress&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.iprogress-1 'System\.IProgress\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.iprogress-1 'System\.IProgress\`1')
-
-A progress reporter carrying the running total of points stored\.
-
-<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointCreateTableTask.ExecuteAsync(System.IProgress_long_,System.Threading.CancellationToken).cancellationToken'></a>
-
-`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
-
-A cancellation token that can be used to cancel the operation\.
-
-#### Returns
-[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
-A task representing the asynchronous operation\. Returns true unless the run was cancelled\.
-
-<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointCreateTableTask.FloorDivide(int,int)'></a>
-
-## PostgreSQLTerrainPointCreateTableTask\.FloorDivide\(int, int\) Method
-
-Divides rounding towards negative infinity, so that indexes below the origin fall into blocks the same way indexes above it do\.
-
-```csharp
-private static int FloorDivide(int value, int divisor);
-```
-#### Parameters
-
-<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointCreateTableTask.FloorDivide(int,int).value'></a>
-
-`value` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
-
-The value to divide\.
-
-<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointCreateTableTask.FloorDivide(int,int).divisor'></a>
-
-`divisor` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
-
-The divisor, which has to be greater than zero\.
-
-#### Returns
-[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')  
-The quotient rounded towards negative infinity\.
-
 <a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointFillGapsOptions'></a>
 
 ## PostgreSQLTerrainPointFillGapsOptions Class
@@ -22853,6 +22410,449 @@ A cancellation token that can be used to cancel the operation\.
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A task representing the asynchronous operation\. Returns true unless the run was cancelled\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointUpdateOptions'></a>
+
+## PostgreSQLTerrainPointUpdateOptions Class
+
+Provides options for filling the terrain point table by sampling elevations on a regular grid\.
+
+```csharp
+public class PostgreSQLTerrainPointUpdateOptions : DiGi.Core.Classes.SerializableOptions
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [DiGi\.Core\.Classes\.Object](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.object 'DiGi\.Core\.Classes\.Object') → [DiGi\.Core\.Classes\.SerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.serializableobject 'DiGi\.Core\.Classes\.SerializableObject') → [DiGi\.Core\.Classes\.SerializableOptions](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.serializableoptions 'DiGi\.Core\.Classes\.SerializableOptions') → PostgreSQLTerrainPointUpdateOptions
+### Constructors
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointUpdateOptions.PostgreSQLTerrainPointUpdateOptions()'></a>
+
+## PostgreSQLTerrainPointUpdateOptions\(\) Constructor
+
+Initializes a new instance of the [PostgreSQLTerrainPointUpdateOptions](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointUpdateOptions 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLTerrainPointUpdateOptions') class\.
+
+```csharp
+public PostgreSQLTerrainPointUpdateOptions();
+```
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointUpdateOptions.PostgreSQLTerrainPointUpdateOptions(DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointUpdateOptions)'></a>
+
+## PostgreSQLTerrainPointUpdateOptions\(PostgreSQLTerrainPointUpdateOptions\) Constructor
+
+Initializes a new instance of the [PostgreSQLTerrainPointUpdateOptions](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointUpdateOptions 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLTerrainPointUpdateOptions') class by copying an existing options instance\.
+
+```csharp
+public PostgreSQLTerrainPointUpdateOptions(DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointUpdateOptions postgreSQLTerrainPointUpdateOptions);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointUpdateOptions.PostgreSQLTerrainPointUpdateOptions(DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointUpdateOptions).postgreSQLTerrainPointUpdateOptions'></a>
+
+`postgreSQLTerrainPointUpdateOptions` [PostgreSQLTerrainPointUpdateOptions](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointUpdateOptions 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLTerrainPointUpdateOptions')
+
+The source options instance to copy from\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointUpdateOptions.PostgreSQLTerrainPointUpdateOptions(System.Text.Json.Nodes.JsonObject)'></a>
+
+## PostgreSQLTerrainPointUpdateOptions\(JsonObject\) Constructor
+
+Initializes a new instance of the [PostgreSQLTerrainPointUpdateOptions](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointUpdateOptions 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLTerrainPointUpdateOptions') class using a JSON object\.
+
+```csharp
+public PostgreSQLTerrainPointUpdateOptions(System.Text.Json.Nodes.JsonObject jsonObject);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointUpdateOptions.PostgreSQLTerrainPointUpdateOptions(System.Text.Json.Nodes.JsonObject).jsonObject'></a>
+
+`jsonObject` [System\.Text\.Json\.Nodes\.JsonObject](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.nodes.jsonobject 'System\.Text\.Json\.Nodes\.JsonObject')
+
+The JSON object containing the configuration settings\.
+### Properties
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointUpdateOptions.CountyIds'></a>
+
+## PostgreSQLTerrainPointUpdateOptions\.CountyIds Property
+
+Gets or sets the counties to sample, by identifier\. Null samples every county\.
+
+Identifiers rather than codes: a county whose territory is in several pieces is held as one row per piece, each with its own identifier and its own subdivisions, so a code names several of them.
+
+Each identifier names one polygon part, and the part is widened to every part sharing its code before the run starts - the county is sampled once as a whole, and each point is filed under the part containing it.
+
+Naming a few counties is the ordinary way to use this task at a fine grid size - see [GridSize](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointUpdateOptions.GridSize 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLTerrainPointUpdateOptions\.GridSize').
+
+```csharp
+public System.Collections.Generic.HashSet<int>? CountyIds { get; set; }
+```
+
+#### Property Value
+[System\.Collections\.Generic\.HashSet&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.hashset-1 'System\.Collections\.Generic\.HashSet\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.hashset-1 'System\.Collections\.Generic\.HashSet\`1')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointUpdateOptions.GridSize'></a>
+
+## PostgreSQLTerrainPointUpdateOptions\.GridSize Property
+
+Gets or sets the spacing of the sampling grid, in model units\.
+
+Cost rises with the square of how fine this is, and every point is one request to the elevation service. Over a whole country 100 gives about 31 million points, 50 about 125 million, and 10 about 3.1 billion - the last is a setting for a named county, not for a country.
+
+Keep it a whole multiple of the finest value ever intended, and leave [OriginX](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointUpdateOptions.OriginX 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLTerrainPointUpdateOptions\.OriginX') and [OriginY](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointUpdateOptions.OriginY 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLTerrainPointUpdateOptions\.OriginY') alone, so that a county sampled coarsely can later be sampled finely without re-visiting the points it already holds. 100, 50 and 10 nest that way; 30 and 100 do not.
+
+```csharp
+public double GridSize { get; set; }
+```
+
+#### Property Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointUpdateOptions.MaxConcurrentRequests'></a>
+
+## PostgreSQLTerrainPointUpdateOptions\.MaxConcurrentRequests Property
+
+Gets or sets how many elevation requests may be in flight at once\.
+
+This is the whole of the throughput of the task, and it is asked of a public service - raising it shortens a run in proportion until the service starts refusing, at which point [RetryCount](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointUpdateOptions.RetryCount 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLTerrainPointUpdateOptions\.RetryCount') turns the refusals into a longer run rather than into missing points.
+
+```csharp
+public int MaxConcurrentRequests { get; set; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointUpdateOptions.OriginX'></a>
+
+## PostgreSQLTerrainPointUpdateOptions\.OriginX Property
+
+Gets or sets the X coordinate the sampling grid is anchored at\.
+
+Leave at zero. Every tile of every county is cut from the one grid this anchors, which is what lets counties meet without a seam, lets a run be repeated without shifting, and lets a coarse sampling be reused by a finer one. Moving the anchor - to sample cell centres, say - gives up the last of those.
+
+```csharp
+public double OriginX { get; set; }
+```
+
+#### Property Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointUpdateOptions.OriginY'></a>
+
+## PostgreSQLTerrainPointUpdateOptions\.OriginY Property
+
+Gets or sets the Y coordinate the sampling grid is anchored at\.
+
+Leave at zero, for the reasons given on [OriginX](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointUpdateOptions.OriginX 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLTerrainPointUpdateOptions\.OriginX').
+
+```csharp
+public double OriginY { get; set; }
+```
+
+#### Property Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointUpdateOptions.OverrideExisting'></a>
+
+## PostgreSQLTerrainPointUpdateOptions\.OverrideExisting Property
+
+Gets or sets a value indicating whether points already stored are sampled again\.
+
+Left false the task reads back what a tile already holds and asks the elevation service only for the rest, so a run that was stopped picks up where it left off and a county sampled coarsely can be densified cheaply. Set true to pay for every point again.
+
+```csharp
+public bool OverrideExisting { get; set; }
+```
+
+#### Property Value
+[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointUpdateOptions.RetryCount'></a>
+
+## PostgreSQLTerrainPointUpdateOptions\.RetryCount Property
+
+Gets or sets how many times a request the elevation service refused for a transient reason is sent again\.
+
+Zero sends each request once, which over a long run turns a burst of refusals into a band of points that have no elevation and that nothing goes back for.
+
+```csharp
+public int RetryCount { get; set; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointUpdateOptions.RetryDelayMilliseconds'></a>
+
+## PostgreSQLTerrainPointUpdateOptions\.RetryDelayMilliseconds Property
+
+Gets or sets the delay before the first retry, in milliseconds, doubling for each attempt after that\.
+
+```csharp
+public double RetryDelayMilliseconds { get; set; }
+```
+
+#### Property Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointUpdateOptions.TileSize'></a>
+
+## PostgreSQLTerrainPointUpdateOptions\.TileSize Property
+
+Gets or sets the edge of one work tile, counted in grid steps\.
+
+One tile is one read of what is already stored, one batch of elevation requests and one write, so this governs how much is held at once and how often progress is reported. The default of 128 is 16 384 points per tile.
+
+```csharp
+public int TileSize { get; set; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointUpdateOptions.Tolerance'></a>
+
+## PostgreSQLTerrainPointUpdateOptions\.Tolerance Property
+
+Gets or sets the distance tolerance\.
+
+Used both when deciding whether a sampled point falls within an area and when reading back the points a tile already holds. It is capped at half of [GridSize](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointUpdateOptions.GridSize 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLTerrainPointUpdateOptions\.GridSize') while the task runs, so that a point can never be taken for a point of the neighbouring tile.
+
+```csharp
+public double Tolerance { get; set; }
+```
+
+#### Property Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointUpdateTask'></a>
+
+## PostgreSQLTerrainPointUpdateTask Class
+
+Represents a background task that fills the terrain point table by sampling elevations on a regular grid\.
+
+The work is driven per county code rather than by one grid over the whole area. A county held in several pieces is one row per piece sharing one code, so its pieces are walked as one group: the county's subdivisions are read once, the pieces' own outlines are read once, and each point is then decided in memory against both - against the subdivisions for whether it is on land at all, and against the pieces for which piece contains it, which is the partition it is filed under. A point costs no database round trip at all, where deciding it through the database costs six of them plus the deserializing of an outline of thousands of vertices.
+
+Every county is sampled on tiles cut from one grid shared by all of them, anchored by [OriginX](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointUpdateOptions.OriginX 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLTerrainPointUpdateOptions\.OriginX') and [OriginY](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointUpdateOptions.OriginY 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLTerrainPointUpdateOptions\.OriginY'). Neighbouring counties therefore produce the same coordinates for a shared point instead of two grids that do not line up, and a tile that was already sampled is recognised and skipped - so a run that was stopped resumes, and a county sampled coarsely can later be sampled finely without paying for the points it already holds.
+
+What remains is one request to the elevation service per point, which is the whole of the running time. [MaxConcurrentRequests](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointUpdateOptions.MaxConcurrentRequests 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLTerrainPointUpdateOptions\.MaxConcurrentRequests') governs it.
+
+A run reports success unless it was cancelled. A county or a tile that cannot be sampled is counted in [FailedBatchCount](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointUpdateTask.FailedBatchCount 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLTerrainPointUpdateTask\.FailedBatchCount'), logged with the exception that caused it, and stepped over - so a run of many hours is not reduced to a single word by one batch out of hundreds of thousands, and what did go wrong is named in the log rather than inferred from a count nothing reads.
+
+```csharp
+public class PostgreSQLTerrainPointUpdateTask : DiGi.Core.Classes.ReportableBackgroundTask<long>, DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLObject, DiGi.Core.Interfaces.IObject
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [DiGi\.Core\.Classes\.BackgroundTask](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.backgroundtask 'DiGi\.Core\.Classes\.BackgroundTask') → [DiGi\.Core\.Classes\.CancelableBackgroundTask](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.cancelablebackgroundtask 'DiGi\.Core\.Classes\.CancelableBackgroundTask') → [DiGi\.Core\.Classes\.ReportableBackgroundTask&lt;](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.reportablebackgroundtask-1 'DiGi\.Core\.Classes\.ReportableBackgroundTask\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.reportablebackgroundtask-1 'DiGi\.Core\.Classes\.ReportableBackgroundTask\`1') → PostgreSQLTerrainPointUpdateTask
+
+Implements [IGISPostgreSQLObject](DiGi.GIS.PostgreSQL.Interfaces.md#DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLObject 'DiGi\.GIS\.PostgreSQL\.Interfaces\.IGISPostgreSQLObject'), [DiGi\.Core\.Interfaces\.IObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iobject 'DiGi\.Core\.Interfaces\.IObject')
+### Constructors
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointUpdateTask.PostgreSQLTerrainPointUpdateTask(System.Net.Http.HttpClient,DiGi.GIS.PostgreSQL.Classes.GISPostgreSQLConverterManager)'></a>
+
+## PostgreSQLTerrainPointUpdateTask\(HttpClient, GISPostgreSQLConverterManager\) Constructor
+
+Constructor with Dependency Injection\.
+
+```csharp
+public PostgreSQLTerrainPointUpdateTask(System.Net.Http.HttpClient? httpClient, DiGi.GIS.PostgreSQL.Classes.GISPostgreSQLConverterManager? gISPostgreSQLConverterManager);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointUpdateTask.PostgreSQLTerrainPointUpdateTask(System.Net.Http.HttpClient,DiGi.GIS.PostgreSQL.Classes.GISPostgreSQLConverterManager).httpClient'></a>
+
+`httpClient` [System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient')
+
+The HTTP client used to reach the elevation service\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointUpdateTask.PostgreSQLTerrainPointUpdateTask(System.Net.Http.HttpClient,DiGi.GIS.PostgreSQL.Classes.GISPostgreSQLConverterManager).gISPostgreSQLConverterManager'></a>
+
+`gISPostgreSQLConverterManager` [GISPostgreSQLConverterManager](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.GISPostgreSQLConverterManager 'DiGi\.GIS\.PostgreSQL\.Classes\.GISPostgreSQLConverterManager')
+
+The GIS PostgreSQL converter manager used to read the areas and write the points\.
+### Fields
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointUpdateTask.commandTimeout'></a>
+
+## PostgreSQLTerrainPointUpdateTask\.commandTimeout Field
+
+Bulk reads over a whole county exceed the 30 second default; allow up to 10 minutes per statement\.
+
+```csharp
+private const int commandTimeout = 600;
+```
+
+#### Field Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointUpdateTask.count_Point2Ds_Unresolved_Logged'></a>
+
+## PostgreSQLTerrainPointUpdateTask\.count\_Point2Ds\_Unresolved\_Logged Field
+
+The most unresolved coordinates named in a single log entry, so one bad tile cannot fill the log\.
+
+```csharp
+private const int count_Point2Ds_Unresolved_Logged = 20;
+```
+
+#### Field Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointUpdateTask.count_Point2Ds_Unresolved_Maximum'></a>
+
+## PostgreSQLTerrainPointUpdateTask\.count\_Point2Ds\_Unresolved\_Maximum Field
+
+The most unresolved coordinates kept in memory for the caller\. The count is never capped, only the list\.
+
+```csharp
+private const int count_Point2Ds_Unresolved_Maximum = 1000;
+```
+
+#### Field Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+### Properties
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointUpdateTask.FailedBatchCount'></a>
+
+## PostgreSQLTerrainPointUpdateTask\.FailedBatchCount Property
+
+Gets the number of counties and tiles that failed outright and were stepped over\.
+
+Each one is logged with its county, its tile and the exception that caused it, so this figure is a count of entries to go and read rather than the whole of what is known.
+
+```csharp
+public long FailedBatchCount { get; private set; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointUpdateTask.Point2Ds_Unresolved'></a>
+
+## PostgreSQLTerrainPointUpdateTask\.Point2Ds\_Unresolved Property
+
+Gets the coordinates of the points the elevation service returned nothing for, up to the first thousand of them\.
+
+Counting them says a run lost something without saying what, and a point that was never answered for is indistinguishable afterwards from one that was never asked about - telling the two apart otherwise costs a full sweep of the county against the lattice. These are the coordinates to go back for.
+
+Capped, so a run that loses a great many does not hold them all. [UnresolvedPointCount](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointUpdateTask.UnresolvedPointCount 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLTerrainPointUpdateTask\.UnresolvedPointCount') is the true figure, and the log names them tile by tile.
+
+```csharp
+public System.Collections.Generic.IReadOnlyList<DiGi.Geometry.Planar.Classes.Point2D> Point2Ds_Unresolved { get; }
+```
+
+#### Property Value
+[System\.Collections\.Generic\.IReadOnlyList&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ireadonlylist-1 'System\.Collections\.Generic\.IReadOnlyList\`1')[DiGi\.Geometry\.Planar\.Classes\.Point2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.point2d 'DiGi\.Geometry\.Planar\.Classes\.Point2D')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ireadonlylist-1 'System\.Collections\.Generic\.IReadOnlyList\`1')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointUpdateTask.PointCount'></a>
+
+## PostgreSQLTerrainPointUpdateTask\.PointCount Property
+
+Gets the number of points the database accepted\.
+
+Points already stored are not counted - the write leaves them as they are - so a run over a county that is already complete reports zero.
+
+```csharp
+public long PointCount { get; private set; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointUpdateTask.PostgreSQLTerrainPointUpdateOptions'></a>
+
+## PostgreSQLTerrainPointUpdateTask\.PostgreSQLTerrainPointUpdateOptions Property
+
+Gets the configuration for the PostgreSQL operation\.
+These options will be used when the task is started\.
+
+```csharp
+public DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointUpdateOptions PostgreSQLTerrainPointUpdateOptions { get; set; }
+```
+
+#### Property Value
+[PostgreSQLTerrainPointUpdateOptions](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointUpdateOptions 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLTerrainPointUpdateOptions')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointUpdateTask.RejectionCount'></a>
+
+## PostgreSQLTerrainPointUpdateTask\.RejectionCount Property
+
+Gets the number of points the database declined to store\.
+
+```csharp
+public long RejectionCount { get; private set; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointUpdateTask.UnresolvedPointCount'></a>
+
+## PostgreSQLTerrainPointUpdateTask\.UnresolvedPointCount Property
+
+Gets the number of points that lie inside a subdivision but for which the elevation service returned nothing, even after the retries allowed\.
+
+These are gaps in the terrain rather than points outside the sampled area. They are reported rather than gated on: a run of tens of millions of requests to a public service will meet a few, and treating that as a failed run says nothing about which points were missed. The log names the tile each one belongs to.
+
+```csharp
+public long UnresolvedPointCount { get; private set; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+### Methods
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointUpdateTask.ExecuteAsync(System.IProgress_long_,System.Threading.CancellationToken)'></a>
+
+## PostgreSQLTerrainPointUpdateTask\.ExecuteAsync\(IProgress\<long\>, CancellationToken\) Method
+
+Executes the background task, sampling elevations county by county and writing them to the terrain point table\.
+
+```csharp
+protected override System.Threading.Tasks.Task<bool> ExecuteAsync(System.IProgress<long> progress, System.Threading.CancellationToken cancellationToken);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointUpdateTask.ExecuteAsync(System.IProgress_long_,System.Threading.CancellationToken).progress'></a>
+
+`progress` [System\.IProgress&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.iprogress-1 'System\.IProgress\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.iprogress-1 'System\.IProgress\`1')
+
+A progress reporter carrying the running total of points stored\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointUpdateTask.ExecuteAsync(System.IProgress_long_,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used to cancel the operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task representing the asynchronous operation\. Returns true unless the run was cancelled\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointUpdateTask.FloorDivide(int,int)'></a>
+
+## PostgreSQLTerrainPointUpdateTask\.FloorDivide\(int, int\) Method
+
+Divides rounding towards negative infinity, so that indexes below the origin fall into blocks the same way indexes above it do\.
+
+```csharp
+private static int FloorDivide(int value, int divisor);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointUpdateTask.FloorDivide(int,int).value'></a>
+
+`value` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The value to divide\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLTerrainPointUpdateTask.FloorDivide(int,int).divisor'></a>
+
+`divisor` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The divisor, which has to be greater than zero\.
+
+#### Returns
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')  
+The quotient rounded towards negative infinity\.
 
 <a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLUnitCreateTableTask'></a>
 

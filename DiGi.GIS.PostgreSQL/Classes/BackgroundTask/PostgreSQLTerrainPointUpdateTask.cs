@@ -16,11 +16,11 @@ namespace DiGi.GIS.PostgreSQL.Classes
     /// <summary>
     /// Represents a background task that fills the terrain point table by sampling elevations on a regular grid.
     /// <para>The work is driven per county code rather than by one grid over the whole area. A county held in several pieces is one row per piece sharing one code, so its pieces are walked as one group: the county's subdivisions are read once, the pieces' own outlines are read once, and each point is then decided in memory against both - against the subdivisions for whether it is on land at all, and against the pieces for which piece contains it, which is the partition it is filed under. A point costs no database round trip at all, where deciding it through the database costs six of them plus the deserializing of an outline of thousands of vertices.</para>
-    /// <para>Every county is sampled on tiles cut from one grid shared by all of them, anchored by <see cref="PostgreSQLTerrainPointCreateTableOptions.OriginX"/> and <see cref="PostgreSQLTerrainPointCreateTableOptions.OriginY"/>. Neighbouring counties therefore produce the same coordinates for a shared point instead of two grids that do not line up, and a tile that was already sampled is recognised and skipped - so a run that was stopped resumes, and a county sampled coarsely can later be sampled finely without paying for the points it already holds.</para>
-    /// <para>What remains is one request to the elevation service per point, which is the whole of the running time. <see cref="PostgreSQLTerrainPointCreateTableOptions.MaxConcurrentRequests"/> governs it.</para>
+    /// <para>Every county is sampled on tiles cut from one grid shared by all of them, anchored by <see cref="PostgreSQLTerrainPointUpdateOptions.OriginX"/> and <see cref="PostgreSQLTerrainPointUpdateOptions.OriginY"/>. Neighbouring counties therefore produce the same coordinates for a shared point instead of two grids that do not line up, and a tile that was already sampled is recognised and skipped - so a run that was stopped resumes, and a county sampled coarsely can later be sampled finely without paying for the points it already holds.</para>
+    /// <para>What remains is one request to the elevation service per point, which is the whole of the running time. <see cref="PostgreSQLTerrainPointUpdateOptions.MaxConcurrentRequests"/> governs it.</para>
     /// <para>A run reports success unless it was cancelled. A county or a tile that cannot be sampled is counted in <see cref="FailedBatchCount"/>, logged with the exception that caused it, and stepped over - so a run of many hours is not reduced to a single word by one batch out of hundreds of thousands, and what did go wrong is named in the log rather than inferred from a count nothing reads.</para>
     /// </summary>
-    public class PostgreSQLTerrainPointCreateTableTask : ReportableBackgroundTask<long>, IGISPostgreSQLObject
+    public class PostgreSQLTerrainPointUpdateTask : ReportableBackgroundTask<long>, IGISPostgreSQLObject
     {
         /// <summary>
         /// Bulk reads over a whole county exceed the 30 second default; allow up to 10 minutes per statement.
@@ -48,7 +48,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// </summary>
         /// <param name="httpClient">The HTTP client used to reach the elevation service.</param>
         /// <param name="gISPostgreSQLConverterManager">The GIS PostgreSQL converter manager used to read the areas and write the points.</param>
-        public PostgreSQLTerrainPointCreateTableTask(HttpClient? httpClient, GISPostgreSQLConverterManager? gISPostgreSQLConverterManager)
+        public PostgreSQLTerrainPointUpdateTask(HttpClient? httpClient, GISPostgreSQLConverterManager? gISPostgreSQLConverterManager)
         {
             this.gISPostgreSQLConverterManager = gISPostgreSQLConverterManager ?? throw new ArgumentNullException(nameof(gISPostgreSQLConverterManager));
             this.httpClient = httpClient;
@@ -70,7 +70,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// Gets the configuration for the PostgreSQL operation.
         /// These options will be used when the task is started.
         /// </summary>
-        public PostgreSQLTerrainPointCreateTableOptions PostgreSQLTerrainPointCreateTableOptions { get; set; } = new PostgreSQLTerrainPointCreateTableOptions();
+        public PostgreSQLTerrainPointUpdateOptions PostgreSQLTerrainPointUpdateOptions { get; set; } = new PostgreSQLTerrainPointUpdateOptions();
         
         /// <summary>
         /// Gets the number of points the database declined to store.
@@ -112,35 +112,35 @@ namespace DiGi.GIS.PostgreSQL.Classes
 
             if (httpClient is null)
             {
-                Serilog.Modify.Log(Serilog.Enums.LogEventLevel.Error, "{Type}: no elevation service client - nothing can be sampled", nameof(PostgreSQLTerrainPointCreateTableTask));
+                Serilog.Modify.Log(Serilog.Enums.LogEventLevel.Error, "{Type}: no elevation service client - nothing can be sampled", nameof(PostgreSQLTerrainPointUpdateTask));
                 return false;
             }
 
             AdministrativeAreal2DPostgreSQLConverter? administrativeAreal2DPostgreSQLConverter = gISPostgreSQLConverterManager.GetPostgreSQLConverter<AdministrativeAreal2DPostgreSQLConverter>();
             if (administrativeAreal2DPostgreSQLConverter is null)
             {
-                Serilog.Modify.Log(Serilog.Enums.LogEventLevel.Error, "{Type}: no {Converter} - the administrative areas cannot be read", nameof(PostgreSQLTerrainPointCreateTableTask), nameof(AdministrativeAreal2DPostgreSQLConverter));
+                Serilog.Modify.Log(Serilog.Enums.LogEventLevel.Error, "{Type}: no {Converter} - the administrative areas cannot be read", nameof(PostgreSQLTerrainPointUpdateTask), nameof(AdministrativeAreal2DPostgreSQLConverter));
                 return false;
             }
 
             TerrainPointPostgreSQLConverter? terrainPointPostgreSQLConverter = gISPostgreSQLConverterManager.GetPostgreSQLConverter<TerrainPointPostgreSQLConverter>();
             if (terrainPointPostgreSQLConverter is null)
             {
-                Serilog.Modify.Log(Serilog.Enums.LogEventLevel.Error, "{Type}: no {Converter} - the points cannot be written", nameof(PostgreSQLTerrainPointCreateTableTask), nameof(TerrainPointPostgreSQLConverter));
+                Serilog.Modify.Log(Serilog.Enums.LogEventLevel.Error, "{Type}: no {Converter} - the points cannot be written", nameof(PostgreSQLTerrainPointUpdateTask), nameof(TerrainPointPostgreSQLConverter));
                 return false;
             }
 
-            double gridSize = PostgreSQLTerrainPointCreateTableOptions.GridSize;
-            int tileSize = PostgreSQLTerrainPointCreateTableOptions.TileSize;
+            double gridSize = PostgreSQLTerrainPointUpdateOptions.GridSize;
+            int tileSize = PostgreSQLTerrainPointUpdateOptions.TileSize;
             if (double.IsNaN(gridSize) || double.IsInfinity(gridSize) || gridSize <= 0 || tileSize < 1)
             {
-                Serilog.Modify.Log(Serilog.Enums.LogEventLevel.Error, "{Type}: grid size {GridSize} and tile size {TileSize} do not describe a lattice", nameof(PostgreSQLTerrainPointCreateTableTask), gridSize, tileSize);
+                Serilog.Modify.Log(Serilog.Enums.LogEventLevel.Error, "{Type}: grid size {GridSize} and tile size {TileSize} do not describe a lattice", nameof(PostgreSQLTerrainPointUpdateTask), gridSize, tileSize);
                 return false;
             }
 
             // Capped at half a step. Neighbouring tiles are one step apart, so anything larger would let a point of one
             // tile be taken for a point of the next, both when deciding what is already stored and when deciding what contains it.
-            double tolerance = PostgreSQLTerrainPointCreateTableOptions.Tolerance;
+            double tolerance = PostgreSQLTerrainPointUpdateOptions.Tolerance;
             if (double.IsNaN(tolerance) || tolerance < 0)
             {
                 tolerance = 0;
@@ -150,14 +150,14 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 tolerance = gridSize / 2;
             }
 
-            Point2D origin = new(PostgreSQLTerrainPointCreateTableOptions.OriginX, PostgreSQLTerrainPointCreateTableOptions.OriginY);
+            Point2D origin = new(PostgreSQLTerrainPointUpdateOptions.OriginX, PostgreSQLTerrainPointUpdateOptions.OriginY);
 
-            int maxConcurrentRequests = PostgreSQLTerrainPointCreateTableOptions.MaxConcurrentRequests < 1 ? 1 : PostgreSQLTerrainPointCreateTableOptions.MaxConcurrentRequests;
-            int retryCount = PostgreSQLTerrainPointCreateTableOptions.RetryCount < 0 ? 0 : PostgreSQLTerrainPointCreateTableOptions.RetryCount;
-            double retryDelayMilliseconds = PostgreSQLTerrainPointCreateTableOptions.RetryDelayMilliseconds;
+            int maxConcurrentRequests = PostgreSQLTerrainPointUpdateOptions.MaxConcurrentRequests < 1 ? 1 : PostgreSQLTerrainPointUpdateOptions.MaxConcurrentRequests;
+            int retryCount = PostgreSQLTerrainPointUpdateOptions.RetryCount < 0 ? 0 : PostgreSQLTerrainPointUpdateOptions.RetryCount;
+            double retryDelayMilliseconds = PostgreSQLTerrainPointUpdateOptions.RetryDelayMilliseconds;
             TimeSpan retryDelay = TimeSpan.FromMilliseconds(double.IsNaN(retryDelayMilliseconds) || retryDelayMilliseconds < 0 ? 0 : retryDelayMilliseconds);
 
-            bool overrideExisting = PostgreSQLTerrainPointCreateTableOptions.OverrideExisting;
+            bool overrideExisting = PostgreSQLTerrainPointUpdateOptions.OverrideExisting;
 
             // The table is created up front so that a problem with the schema stops the run now rather than being
             // discovered hours later as a batch that would not write.
@@ -165,7 +165,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             {
                 if (npgsqlConnection is null)
                 {
-                    Serilog.Modify.Log(Serilog.Enums.LogEventLevel.Error, "{Type}: no connection to the terrain point database could be built", nameof(PostgreSQLTerrainPointCreateTableTask));
+                    Serilog.Modify.Log(Serilog.Enums.LogEventLevel.Error, "{Type}: no connection to the terrain point database could be built", nameof(PostgreSQLTerrainPointUpdateTask));
                     return false;
                 }
 
@@ -173,7 +173,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
 
                 if (!await Create.TableAsync_TerrainPoint(npgsqlConnection, commandTimeout, cancellationToken))
                 {
-                    Serilog.Modify.Log(Serilog.Enums.LogEventLevel.Error, "{Type}: the terrain point table could not be created - the run would have no place to write to", nameof(PostgreSQLTerrainPointCreateTableTask));
+                    Serilog.Modify.Log(Serilog.Enums.LogEventLevel.Error, "{Type}: the terrain point table could not be created - the run would have no place to write to", nameof(PostgreSQLTerrainPointUpdateTask));
                     return false;
                 }
             }
@@ -181,17 +181,17 @@ namespace DiGi.GIS.PostgreSQL.Classes
             // Identifiers, then codes: the options name county parts, and a county held in several pieces is one
             // row per piece sharing one code. Each named piece is widened to every piece of its code, so a
             // multi-part county is walked as one group and its territory is sampled exactly once.
-            HashSet<int>? countyIds = PostgreSQLTerrainPointCreateTableOptions.CountyIds;
+            HashSet<int>? countyIds = PostgreSQLTerrainPointUpdateOptions.CountyIds;
             countyIds ??= await administrativeAreal2DPostgreSQLConverter.GetIdsAsync(Enums.AdministrativeArealType.County, cancellationToken: cancellationToken);
             if (countyIds is null)
             {
-                Serilog.Modify.Log(Serilog.Enums.LogEventLevel.Error, "{Type}: the counties could not be read - the run cannot be scoped", nameof(PostgreSQLTerrainPointCreateTableTask));
+                Serilog.Modify.Log(Serilog.Enums.LogEventLevel.Error, "{Type}: the counties could not be read - the run cannot be scoped", nameof(PostgreSQLTerrainPointUpdateTask));
                 return false;
             }
 
             if (countyIds.Count == 0)
             {
-                Serilog.Modify.Log("{Type}: no county was named - nothing to sample", nameof(PostgreSQLTerrainPointCreateTableTask));
+                Serilog.Modify.Log("{Type}: no county was named - nothing to sample", nameof(PostgreSQLTerrainPointUpdateTask));
                 return true;
             }
 
@@ -202,13 +202,13 @@ namespace DiGi.GIS.PostgreSQL.Classes
             List<List<int>>? countyIdGroups = await administrativeAreal2DPostgreSQLConverter.CountyIdGroupsAsync(countyIds_Sorted, commandTimeout, cancellationToken);
             if (countyIdGroups is null)
             {
-                Serilog.Modify.Log(Serilog.Enums.LogEventLevel.Error, "{Type}: the counties could not be resolved into code groups - the run would not know which parts share a county", nameof(PostgreSQLTerrainPointCreateTableTask));
+                Serilog.Modify.Log(Serilog.Enums.LogEventLevel.Error, "{Type}: the counties could not be resolved into code groups - the run would not know which parts share a county", nameof(PostgreSQLTerrainPointUpdateTask));
                 return false;
             }
 
             Serilog.Modify.Log(
                 "{Type} started: {CountyCount} counties in {CountyGroupCount} groups, grid {GridSize}, tile {TileSize}, origin {OriginX}/{OriginY}, tolerance {Tolerance}, {MaxConcurrentRequests} requests in flight, {RetryCount} retries, override existing {OverrideExisting}",
-                nameof(PostgreSQLTerrainPointCreateTableTask), countyIds_Sorted.Count, countyIdGroups.Count, gridSize, tileSize, origin.X, origin.Y, tolerance, maxConcurrentRequests, retryCount, overrideExisting);
+                nameof(PostgreSQLTerrainPointUpdateTask), countyIds_Sorted.Count, countyIdGroups.Count, gridSize, tileSize, origin.X, origin.Y, tolerance, maxConcurrentRequests, retryCount, overrideExisting);
 
             foreach (List<int> countyIds_Group in countyIdGroups)
             {
@@ -597,7 +597,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             Serilog.Modify.Log(
                 cancelled ? Serilog.Enums.LogEventLevel.Warning : Serilog.Enums.LogEventLevel.Information,
                 "{Type} finished{Cancelled}: {PointCount} points stored, {UnresolvedPointCount} unresolved, {RejectionCount} rejected, {FailedBatchCount} batches stepped over, over {CountyCount} counties",
-                nameof(PostgreSQLTerrainPointCreateTableTask), cancelled ? " after being cancelled" : string.Empty, PointCount, UnresolvedPointCount, RejectionCount, FailedBatchCount, countyIds_Sorted.Count);
+                nameof(PostgreSQLTerrainPointUpdateTask), cancelled ? " after being cancelled" : string.Empty, PointCount, UnresolvedPointCount, RejectionCount, FailedBatchCount, countyIds_Sorted.Count);
 
             // Cancellation is the only thing that makes a run unsuccessful. The three tallies are the record of what
             // went wrong, not the gate on whether anything did: one point out of tens of millions that the elevation

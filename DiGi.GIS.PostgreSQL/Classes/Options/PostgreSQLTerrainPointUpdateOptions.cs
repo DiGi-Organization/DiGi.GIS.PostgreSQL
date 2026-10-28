@@ -8,44 +8,44 @@ namespace DiGi.GIS.PostgreSQL.Classes
     /// <summary>
     /// Provides options for filling the terrain point table by sampling elevations on a regular grid.
     /// </summary>
-    public class PostgreSQLTerrainPointCreateTableOptions : SerializableOptions
+    public class PostgreSQLTerrainPointUpdateOptions : SerializableOptions
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="PostgreSQLTerrainPointCreateTableOptions"/> class using a JSON object.
+        /// Initializes a new instance of the <see cref="PostgreSQLTerrainPointUpdateOptions"/> class using a JSON object.
         /// </summary>
         /// <param name="jsonObject">The JSON object containing the configuration settings.</param>
-        public PostgreSQLTerrainPointCreateTableOptions(JsonObject jsonObject)
+        public PostgreSQLTerrainPointUpdateOptions(JsonObject jsonObject)
             : base(jsonObject)
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="PostgreSQLTerrainPointCreateTableOptions"/> class.
+        /// Initializes a new instance of the <see cref="PostgreSQLTerrainPointUpdateOptions"/> class.
         /// </summary>
-        public PostgreSQLTerrainPointCreateTableOptions()
+        public PostgreSQLTerrainPointUpdateOptions()
             : base()
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="PostgreSQLTerrainPointCreateTableOptions"/> class by copying an existing options instance.
+        /// Initializes a new instance of the <see cref="PostgreSQLTerrainPointUpdateOptions"/> class by copying an existing options instance.
         /// </summary>
-        /// <param name="postgreSQLTerrainPointCreateTableOptions">The source options instance to copy from.</param>
-        public PostgreSQLTerrainPointCreateTableOptions(PostgreSQLTerrainPointCreateTableOptions postgreSQLTerrainPointCreateTableOptions)
-            : base(postgreSQLTerrainPointCreateTableOptions)
+        /// <param name="postgreSQLTerrainPointUpdateOptions">The source options instance to copy from.</param>
+        public PostgreSQLTerrainPointUpdateOptions(PostgreSQLTerrainPointUpdateOptions postgreSQLTerrainPointUpdateOptions)
+            : base(postgreSQLTerrainPointUpdateOptions)
         {
-            if (postgreSQLTerrainPointCreateTableOptions is not null)
+            if (postgreSQLTerrainPointUpdateOptions is not null)
             {
-                CountyIds = postgreSQLTerrainPointCreateTableOptions.CountyIds == null ? null : [.. postgreSQLTerrainPointCreateTableOptions.CountyIds];
-                GridSize = postgreSQLTerrainPointCreateTableOptions.GridSize;
-                MaxConcurrentRequests = postgreSQLTerrainPointCreateTableOptions.MaxConcurrentRequests;
-                OriginX = postgreSQLTerrainPointCreateTableOptions.OriginX;
-                OriginY = postgreSQLTerrainPointCreateTableOptions.OriginY;
-                OverrideExisting = postgreSQLTerrainPointCreateTableOptions.OverrideExisting;
-                RetryCount = postgreSQLTerrainPointCreateTableOptions.RetryCount;
-                RetryDelayMilliseconds = postgreSQLTerrainPointCreateTableOptions.RetryDelayMilliseconds;
-                TileSize = postgreSQLTerrainPointCreateTableOptions.TileSize;
-                Tolerance = postgreSQLTerrainPointCreateTableOptions.Tolerance;
+                CountyIds = postgreSQLTerrainPointUpdateOptions.CountyIds == null ? null : [.. postgreSQLTerrainPointUpdateOptions.CountyIds];
+                GridSize = postgreSQLTerrainPointUpdateOptions.GridSize;
+                MaxConcurrentRequests = postgreSQLTerrainPointUpdateOptions.MaxConcurrentRequests;
+                OriginX = postgreSQLTerrainPointUpdateOptions.OriginX;
+                OriginY = postgreSQLTerrainPointUpdateOptions.OriginY;
+                OverrideExisting = postgreSQLTerrainPointUpdateOptions.OverrideExisting;
+                RetryCount = postgreSQLTerrainPointUpdateOptions.RetryCount;
+                RetryDelayMilliseconds = postgreSQLTerrainPointUpdateOptions.RetryDelayMilliseconds;
+                TileSize = postgreSQLTerrainPointUpdateOptions.TileSize;
+                Tolerance = postgreSQLTerrainPointUpdateOptions.Tolerance;
             }
         }
 
