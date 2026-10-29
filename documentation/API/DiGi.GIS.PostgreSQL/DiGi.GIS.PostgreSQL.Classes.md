@@ -7,9 +7,9 @@
 
 ## AddressPointCountResult Class
 
-The number of rows of `address_point`, by how each point was matched to a building footprint, for one county part or for the whole table\. See [GetCountResultAsync\(NpgsqlConnection, Nullable&lt;int&gt;, int, CancellationToken\)](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointPostgreSQLConverter.GetCountResultAsync(Npgsql.NpgsqlConnection,System.Nullable_int_,int,System.Threading.CancellationToken) 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointPostgreSQLConverter\.GetCountResultAsync\(Npgsql\.NpgsqlConnection, System\.Nullable\<int\>, int, System\.Threading\.CancellationToken\)')\.
+The number of rows of `address_point`, by how each point was matched to a building footprint, with the buildings those points reach and the buildings stored, for one county part or for the whole table\. See [GetCountResultAsync\(NpgsqlConnection, Nullable&lt;int&gt;, int, CancellationToken\)](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointPostgreSQLConverter.GetCountResultAsync(Npgsql.NpgsqlConnection,System.Nullable_int_,int,System.Threading.CancellationToken) 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointPostgreSQLConverter\.GetCountResultAsync\(Npgsql\.NpgsqlConnection, System\.Nullable\<int\>, int, System\.Threading\.CancellationToken\)')\.
 
-[Total](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult.Total 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointCountResult\.Total') counts every row, including any whose match type is none of [Inside](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult.Inside 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointCountResult\.Inside'), [Nearest](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult.Nearest 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointCountResult\.Nearest') and [Unmatched](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult.Unmatched 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointCountResult\.Unmatched'), so it can exceed their sum. The figures describe the database the converter was built for, and nothing else.
+[Total](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult.Total 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointCountResult\.Total') counts every row, including any whose match type is none of [Inside](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult.Inside 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointCountResult\.Inside'), [Nearest](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult.Nearest 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointCountResult\.Nearest') and [Unmatched](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult.Unmatched 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointCountResult\.Unmatched'), so it can exceed their sum. The address point coverage of the buildings is [Buildings](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult.Buildings 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointCountResult\.Buildings') / [Buildings2D](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult.Buildings2D 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointCountResult\.Buildings2D'). The figures describe the database the converter was built for, and nothing else.
 
 ```csharp
 public class AddressPointCountResult : DiGi.Core.Classes.SerializableResult, DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLSerializableObject, DiGi.Core.Interfaces.ISerializableObject, DiGi.Core.Interfaces.ICloneableObject<DiGi.Core.Interfaces.ISerializableObject>, DiGi.Core.Interfaces.ICloneableObject, DiGi.Core.Interfaces.IObject
@@ -37,46 +37,58 @@ public AddressPointCountResult(DiGi.GIS.PostgreSQL.Classes.AddressPointCountResu
 
 The [AddressPointCountResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointCountResult') to copy from\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult.AddressPointCountResult(System.Nullable_int_,long,long,long,long)'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult.AddressPointCountResult(System.Nullable_int_,long,long,long,long,long,long)'></a>
 
-## AddressPointCountResult\(Nullable\<int\>, long, long, long, long\) Constructor
+## AddressPointCountResult\(Nullable\<int\>, long, long, long, long, long, long\) Constructor
 
 Initializes a new instance of the [AddressPointCountResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointCountResult') class\.
 
 ```csharp
-public AddressPointCountResult(System.Nullable<int> countyId, long inside, long nearest, long unmatched, long total);
+public AddressPointCountResult(System.Nullable<int> countyId, long inside, long nearest, long unmatched, long total, long buildings, long buildings2D);
 ```
 #### Parameters
 
-<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult.AddressPointCountResult(System.Nullable_int_,long,long,long,long).countyId'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult.AddressPointCountResult(System.Nullable_int_,long,long,long,long,long,long).countyId'></a>
 
 `countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
 The county part id the rows were counted under, or null for the whole table\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult.AddressPointCountResult(System.Nullable_int_,long,long,long,long).inside'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult.AddressPointCountResult(System.Nullable_int_,long,long,long,long,long,long).inside'></a>
 
 `inside` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
 
 The number of points that lie inside a building footprint\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult.AddressPointCountResult(System.Nullable_int_,long,long,long,long).nearest'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult.AddressPointCountResult(System.Nullable_int_,long,long,long,long,long,long).nearest'></a>
 
 `nearest` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
 
 The number of points assigned to the nearest building footprint within the maximum distance\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult.AddressPointCountResult(System.Nullable_int_,long,long,long,long).unmatched'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult.AddressPointCountResult(System.Nullable_int_,long,long,long,long,long,long).unmatched'></a>
 
 `unmatched` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
 
 The number of points assigned to a county part but to no building\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult.AddressPointCountResult(System.Nullable_int_,long,long,long,long).total'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult.AddressPointCountResult(System.Nullable_int_,long,long,long,long,long,long).total'></a>
 
 `total` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
 
 The number of rows counted, whatever their match type\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult.AddressPointCountResult(System.Nullable_int_,long,long,long,long,long,long).buildings'></a>
+
+`buildings` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+The number of distinct buildings that at least one inside or nearest point is matched to\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult.AddressPointCountResult(System.Nullable_int_,long,long,long,long,long,long).buildings2D'></a>
+
+`buildings2D` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+The number of `building_2d` rows of the county part, or of the whole table\.
 
 <a name='DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult.AddressPointCountResult(System.Text.Json.Nodes.JsonObject)'></a>
 
@@ -95,6 +107,32 @@ public AddressPointCountResult(System.Text.Json.Nodes.JsonObject? jsonObject);
 
 The [System\.Text\.Json\.Nodes\.JsonObject](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.nodes.jsonobject 'System\.Text\.Json\.Nodes\.JsonObject') containing the serialized data\.
 ### Properties
+
+<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult.Buildings'></a>
+
+## AddressPointCountResult\.Buildings Property
+
+Gets the number of distinct buildings that at least one [Inside](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult.Inside 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointCountResult\.Inside') or [Nearest](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult.Nearest 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointCountResult\.Nearest') point is matched to\. A building holding several points counts once\.
+
+```csharp
+public long Buildings { get; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult.Buildings2D'></a>
+
+## AddressPointCountResult\.Buildings2D Property
+
+Gets the number of `building_2d` rows of the county part, or of the whole table; zero when the part has no partition\. The denominator of the address point coverage\.
+
+```csharp
+public long Buildings2D { get; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
 
 <a name='DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult.CountyId'></a>
 
@@ -502,9 +540,11 @@ A task that represents the asynchronous operation\. The task result contains the
 
 ## AddressPointPostgreSQLConverter\.GetCountResultAsync\(NpgsqlConnection, Nullable\<int\>, int, CancellationToken\) Method
 
-Asynchronously counts the address points by how each was matched to a building footprint, for one county part or for the whole table\.
+Asynchronously counts the address points by how each was matched to a building footprint, together with the buildings they reach and the buildings stored, for one county part or for the whole table\.
 
-One `GROUP BY match_type` pass, so the total and the unmatched share come from a single read. A whole-table count scans every row: raise [commandTimeout](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointPostgreSQLConverter.GetCountResultAsync(Npgsql.NpgsqlConnection,System.Nullable_int_,int,System.Threading.CancellationToken).commandTimeout 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointPostgreSQLConverter\.GetCountResultAsync\(Npgsql\.NpgsqlConnection, System\.Nullable\<int\>, int, System\.Threading\.CancellationToken\)\.commandTimeout') for a large table. A table that does not exist yet counts zero everywhere.
+One pass over `address_point` grouped by `GROUPING SETS ((match_type), ())`: the per-type rows give the match categories, the grand-total row gives the total and the number of distinct `building_reference` values of the [DiGi\.GIS\.Enums\.AddressPointMatchType\.Inside](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.enums.addresspointmatchtype.inside 'DiGi\.GIS\.Enums\.AddressPointMatchType\.Inside') and [DiGi\.GIS\.Enums\.AddressPointMatchType\.Nearest](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.enums.addresspointmatchtype.nearest 'DiGi\.GIS\.Enums\.AddressPointMatchType\.Nearest') rows ([Buildings](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult.Buildings 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointCountResult\.Buildings')). A building holding several points counts once. A whole-table count scans every row: raise [commandTimeout](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointPostgreSQLConverter.GetCountResultAsync(Npgsql.NpgsqlConnection,System.Nullable_int_,int,System.Threading.CancellationToken).commandTimeout 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointPostgreSQLConverter\.GetCountResultAsync\(Npgsql\.NpgsqlConnection, System\.Nullable\<int\>, int, System\.Threading\.CancellationToken\)\.commandTimeout') for a large table. A table that does not exist yet counts zero everywhere.
+
+The `building_2d` rows ([Buildings2D](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult.Buildings2D 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointCountResult\.Buildings2D')) are an exact count of the county part's partition, or of the whole table, through [GetCountAsync\(NpgsqlConnection, Nullable&lt;int&gt;, int, CancellationToken\)](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.Building2DPostgreSQLConverter.GetCountAsync(Npgsql.NpgsqlConnection,System.Nullable_int_,int,System.Threading.CancellationToken) 'DiGi\.GIS\.PostgreSQL\.Classes\.Building2DPostgreSQLConverter\.GetCountAsync\(Npgsql\.NpgsqlConnection, System\.Nullable\<int\>, int, System\.Threading\.CancellationToken\)') - a second statement on the same connection, since a part without a partition must count zero rather than fail the address point read. The planner estimate (`estimatedcountsbycountyids`) is not used: coverage is a figure that is reported. Reference: DiGi.GIS.PostgreSQL#119.
 
 ```csharp
 public static System.Threading.Tasks.Task<DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult?> GetCountResultAsync(Npgsql.NpgsqlConnection? npgsqlConnection, System.Nullable<int> countyId, int commandTimeout=120, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
@@ -543,7 +583,7 @@ A task that represents the asynchronous operation\. The task result contains the
 
 ## AddressPointPostgreSQLConverter\.GetCountResultAsync\(Nullable\<int\>, int, CancellationToken\) Method
 
-Asynchronously counts the address points by match type for one county part or for the whole table, automatically managing the connection\.
+Asynchronously counts the address points by match type, with the buildings they reach and the buildings stored, for one county part or for the whole table, automatically managing the connection\.
 
 ```csharp
 public System.Threading.Tasks.Task<DiGi.GIS.PostgreSQL.Classes.AddressPointCountResult?> GetCountResultAsync(System.Nullable<int> countyId, int commandTimeout=120, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));

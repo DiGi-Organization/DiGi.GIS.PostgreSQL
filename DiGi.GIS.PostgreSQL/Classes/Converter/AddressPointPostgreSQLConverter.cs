@@ -82,8 +82,9 @@ namespace DiGi.GIS.PostgreSQL.Classes
         }
 
         /// <summary>
-        /// Asynchronously counts the address points by how each was matched to a building footprint, for one county part or for the whole table.
-        /// <para>One <c>GROUP BY match_type</c> pass, so the total and the unmatched share come from a single read. A whole-table count scans every row: raise <paramref name="commandTimeout"/> for a large table. A table that does not exist yet counts zero everywhere.</para>
+        /// Asynchronously counts the address points by how each was matched to a building footprint, together with the buildings they reach and the buildings stored, for one county part or for the whole table.
+        /// <para>One pass over <c>address_point</c> grouped by <c>GROUPING SETS ((match_type), ())</c>: the per-type rows give the match categories, the grand-total row gives the total and the number of distinct <c>building_reference</c> values of the <see cref="AddressPointMatchType.Inside"/> and <see cref="AddressPointMatchType.Nearest"/> rows (<see cref="AddressPointCountResult.Buildings"/>). A building holding several points counts once. A whole-table count scans every row: raise <paramref name="commandTimeout"/> for a large table. A table that does not exist yet counts zero everywhere.</para>
+        /// <para>The <c>building_2d</c> rows (<see cref="AddressPointCountResult.Buildings2D"/>) are an exact count of the county part's partition, or of the whole table, through <see cref="Building2DPostgreSQLConverter.GetCountAsync(NpgsqlConnection?, int?, int, CancellationToken)"/> - a second statement on the same connection, since a part without a partition must count zero rather than fail the address point read. The planner estimate (<c>estimatedcountsbycountyids</c>) is not used: coverage is a figure that is reported. Reference: DiGi.GIS.PostgreSQL#119.</para>
         /// </summary>
         /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> used to connect to the database.</param>
         /// <param name="countyId">The county part id to count under, or null for the whole table. A county with several parts is counted once per part (<c>Coding - GIS Administrative Data.md</c>).</param>
@@ -100,15 +101,16 @@ namespace DiGi.GIS.PostgreSQL.Classes
             string whereCountyId = countyId is null ? string.Empty : "WHERE county_id = @county_id";
 
             string commandText = $@"
-                SELECT match_type, count(*)
+                SELECT GROUPING(match_type), match_type, count(*), count(DISTINCT building_reference) FILTER (WHERE match_type IN ({(short)AddressPointMatchType.Inside}, {(short)AddressPointMatchType.Nearest}))
                 FROM {TableName}
                 {whereCountyId}
-                GROUP BY match_type;";
+                GROUP BY GROUPING SETS ((match_type), ());";
 
             long inside = 0;
             long nearest = 0;
             long unmatched = 0;
             long total = 0;
+            long buildings = 0;
             try
             {
                 await using NpgsqlCommand npgsqlCommand = new(commandText, npgsqlConnection);
@@ -121,10 +123,22 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 await using NpgsqlDataReader npgsqlDataReader = await npgsqlCommand.ExecuteReaderAsync(cancellationToken);
                 while (await npgsqlDataReader.ReadAsync(cancellationToken))
                 {
-                    long count = npgsqlDataReader.GetInt64(1);
-                    total += count;
+                    long count = npgsqlDataReader.GetInt64(2);
 
-                    switch ((AddressPointMatchType)npgsqlDataReader.GetInt16(0))
+                    // The grand-total row of the empty grouping set
+                    if (npgsqlDataReader.GetInt32(0) != 0)
+                    {
+                        total = count;
+                        buildings = npgsqlDataReader.GetInt64(3);
+                        continue;
+                    }
+
+                    if (npgsqlDataReader.IsDBNull(1))
+                    {
+                        continue;
+                    }
+
+                    switch ((AddressPointMatchType)npgsqlDataReader.GetInt16(1))
                     {
                         case AddressPointMatchType.Inside:
                             inside += count;
@@ -142,10 +156,17 @@ namespace DiGi.GIS.PostgreSQL.Classes
             }
             catch (PostgresException postgresException) when (postgresException.SqlState == PostgresErrorCodes.UndefinedTable)
             {
-                return new AddressPointCountResult(countyId, 0, 0, 0, 0);
+                inside = 0;
+                nearest = 0;
+                unmatched = 0;
+                total = 0;
+                buildings = 0;
             }
 
-            return new AddressPointCountResult(countyId, inside, nearest, unmatched, total);
+            // A missing partition or table answers -1: it holds no buildings
+            long buildings2D = Math.Max(0, await Building2DPostgreSQLConverter.GetCountAsync(npgsqlConnection, countyId, commandTimeout, cancellationToken));
+
+            return new AddressPointCountResult(countyId, inside, nearest, unmatched, total, buildings, buildings2D);
         }
 
         /// <summary>
@@ -437,7 +458,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
         }
 
         /// <summary>
-        /// Asynchronously counts the address points by match type for one county part or for the whole table, automatically managing the connection.
+        /// Asynchronously counts the address points by match type, with the buildings they reach and the buildings stored, for one county part or for the whole table, automatically managing the connection.
         /// </summary>
         /// <param name="countyId">The county part id to count under, or null for the whole table.</param>
         /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
