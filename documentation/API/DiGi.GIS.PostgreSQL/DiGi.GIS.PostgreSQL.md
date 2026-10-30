@@ -1801,6 +1801,43 @@ The envelopes of stored building models, most preferred record first\.
 [ExternalComponentsAreaResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.ExternalComponentsAreaResult 'DiGi\.GIS\.PostgreSQL\.Classes\.ExternalComponentsAreaResult')  
 The outcome of the classification: the number of components skipped because they bound two spaces or their target bucket is undefined, the number of models whose external envelope does not close on the tolerance ladder, and the references of the degenerate and the refused models \- the counts 0 and the lists empty when every component was classified over a closed envelope\. The tallies cover the written rows only\.
 
+<a name='DiGi.GIS.PostgreSQL.Modify.Update_ExternalComponentsArea(thisDiGi.Core.IO.Table.Classes.Table,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.BuildingModel_,System.Collections.Generic.IEnumerable_DiGi.Analytical.Building.Classes.PartyWallResult_)'></a>
+
+## Modify\.Update\_ExternalComponentsArea\(this Table, IEnumerable\<BuildingModel\>, IEnumerable\<PartyWallResult\>\) Method
+
+Classifies the components of the stored building models into the 35 “External Components Area” columns, as [Update\_ExternalComponentsArea\(this Table, IEnumerable&lt;BuildingModel&gt;\)](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Modify.Update_ExternalComponentsArea(thisDiGi.Core.IO.Table.Classes.Table,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.BuildingModel_) 'DiGi\.GIS\.PostgreSQL\.Modify\.Update\_ExternalComponentsArea\(this DiGi\.Core\.IO\.Table\.Classes\.Table, System\.Collections\.Generic\.IEnumerable\<DiGi\.GIS\.PostgreSQL\.Classes\.BuildingModel\>\)') does, and files the wall area each building shares with adjacent buildings into the 9 party wall area columns \(DiGi\-Organization/DiGi\.GIS\.Analytical\#4\)\.
+
+The party walls come from [DiGi\.Analytical\.Building\.Query\.PartyWalls\(DiGi\.Analytical\.Building\.Classes\.BuildingModel,System\.Collections\.Generic\.IEnumerable\{DiGi\.Analytical\.Building\.Classes\.BuildingModel\},System\.Double,System\.Double,System\.Double,System\.Double\)](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.query.partywalls#digi-analytical-building-query-partywalls(digi-analytical-building-classes-buildingmodel-system-collections-generic-ienumerable{digi-analytical-building-classes-buildingmodel}-system-double-system-double-system-double-system-double) 'DiGi\.Analytical\.Building\.Query\.PartyWalls\(DiGi\.Analytical\.Building\.Classes\.BuildingModel,System\.Collections\.Generic\.IEnumerable\{DiGi\.Analytical\.Building\.Classes\.BuildingModel\},System\.Double,System\.Double,System\.Double,System\.Double\)') and are matched to the walls by the identifier of the wall component. The shared area of a wall is filed under the sector of that wall's envelope face - the sector the wall itself is filed under - and is capped at the wall's area, so a wall shared with two overlapping neighbours never counts more than itself. The external wall columns stay gross: they include the party walls, and the net external area of a sector is its external column minus its party column.
+
+With [partyWallResults](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Modify.Update_ExternalComponentsArea(thisDiGi.Core.IO.Table.Classes.Table,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.BuildingModel_,System.Collections.Generic.IEnumerable_DiGi.Analytical.Building.Classes.PartyWallResult_).partyWallResults 'DiGi\.GIS\.PostgreSQL\.Modify\.Update\_ExternalComponentsArea\(this DiGi\.Core\.IO\.Table\.Classes\.Table, System\.Collections\.Generic\.IEnumerable\<DiGi\.GIS\.PostgreSQL\.Classes\.BuildingModel\>, System\.Collections\.Generic\.IEnumerable\<DiGi\.Analytical\.Building\.Classes\.PartyWallResult\>\)\.partyWallResults') null the party wall columns are not touched; with an empty collection they are written as 0, so a building with no party wall and a building not examined stay distinguishable.
+
+```csharp
+public static DiGi.GIS.PostgreSQL.Classes.ExternalComponentsAreaResult Update_ExternalComponentsArea(this DiGi.Core.IO.Table.Classes.Table? table, System.Collections.Generic.IEnumerable<DiGi.GIS.PostgreSQL.Classes.BuildingModel>? buildingModels, System.Collections.Generic.IEnumerable<DiGi.Analytical.Building.Classes.PartyWallResult?>? partyWallResults);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Modify.Update_ExternalComponentsArea(thisDiGi.Core.IO.Table.Classes.Table,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.BuildingModel_,System.Collections.Generic.IEnumerable_DiGi.Analytical.Building.Classes.PartyWallResult_).table'></a>
+
+`table` [DiGi\.Core\.IO\.Table\.Classes\.Table](https://learn.microsoft.com/en-us/dotnet/api/digi.core.io.table.classes.table 'DiGi\.Core\.IO\.Table\.Classes\.Table')
+
+The table to fill with the classification\.
+
+<a name='DiGi.GIS.PostgreSQL.Modify.Update_ExternalComponentsArea(thisDiGi.Core.IO.Table.Classes.Table,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.BuildingModel_,System.Collections.Generic.IEnumerable_DiGi.Analytical.Building.Classes.PartyWallResult_).buildingModels'></a>
+
+`buildingModels` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[BuildingModel](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.BuildingModel 'DiGi\.GIS\.PostgreSQL\.Classes\.BuildingModel')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The envelopes of stored building models, most preferred record first\.
+
+<a name='DiGi.GIS.PostgreSQL.Modify.Update_ExternalComponentsArea(thisDiGi.Core.IO.Table.Classes.Table,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.BuildingModel_,System.Collections.Generic.IEnumerable_DiGi.Analytical.Building.Classes.PartyWallResult_).partyWallResults'></a>
+
+`partyWallResults` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[DiGi\.Analytical\.Building\.Classes\.PartyWallResult](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.partywallresult 'DiGi\.Analytical\.Building\.Classes\.PartyWallResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The party walls of the models, or null to leave the party wall columns alone\.
+
+#### Returns
+[ExternalComponentsAreaResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.ExternalComponentsAreaResult 'DiGi\.GIS\.PostgreSQL\.Classes\.ExternalComponentsAreaResult')  
+The outcome of the classification, as for [Update\_ExternalComponentsArea\(this Table, IEnumerable&lt;BuildingModel&gt;\)](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Modify.Update_ExternalComponentsArea(thisDiGi.Core.IO.Table.Classes.Table,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.BuildingModel_) 'DiGi\.GIS\.PostgreSQL\.Modify\.Update\_ExternalComponentsArea\(this DiGi\.Core\.IO\.Table\.Classes\.Table, System\.Collections\.Generic\.IEnumerable\<DiGi\.GIS\.PostgreSQL\.Classes\.BuildingModel\>\)')\.
+
 <a name='DiGi.GIS.PostgreSQL.Modify.Update_Id(thisDiGi.Core.IO.Table.Classes.Table,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.Building2DReference_)'></a>
 
 ## Modify\.Update\_Id\(this Table, IEnumerable\<Building2DReference\>\) Method
@@ -3404,3 +3441,32 @@ When this method returns, contains the [DiGi\.Core\.Classes\.GuidReference](http
 #### Returns
 [System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')  
 [true](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/bool 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/builtin\-types/bool') if the reference was successfully parsed or treated as a bare building model reference; [false](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/bool 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/builtin\-types/bool') if the input is [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null'), empty, or the parsed structure cannot be resolved\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.ZOrderComparison(System.Collections.Generic.IDictionary_string,DiGi.GIS.Classes.Building2D_,double)'></a>
+
+## Query\.ZOrderComparison\(IDictionary\<string,Building2D\>, double\) Method
+
+Gets a comparison that orders building references along a Z\-order \(Morton\) curve of their outlines, so that consecutive references lie close together \(DiGi\-Organization/DiGi\.GIS\.Analytical\#4\)\.
+
+Each outline is placed in a square cell of [cellSize](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Query.ZOrderComparison(System.Collections.Generic.IDictionary_string,DiGi.GIS.Classes.Building2D_,double).cellSize 'DiGi\.GIS\.PostgreSQL\.Query\.ZOrderComparison\(System\.Collections\.Generic\.IDictionary\<string,DiGi\.GIS\.Classes\.Building2D\>, double\)\.cellSize') by the lower-left corner of its bounding box, and the cells are ordered by the interleaved bits of their column and row; a batch of consecutive references then covers a compact area rather than a strip across the county. References of equal cells are ordered by ordinal string comparison, and references with no outline come last, so the order is total and repeatable.
+
+```csharp
+public static System.Comparison<string> ZOrderComparison(System.Collections.Generic.IDictionary<string,DiGi.GIS.Classes.Building2D>? building2Ds_ByReference, double cellSize=100.0);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Query.ZOrderComparison(System.Collections.Generic.IDictionary_string,DiGi.GIS.Classes.Building2D_,double).building2Ds_ByReference'></a>
+
+`building2Ds_ByReference` [System\.Collections\.Generic\.IDictionary&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.idictionary-2 'System\.Collections\.Generic\.IDictionary\`2')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[,](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.idictionary-2 'System\.Collections\.Generic\.IDictionary\`2')[DiGi\.GIS\.Classes\.Building2D](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.building2d 'DiGi\.GIS\.Classes\.Building2D')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.idictionary-2 'System\.Collections\.Generic\.IDictionary\`2')
+
+The outlines, keyed by building reference\. This value can be null\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.ZOrderComparison(System.Collections.Generic.IDictionary_string,DiGi.GIS.Classes.Building2D_,double).cellSize'></a>
+
+`cellSize` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The side of a cell \[m\]\.
+
+#### Returns
+[System\.Comparison&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.comparison-1 'System\.Comparison\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.comparison-1 'System\.Comparison\`1')  
+The comparison\.

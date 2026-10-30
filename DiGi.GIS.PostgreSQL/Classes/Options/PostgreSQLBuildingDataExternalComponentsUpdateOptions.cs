@@ -39,6 +39,8 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 BatchSize = postgreSQLBuildingDataExternalComponentsUpdateOptions.BatchSize;
                 CommandTimeout = postgreSQLBuildingDataExternalComponentsUpdateOptions.CommandTimeout;
                 SkipCompleted = postgreSQLBuildingDataExternalComponentsUpdateOptions.SkipCompleted;
+                PartyWalls = postgreSQLBuildingDataExternalComponentsUpdateOptions.PartyWalls;
+                PartyWallMaxDistance = postgreSQLBuildingDataExternalComponentsUpdateOptions.PartyWallMaxDistance;
                 CountyIds = postgreSQLBuildingDataExternalComponentsUpdateOptions.CountyIds == null ? null : [.. postgreSQLBuildingDataExternalComponentsUpdateOptions.CountyIds];
             }
         }
@@ -70,5 +72,19 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// </summary>
         [JsonInclude, JsonPropertyName(nameof(SkipCompleted))]
         public bool SkipCompleted { get; set; } = false;
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the party wall area columns are filled too: the wall area each building shares with adjacent buildings (DiGi-Organization/DiGi.GIS.Analytical#4).
+        /// <para>It costs a neighbour search per batch and a read of the neighbours' stored models, which may be filed under another county. Cleared, the party wall columns are left as they are.</para>
+        /// </summary>
+        [JsonInclude, JsonPropertyName(nameof(PartyWalls))]
+        public bool PartyWalls { get; set; } = true;
+
+        /// <summary>
+        /// Gets or sets the largest distance [m] between two outlines, and between two wall planes, at which two buildings still share a wall.
+        /// <para>0.2 m by default: adjacent outlines of the national topographic database meet within it, while a gap above it is a passage or a separate building.</para>
+        /// </summary>
+        [JsonInclude, JsonPropertyName(nameof(PartyWallMaxDistance))]
+        public double PartyWallMaxDistance { get; set; } = 0.2;
     }
 }

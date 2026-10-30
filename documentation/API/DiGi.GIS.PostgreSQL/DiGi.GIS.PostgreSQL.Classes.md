@@ -20259,6 +20259,36 @@ public System.Collections.Generic.HashSet<int>? CountyIds { get; set; }
 #### Property Value
 [System\.Collections\.Generic\.HashSet&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.hashset-1 'System\.Collections\.Generic\.HashSet\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.hashset-1 'System\.Collections\.Generic\.HashSet\`1')
 
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLBuildingDataExternalComponentsUpdateOptions.PartyWallMaxDistance'></a>
+
+## PostgreSQLBuildingDataExternalComponentsUpdateOptions\.PartyWallMaxDistance Property
+
+Gets or sets the largest distance \[m\] between two outlines, and between two wall planes, at which two buildings still share a wall\.
+
+0.2 m by default: adjacent outlines of the national topographic database meet within it, while a gap above it is a passage or a separate building.
+
+```csharp
+public double PartyWallMaxDistance { get; set; }
+```
+
+#### Property Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLBuildingDataExternalComponentsUpdateOptions.PartyWalls'></a>
+
+## PostgreSQLBuildingDataExternalComponentsUpdateOptions\.PartyWalls Property
+
+Gets or sets a value indicating whether the party wall area columns are filled too: the wall area each building shares with adjacent buildings \(DiGi\-Organization/DiGi\.GIS\.Analytical\#4\)\.
+
+It costs a neighbour search per batch and a read of the neighbours' stored models, which may be filed under another county. Cleared, the party wall columns are left as they are.
+
+```csharp
+public bool PartyWalls { get; set; }
+```
+
+#### Property Value
+[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')
+
 <a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLBuildingDataExternalComponentsUpdateOptions.SkipCompleted'></a>
 
 ## PostgreSQLBuildingDataExternalComponentsUpdateOptions\.SkipCompleted Property
@@ -20289,6 +20319,8 @@ A model the classification refuses as a defect in its space structure costs that
 A component that is valid but has no definable bucket - a wall whose normal is vertical - is skipped and counted in [SkippedComponentCount](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLBuildingDataExternalComponentsUpdateTask.SkippedComponentCount 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLBuildingDataExternalComponentsUpdateTask\.SkippedComponentCount') rather than failing the county.
 
 A model whose external envelope does not close is not failed either: its row is written with a null closing tolerance and counted in [OpenEnvelopeCount](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLBuildingDataExternalComponentsUpdateTask.OpenEnvelopeCount 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLBuildingDataExternalComponentsUpdateTask\.OpenEnvelopeCount'), because the sector and tilt values of such a row may rest on an arbitrary face side - the count is the share of rows of the run to treat with that caution.
+
+With [PartyWalls](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLBuildingDataExternalComponentsUpdateOptions.PartyWalls 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLBuildingDataExternalComponentsUpdateOptions\.PartyWalls') set, the party wall area columns are filled in the same pass (DiGi-Organization/DiGi.GIS.Analytical#4). The references of a county are ordered along a Z-order curve of their outlines, so a batch covers a compact area. For each batch, the outlines touching its buildings are read - across county borders too - and the stored models of those neighbours are read by reference with a fallback to any county, since a county is not a key of the building table. [DiGi\.Analytical\.Building\.Query\.PartyWalls\(DiGi\.Analytical\.Building\.Classes\.BuildingModel,System\.Collections\.Generic\.IEnumerable\{DiGi\.Analytical\.Building\.Classes\.BuildingModel\},System\.Double,System\.Double,System\.Double,System\.Double\)](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.query.partywalls#digi-analytical-building-query-partywalls(digi-analytical-building-classes-buildingmodel-system-collections-generic-ienumerable{digi-analytical-building-classes-buildingmodel}-system-double-system-double-system-double-system-double) 'DiGi\.Analytical\.Building\.Query\.PartyWalls\(DiGi\.Analytical\.Building\.Classes\.BuildingModel,System\.Collections\.Generic\.IEnumerable\{DiGi\.Analytical\.Building\.Classes\.BuildingModel\},System\.Double,System\.Double,System\.Double,System\.Double\)') then measures the shared walls. A neighbour with no stored model is counted in [MissingNeighbourModelCount](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLBuildingDataExternalComponentsUpdateTask.MissingNeighbourModelCount 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLBuildingDataExternalComponentsUpdateTask\.MissingNeighbourModelCount'), and a batch whose neighbours cannot be read keeps its party wall columns as they were and is counted in [PartyWallFailedBatchCount](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLBuildingDataExternalComponentsUpdateTask.PartyWallFailedBatchCount 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLBuildingDataExternalComponentsUpdateTask\.PartyWallFailedBatchCount'); neither fails the run.
 
 The run is idempotent: the read is deterministic (the latest stored version of a model wins), the classification is pure, and the push upserts on county and reference, so a re-run writes the same values.
 
@@ -20378,6 +20410,21 @@ public long FailedModelCount { get; private set; }
 #### Property Value
 [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
 
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLBuildingDataExternalComponentsUpdateTask.MissingNeighbourModelCount'></a>
+
+## PostgreSQLBuildingDataExternalComponentsUpdateTask\.MissingNeighbourModelCount Property
+
+Gets the number of neighbours, counted once per building they touch, whose outline touches a building of the run but which carry no stored model, during the last run\.
+
+The walls such a neighbour shares cannot be measured, so the party wall area of the building it touches is understated.
+
+```csharp
+public long MissingNeighbourModelCount { get; private set; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
 <a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLBuildingDataExternalComponentsUpdateTask.OpenEnvelopeCount'></a>
 
 ## PostgreSQLBuildingDataExternalComponentsUpdateTask\.OpenEnvelopeCount Property
@@ -20388,6 +20435,36 @@ Each such row is written with a null closing tolerance: the orientation of an en
 
 ```csharp
 public long OpenEnvelopeCount { get; private set; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLBuildingDataExternalComponentsUpdateTask.PartyWallBuildingCount'></a>
+
+## PostgreSQLBuildingDataExternalComponentsUpdateTask\.PartyWallBuildingCount Property
+
+Gets the number of buildings found to share at least one wall with an adjacent building during the last run\.
+
+Always 0 unless [PartyWalls](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLBuildingDataExternalComponentsUpdateOptions.PartyWalls 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLBuildingDataExternalComponentsUpdateOptions\.PartyWalls') is set.
+
+```csharp
+public long PartyWallBuildingCount { get; private set; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLBuildingDataExternalComponentsUpdateTask.PartyWallFailedBatchCount'></a>
+
+## PostgreSQLBuildingDataExternalComponentsUpdateTask\.PartyWallFailedBatchCount Property
+
+Gets the number of batches, or counties, whose party walls could not be measured during the last run, because the outlines or the stored models of their neighbours could not be read\.
+
+The party wall columns of those buildings are left as they were; each one is logged with the exception.
+
+```csharp
+public long PartyWallFailedBatchCount { get; private set; }
 ```
 
 #### Property Value

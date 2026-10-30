@@ -16,6 +16,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
     /// <para>A model the classification refuses as a defect in its space structure costs that model alone: it gets no row, is logged as an error with its reference and reason, and counted in <see cref="FailedModelCount"/>; the rest of its batch and county is still written, and the run reports itself as not succeeded. A degenerate model - components but no external envelope, typically a sliver footprint with walls and no roof or floor - gets no row either, but is logged as a warning and counted in <see cref="DegenerateModelCount"/> without failing the run.</para>
     /// <para>A component that is valid but has no definable bucket - a wall whose normal is vertical - is skipped and counted in <see cref="SkippedComponentCount"/> rather than failing the county.</para>
     /// <para>A model whose external envelope does not close is not failed either: its row is written with a null closing tolerance and counted in <see cref="OpenEnvelopeCount"/>, because the sector and tilt values of such a row may rest on an arbitrary face side - the count is the share of rows of the run to treat with that caution.</para>
+    /// <para>With <see cref="PostgreSQLBuildingDataExternalComponentsUpdateOptions.PartyWalls"/> set, the party wall area columns are filled in the same pass (DiGi-Organization/DiGi.GIS.Analytical#4). The references of a county are ordered along a Z-order curve of their outlines, so a batch covers a compact area. For each batch, the outlines touching its buildings are read - across county borders too - and the stored models of those neighbours are read by reference with a fallback to any county, since a county is not a key of the building table. <see cref="DiGi.Analytical.Building.Query.PartyWalls"/> then measures the shared walls. A neighbour with no stored model is counted in <see cref="MissingNeighbourModelCount"/>, and a batch whose neighbours cannot be read keeps its party wall columns as they were and is counted in <see cref="PartyWallFailedBatchCount"/>; neither fails the run.</para>
     /// <para>The run is idempotent: the read is deterministic (the latest stored version of a model wins), the classification is pure, and the push upserts on county and reference, so a re-run writes the same values.</para>
     /// </summary>
     public class PostgreSQLBuildingDataExternalComponentsUpdateTask : ReportableBackgroundTask<long>, IGISPostgreSQLObject
@@ -94,6 +95,24 @@ namespace DiGi.GIS.PostgreSQL.Classes
         public long UpdatedRowCount { get; private set; }
 
         /// <summary>
+        /// Gets the number of buildings found to share at least one wall with an adjacent building during the last run.
+        /// <para>Always 0 unless <see cref="PostgreSQLBuildingDataExternalComponentsUpdateOptions.PartyWalls"/> is set.</para>
+        /// </summary>
+        public long PartyWallBuildingCount { get; private set; }
+
+        /// <summary>
+        /// Gets the number of batches, or counties, whose party walls could not be measured during the last run, because the outlines or the stored models of their neighbours could not be read.
+        /// <para>The party wall columns of those buildings are left as they were; each one is logged with the exception.</para>
+        /// </summary>
+        public long PartyWallFailedBatchCount { get; private set; }
+
+        /// <summary>
+        /// Gets the number of neighbours, counted once per building they touch, whose outline touches a building of the run but which carry no stored model, during the last run.
+        /// <para>The walls such a neighbour shares cannot be measured, so the party wall area of the building it touches is understated.</para>
+        /// </summary>
+        public long MissingNeighbourModelCount { get; private set; }
+
+        /// <summary>
         /// Executes the background task that fills the external components area columns of the building data table from the stored building models.
         /// </summary>
         /// <param name="progress">A progress reporter for reporting the number of rows written.</param>
@@ -110,12 +129,17 @@ namespace DiGi.GIS.PostgreSQL.Classes
             SkippedComponentCount = 0;
             SkippedReferenceCount = 0;
             UpdatedRowCount = 0;
+            PartyWallBuildingCount = 0;
+            PartyWallFailedBatchCount = 0;
+            MissingNeighbourModelCount = 0;
 
             PostgreSQLBuildingDataExternalComponentsUpdateOptions ??= new();
 
             int commandTimeout = PostgreSQLBuildingDataExternalComponentsUpdateOptions.CommandTimeout;
             int batchSize = Math.Max(1, PostgreSQLBuildingDataExternalComponentsUpdateOptions.BatchSize);
             bool skipCompleted = PostgreSQLBuildingDataExternalComponentsUpdateOptions.SkipCompleted;
+            bool partyWalls = PostgreSQLBuildingDataExternalComponentsUpdateOptions.PartyWalls;
+            double partyWallMaxDistance = PostgreSQLBuildingDataExternalComponentsUpdateOptions.PartyWallMaxDistance;
 
             BuildingModelPostgreSQLConverter? buildingModelPostgreSQLConverter = gISPostgreSQLConverterManager.GetPostgreSQLConverter<BuildingModelPostgreSQLConverter>();
             if (buildingModelPostgreSQLConverter is null)
@@ -138,6 +162,17 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 return false;
             }
 
+            Building2DPostgreSQLConverter? building2DPostgreSQLConverter = null;
+            if (partyWalls)
+            {
+                building2DPostgreSQLConverter = gISPostgreSQLConverterManager.GetPostgreSQLConverter<Building2DPostgreSQLConverter>();
+                if (building2DPostgreSQLConverter is null)
+                {
+                    Serilog.Modify.Log(Serilog.Enums.LogEventLevel.Error, "{Type}: no {Converter} - the neighbours of the buildings cannot be found, so their party walls cannot be measured", nameof(PostgreSQLBuildingDataExternalComponentsUpdateTask), nameof(Building2DPostgreSQLConverter));
+                    return false;
+                }
+            }
+
             List<AdministrativeAreal2DReference>? countyReferences = await administrativeAreal2DPostgreSQLConverter.GetAdministrativeAreal2DReferencesByAdministrativeArealTypeAsync(AdministrativeArealType.County, commandTimeout: commandTimeout, cancellationToken: cancellationToken);
             if (countyReferences is null || countyReferences.Count == 0)
             {
@@ -148,12 +183,14 @@ namespace DiGi.GIS.PostgreSQL.Classes
             HashSet<int>? countyIds = PostgreSQLBuildingDataExternalComponentsUpdateOptions.CountyIds;
 
             Serilog.Modify.Log(
-                "{Type}: starting over {CountyCount} counties, scope {CountyScope}, batch size {BatchSize}, skip completed {SkipCompleted}",
+                "{Type}: starting over {CountyCount} counties, scope {CountyScope}, batch size {BatchSize}, skip completed {SkipCompleted}, party walls {PartyWalls} within {PartyWallMaxDistance} m",
                 nameof(PostgreSQLBuildingDataExternalComponentsUpdateTask),
                 countyReferences.Count,
                 countyIds is null ? "all" : string.Join(", ", countyIds),
                 batchSize,
-                skipCompleted);
+                skipCompleted,
+                partyWalls,
+                partyWallMaxDistance);
 
             // The columns the resume check reads. The reference column is asked for explicitly so the rows can be
             // matched back; the total is non-null only on a row a run has written.
@@ -208,6 +245,46 @@ namespace DiGi.GIS.PostgreSQL.Classes
                     ProcessedCountyCount++;
                     Serilog.Modify.Log(Serilog.Enums.LogEventLevel.Information, "External components county processed - county {CountyId} carries no stored building models", countyId);
                     continue;
+                }
+
+                // The outlines of the county, read once: they order the references so that a batch covers a compact area,
+                // and they are the outlines the neighbour search starts from. A county whose outlines cannot be read is
+                // still classified; only its party wall columns are left as they are.
+                Dictionary<string, GIS.Classes.Building2D> building2Ds_ByReference = [];
+                bool partyWalls_County = partyWalls && building2DPostgreSQLConverter is not null;
+                if (partyWalls_County)
+                {
+                    List<Building2D>? building2Ds_County = null;
+                    try
+                    {
+                        building2Ds_County = await building2DPostgreSQLConverter!.GetBuilding2DsByCountyIdAsync(countyId, commandTimeout: commandTimeout, cancellationToken: cancellationToken);
+                    }
+                    catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                    {
+                        throw;
+                    }
+                    catch (Exception exception)
+                    {
+                        Serilog.Modify.Log(exception, "External components party walls not measured - county {CountyId}, its outlines could not be read", countyId);
+                    }
+
+                    if (building2Ds_County is null)
+                    {
+                        partyWalls_County = false;
+                        PartyWallFailedBatchCount++;
+                    }
+                    else
+                    {
+                        foreach (Building2D building2D in building2Ds_County)
+                        {
+                            if (building2D?.Reference is string reference_Building2D && building2D.ToDiGi() is GIS.Classes.Building2D building2D_GIS && building2D_GIS.PolygonalFace2D is not null)
+                            {
+                                building2Ds_ByReference[reference_Building2D] = building2D_GIS;
+                            }
+                        }
+
+                        references_List.Sort(Query.ZOrderComparison(building2Ds_ByReference));
+                    }
                 }
 
                 // One batch is read, classified and written before the next is read, so memory follows the batch
@@ -289,12 +366,18 @@ namespace DiGi.GIS.PostgreSQL.Classes
 
                     models_Batch = null;
 
+                    List<DiGi.Analytical.Building.Classes.PartyWallResult>? partyWallResults = null;
+                    if (partyWalls_County)
+                    {
+                        partyWallResults = await PartyWallResultsAsync(models_Latest, countyId, offset, building2Ds_ByReference);
+                    }
+
                     Table table = new();
 
                     ExternalComponentsAreaResult batchResult;
                     try
                     {
-                        batchResult = Modify.Update_ExternalComponentsArea(table, models_Latest);
+                        batchResult = Modify.Update_ExternalComponentsArea(table, models_Latest, partyWallResults);
                     }
                     catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
                     {
@@ -395,6 +478,11 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 SkippedReferenceCount,
                 UpdatedRowCount);
 
+            if (partyWalls)
+            {
+                Serilog.Modify.Log("{Type}: party walls - {PartyWallBuildingCount} buildings share a wall, {MissingNeighbourModelCount} touching neighbours carry no stored model, {PartyWallFailedBatchCount} batches not measured", nameof(PostgreSQLBuildingDataExternalComponentsUpdateTask), PartyWallBuildingCount, MissingNeighbourModelCount, PartyWallFailedBatchCount);
+            }
+
             return FailedCountyCount == 0 && FailedModelCount == 0;
 
             // The references of the batch whose building data row already carries a total - the work an earlier,
@@ -476,6 +564,198 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 }
 
                 return result;
+            }
+
+            // The party walls of the buildings of a batch: the outlines touching each building are read from the
+            // building table, the stored models of those neighbours read by reference, and the shared walls measured.
+            // Null when a read fails, which leaves the party wall columns of the batch as they were.
+            async Task<List<DiGi.Analytical.Building.Classes.PartyWallResult>?> PartyWallResultsAsync(List<BuildingModel> buildingModels, int countyId, int offset, Dictionary<string, GIS.Classes.Building2D> building2Ds_ByReference)
+            {
+                try
+                {
+                    // The subjects, as analytical models, with their outlines.
+                    List<Tuple<BuildingModel, DiGi.Analytical.Building.Classes.BuildingModel, GIS.Classes.Building2D>> subjects = [];
+                    foreach (BuildingModel buildingModel in buildingModels)
+                    {
+                        if (buildingModel.Reference is string reference_Subject && building2Ds_ByReference.TryGetValue(reference_Subject, out GIS.Classes.Building2D? building2D_Subject) && buildingModel.ToDiGi() is DiGi.Analytical.Building.Classes.BuildingModel buildingModel_Subject)
+                        {
+                            subjects.Add(new Tuple<BuildingModel, DiGi.Analytical.Building.Classes.BuildingModel, GIS.Classes.Building2D>(buildingModel, buildingModel_Subject, building2D_Subject));
+                        }
+                    }
+
+                    List<DiGi.Analytical.Building.Classes.PartyWallResult> result = [];
+                    if (subjects.Count == 0)
+                    {
+                        return result;
+                    }
+
+                    // One outline read per kilometre tile of the batch: the batch is compact along the Z-order curve, but a
+                    // curve that jumps would make a single box span the gap.
+                    Dictionary<Tuple<long, long>, List<DiGi.Geometry.Planar.Classes.BoundingBox2D>> boundingBox2Ds_ByTile = [];
+                    foreach (Tuple<BuildingModel, DiGi.Analytical.Building.Classes.BuildingModel, GIS.Classes.Building2D> subject in subjects)
+                    {
+                        if (subject.Item3.PolygonalFace2D?.GetBoundingBox() is not DiGi.Geometry.Planar.Classes.BoundingBox2D boundingBox2D_Subject)
+                        {
+                            continue;
+                        }
+
+                        Tuple<long, long> tile = new((long)Math.Floor(boundingBox2D_Subject.Min.X / 1000.0), (long)Math.Floor(boundingBox2D_Subject.Min.Y / 1000.0));
+                        if (!boundingBox2Ds_ByTile.TryGetValue(tile, out List<DiGi.Geometry.Planar.Classes.BoundingBox2D>? boundingBox2Ds_Tile))
+                        {
+                            boundingBox2Ds_Tile = [];
+                            boundingBox2Ds_ByTile[tile] = boundingBox2Ds_Tile;
+                        }
+
+                        boundingBox2Ds_Tile.Add(boundingBox2D_Subject);
+                    }
+
+                    // Every outline near the batch, keyed by county and reference.
+                    Dictionary<Tuple<int, string>, GIS.Classes.Building2D> candidates = [];
+                    foreach (List<DiGi.Geometry.Planar.Classes.BoundingBox2D> boundingBox2Ds_Tile in boundingBox2Ds_ByTile.Values)
+                    {
+                        DiGi.Geometry.Planar.Classes.BoundingBox2D boundingBox2D_Tile = new(boundingBox2Ds_Tile);
+                        boundingBox2D_Tile.Offset(partyWallMaxDistance);
+
+                        List<Building2D>? building2Ds_Candidate = await building2DPostgreSQLConverter!.GetBuilding2DsByBoundingBox2DAsync(boundingBox2D_Tile, commandTimeout: commandTimeout, cancellationToken: cancellationToken);
+                        if (building2Ds_Candidate is null)
+                        {
+                            throw new InvalidOperationException($"The outlines around the batch at offset {offset} of county {countyId} could not be read.");
+                        }
+
+                        foreach (Building2D building2D_Candidate in building2Ds_Candidate)
+                        {
+                            if (building2D_Candidate?.Reference is string reference_Candidate && building2D_Candidate.CountyId is int countyId_Candidate && building2D_Candidate.ToDiGi() is GIS.Classes.Building2D building2D_Candidate_GIS && building2D_Candidate_GIS.PolygonalFace2D is not null)
+                            {
+                                candidates[new Tuple<int, string>(countyId_Candidate, reference_Candidate)] = building2D_Candidate_GIS;
+                            }
+                        }
+                    }
+
+                    // The neighbours of each subject: outlines within the distance of its outline, other than its own.
+                    List<List<Tuple<int, string>>> neighbourKeys_BySubject = [];
+                    HashSet<Tuple<int, string>> neighbourKeys = [];
+                    foreach (Tuple<BuildingModel, DiGi.Analytical.Building.Classes.BuildingModel, GIS.Classes.Building2D> subject in subjects)
+                    {
+                        List<Tuple<int, string>> neighbourKeys_Subject = [];
+                        DiGi.Geometry.Planar.Classes.PolygonalFace2D polygonalFace2D_Subject = subject.Item3.PolygonalFace2D!;
+                        DiGi.Geometry.Planar.Classes.BoundingBox2D? boundingBox2D_Subject = polygonalFace2D_Subject.GetBoundingBox();
+                        Tuple<int, string> key_Subject = new(countyId, subject.Item1.Reference!);
+
+                        foreach (KeyValuePair<Tuple<int, string>, GIS.Classes.Building2D> candidate in candidates)
+                        {
+                            if (candidate.Key.Equals(key_Subject) || candidate.Value.PolygonalFace2D is not DiGi.Geometry.Planar.Classes.PolygonalFace2D polygonalFace2D_Candidate)
+                            {
+                                continue;
+                            }
+
+                            if (boundingBox2D_Subject is null || polygonalFace2D_Candidate.GetBoundingBox() is not DiGi.Geometry.Planar.Classes.BoundingBox2D boundingBox2D_Candidate || !boundingBox2D_Subject.InRange(boundingBox2D_Candidate, partyWallMaxDistance))
+                            {
+                                continue;
+                            }
+
+                            double distance = DiGi.Geometry.Planar.Query.Distance(polygonalFace2D_Subject.ExternalEdge, polygonalFace2D_Candidate.ExternalEdge, out _, out _);
+                            if (!(distance <= partyWallMaxDistance))
+                            {
+                                continue;
+                            }
+
+                            neighbourKeys_Subject.Add(candidate.Key);
+                            neighbourKeys.Add(candidate.Key);
+                        }
+
+                        neighbourKeys_BySubject.Add(neighbourKeys_Subject);
+                    }
+
+                    // The neighbours' models: the batch's own where the neighbour is in it, the rest read by reference, county by county.
+                    Dictionary<Tuple<int, string>, DiGi.Analytical.Building.Classes.BuildingModel> buildingModels_Neighbour = [];
+                    foreach (Tuple<BuildingModel, DiGi.Analytical.Building.Classes.BuildingModel, GIS.Classes.Building2D> subject in subjects)
+                    {
+                        buildingModels_Neighbour[new Tuple<int, string>(countyId, subject.Item1.Reference!)] = subject.Item2;
+                    }
+
+                    Dictionary<int, List<string>> references_ByCountyId = [];
+                    foreach (Tuple<int, string> neighbourKey in neighbourKeys)
+                    {
+                        if (buildingModels_Neighbour.ContainsKey(neighbourKey))
+                        {
+                            continue;
+                        }
+
+                        if (!references_ByCountyId.TryGetValue(neighbourKey.Item1, out List<string>? references_County))
+                        {
+                            references_County = [];
+                            references_ByCountyId[neighbourKey.Item1] = references_County;
+                        }
+
+                        references_County.Add(neighbourKey.Item2);
+                    }
+
+                    foreach (KeyValuePair<int, List<string>> keyValuePair in references_ByCountyId)
+                    {
+                        // A table keyed by county is read with the fallback by reference: a model filed under a sibling part
+                        // of a multi-part county would otherwise silently not be returned.
+                        List<BuildingModel>? buildingModels_Read = await buildingModelPostgreSQLConverter.GetItemsByReferencesAsync(keyValuePair.Value, keyValuePair.Key, fallbackByReference: true, commandTimeout: commandTimeout, cancellationToken: cancellationToken);
+                        if (buildingModels_Read is null)
+                        {
+                            throw new InvalidOperationException($"The stored models of {keyValuePair.Value.Count} neighbours in county {keyValuePair.Key} of the batch at offset {offset} of county {countyId} could not be read.");
+                        }
+
+                        // Latest stored version first, so the first record of a reference is the one used.
+                        foreach (BuildingModel buildingModel_Read in buildingModels_Read)
+                        {
+                            if (buildingModel_Read?.Reference is not string reference_Read)
+                            {
+                                continue;
+                            }
+
+                            Tuple<int, string> key_Read = new(keyValuePair.Key, reference_Read);
+                            if (!buildingModels_Neighbour.ContainsKey(key_Read) && buildingModel_Read.ToDiGi() is DiGi.Analytical.Building.Classes.BuildingModel buildingModel_Analytical)
+                            {
+                                buildingModels_Neighbour[key_Read] = buildingModel_Analytical;
+                            }
+                        }
+                    }
+
+                    for (int i = 0; i < subjects.Count; i++)
+                    {
+                        List<DiGi.Analytical.Building.Classes.BuildingModel> buildingModels_Subject = [];
+                        foreach (Tuple<int, string> neighbourKey in neighbourKeys_BySubject[i])
+                        {
+                            if (buildingModels_Neighbour.TryGetValue(neighbourKey, out DiGi.Analytical.Building.Classes.BuildingModel? buildingModel_Neighbour))
+                            {
+                                buildingModels_Subject.Add(buildingModel_Neighbour);
+                            }
+                            else
+                            {
+                                MissingNeighbourModelCount++;
+                            }
+                        }
+
+                        if (buildingModels_Subject.Count == 0)
+                        {
+                            continue;
+                        }
+
+                        List<DiGi.Analytical.Building.Classes.PartyWallResult>? partyWallResults_Subject = DiGi.Analytical.Building.Query.PartyWalls(subjects[i].Item2, buildingModels_Subject, partyWallMaxDistance);
+                        if (partyWallResults_Subject is not null && partyWallResults_Subject.Count != 0)
+                        {
+                            PartyWallBuildingCount++;
+                            result.AddRange(partyWallResults_Subject);
+                        }
+                    }
+
+                    return result;
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    throw;
+                }
+                catch (Exception exception)
+                {
+                    PartyWallFailedBatchCount++;
+                    Serilog.Modify.Log(exception, "External components party walls not measured - county {CountyId}, offset {Offset}, the {ModelCount} buildings of the batch keep their party wall columns", countyId, offset, buildingModels.Count);
+                    return null;
+                }
             }
         }
     }

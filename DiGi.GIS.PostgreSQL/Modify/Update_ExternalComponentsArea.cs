@@ -24,6 +24,20 @@ namespace DiGi.GIS.PostgreSQL
         /// <returns>The outcome of the classification: the number of components skipped because they bound two spaces or their target bucket is undefined, the number of models whose external envelope does not close on the tolerance ladder, and the references of the degenerate and the refused models - the counts 0 and the lists empty when every component was classified over a closed envelope. The tallies cover the written rows only.</returns>
         public static ExternalComponentsAreaResult Update_ExternalComponentsArea(this Table? table, IEnumerable<BuildingModel>? buildingModels)
         {
+            return Update_ExternalComponentsArea(table, buildingModels, null);
+        }
+
+        /// <summary>
+        /// Classifies the components of the stored building models into the 35 “External Components Area” columns, as <see cref="Update_ExternalComponentsArea(Table?, IEnumerable{BuildingModel}?)"/> does, and files the wall area each building shares with adjacent buildings into the 9 party wall area columns (DiGi-Organization/DiGi.GIS.Analytical#4).
+        /// <para>The party walls come from <see cref="DiGi.Analytical.Building.Query.PartyWalls"/> and are matched to the walls by the identifier of the wall component. The shared area of a wall is filed under the sector of that wall's envelope face - the sector the wall itself is filed under - and is capped at the wall's area, so a wall shared with two overlapping neighbours never counts more than itself. The external wall columns stay gross: they include the party walls, and the net external area of a sector is its external column minus its party column.</para>
+        /// <para>With <paramref name="partyWallResults"/> null the party wall columns are not touched; with an empty collection they are written as 0, so a building with no party wall and a building not examined stay distinguishable.</para>
+        /// </summary>
+        /// <param name="table">The table to fill with the classification.</param>
+        /// <param name="buildingModels">The envelopes of stored building models, most preferred record first.</param>
+        /// <param name="partyWallResults">The party walls of the models, or null to leave the party wall columns alone.</param>
+        /// <returns>The outcome of the classification, as for <see cref="Update_ExternalComponentsArea(Table?, IEnumerable{BuildingModel}?)"/>.</returns>
+        public static ExternalComponentsAreaResult Update_ExternalComponentsArea(this Table? table, IEnumerable<BuildingModel>? buildingModels, IEnumerable<DiGi.Analytical.Building.Classes.PartyWallResult?>? partyWallResults)
+        {
             // Must stay in sync with the DiGi.GIS.IO column descriptions: flat is strictly below 5°,
             // the first tilted band is [5°, 20°], the second is (20°, 45°], the third above 45°.
             const double tilt_FlatDegrees = 5.0;
@@ -120,6 +134,32 @@ namespace DiGi.GIS.PostgreSQL
                 }
             }
 
+            // The party wall columns: 8 sectors in the order of the wall columns, and the total last. Each wall's shared area is summed over its neighbours.
+            List<Column>? columns_Party = null;
+            Dictionary<Guid, double> areas_Party_ByWallGuid = [];
+            if (partyWallResults is not null)
+            {
+                columns_Party = [];
+                foreach (Column column in IO.Create.Columns_PartyWallArea())
+                {
+                    Column? column_Added = table.UpdateColumn<Column>(column);
+                    if (column_Added is not null)
+                    {
+                        columns_Party.Add(column_Added);
+                    }
+                }
+
+                foreach (DiGi.Analytical.Building.Classes.PartyWallResult? partyWallResult in partyWallResults)
+                {
+                    if (partyWallResult?.Component is not DiGi.Core.Classes.GuidReference guidReference_Wall || !(partyWallResult.Area > 0))
+                    {
+                        continue;
+                    }
+
+                    areas_Party_ByWallGuid[guidReference_Wall.Guid] = (areas_Party_ByWallGuid.TryGetValue(guidReference_Wall.Guid, out double area_Party) ? area_Party : 0) + partyWallResult.Area;
+                }
+            }
+
             // The 34 breakdown columns come first and the total column last, in the order Columns_ExternalComponentsArea declares them.
             int count_Breakdown = columns_External.Count - 1;
             if (count_Breakdown < 1)
@@ -171,10 +211,11 @@ namespace DiGi.GIS.PostgreSQL
                 long openEnvelopeCount_Before = openEnvelopeCount;
 
                 double[] areas = new double[count_Breakdown];
+                double[] areas_Party = new double[8];
                 double? closingTolerance = null;
                 try
                 {
-                    if (!Classify(buildingModel_Envelope, reference, countyId, areas, out closingTolerance))
+                    if (!Classify(buildingModel_Envelope, reference, countyId, areas, areas_Party, out closingTolerance))
                     {
                         references_Degenerate.Add(reference);
                         continue;
@@ -210,6 +251,18 @@ namespace DiGi.GIS.PostgreSQL
 
                 IO.Modify.SetValue(row, columns_External[count_Breakdown], (float)totalArea);
 
+                if (columns_Party is not null && columns_Party.Count == areas_Party.Length + 1)
+                {
+                    double totalArea_Party = 0;
+                    for (int i = 0; i < areas_Party.Length; i++)
+                    {
+                        IO.Modify.SetValue(row, columns_Party[i], areas_Party[i] > 0 ? (float)areas_Party[i] : 0f);
+                        totalArea_Party += areas_Party[i];
+                    }
+
+                    IO.Modify.SetValue(row, columns_Party[areas_Party.Length], (float)totalArea_Party);
+                }
+
                 // Null is the signal - the open envelope or the absent one - so nothing is written for it: a cell left
                 // alone is null, and a sentinel would read as a tolerance.
                 float? value_ClosingTolerance = closingTolerance is null ? null : (float)closingTolerance.Value;
@@ -220,10 +273,10 @@ namespace DiGi.GIS.PostgreSQL
 
             return new ExternalComponentsAreaResult(skippedComponentCount, openEnvelopeCount, references_Degenerate, references_Failed);
 
-            // Classifies the components of one model into the given area buckets. False when the model carries components
+            // Classifies the components of one model into the given area buckets, and the shared part of each wall into the party buckets. False when the model carries components
             // but no external envelope (a degenerate model: nothing to classify by, and no row is written); throws
             // InvalidOperationException for a defect in the model's space structure.
-            bool Classify(BuildingModel buildingModel_Envelope, string reference, int countyId, double[] areas, out double? closingTolerance)
+            bool Classify(BuildingModel buildingModel_Envelope, string reference, int countyId, double[] areas, double[] areas_Party, out double? closingTolerance)
             {
                 DiGi.Analytical.Building.Classes.BuildingModel? buildingModel = buildingModel_Envelope.ToDiGi();
                 if (buildingModel is null)
@@ -322,6 +375,12 @@ namespace DiGi.GIS.PostgreSQL
                             }
 
                             areas[index] += area;
+
+                            if (areas_Party_ByWallGuid.TryGetValue(guid_Component, out double area_Party))
+                            {
+                                // A wall shared with two overlapping neighbours cannot share more than itself.
+                                areas_Party[index] += Math.Min(area_Party, area);
+                            }
                         }
                     }
 
