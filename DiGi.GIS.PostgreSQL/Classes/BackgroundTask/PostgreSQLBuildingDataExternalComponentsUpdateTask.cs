@@ -16,7 +16,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
     /// <para>A model the classification refuses as a defect in its space structure costs that model alone: it gets no row, is logged as an error with its reference and reason, and counted in <see cref="FailedModelCount"/>; the rest of its batch and county is still written, and the run reports itself as not succeeded. A degenerate model - components but no external envelope, typically a sliver footprint with walls and no roof or floor - gets no row either, but is logged as a warning and counted in <see cref="DegenerateModelCount"/> without failing the run.</para>
     /// <para>A component that is valid but has no definable bucket - a wall whose normal is vertical - is skipped and counted in <see cref="SkippedComponentCount"/> rather than failing the county.</para>
     /// <para>A model whose external envelope does not close is not failed either: its row is written with a null closing tolerance and counted in <see cref="OpenEnvelopeCount"/>, because the sector and tilt values of such a row may rest on an arbitrary face side - the count is the share of rows of the run to treat with that caution.</para>
-    /// <para>With <see cref="PostgreSQLBuildingDataExternalComponentsUpdateOptions.PartyWalls"/> set, the party wall area columns are filled in the same pass (DiGi-Organization/DiGi.GIS.Analytical#4). The references of a county are ordered along a Z-order curve of their outlines, so a batch covers a compact area. For each batch, the outlines touching its buildings are read - across county borders too - and the stored models of those neighbours are read by reference with a fallback to any county, since a county is not a key of the building table. <see cref="DiGi.Analytical.Building.Query.PartyWalls"/> then measures the shared walls. A neighbour with no stored model is counted in <see cref="MissingNeighbourModelCount"/>, and a batch whose neighbours cannot be read keeps its party wall columns as they were and is counted in <see cref="PartyWallFailedBatchCount"/>; neither fails the run.</para>
+    /// <para>With <see cref="PostgreSQLBuildingDataExternalComponentsUpdateOptions.PartyWalls"/> set, the party wall area columns are filled in the same pass (DiGi-Organization/DiGi.GIS.Analytical#4). The references of a county are ordered along a Z-order curve of their outlines (<see cref="DiGi.Geometry.Planar.Query.ZOrderComparison{TKey}"/>), so a batch covers a compact area. For each batch, the outlines touching its buildings are read - across county borders too - and the stored models of those neighbours are read by reference with a fallback to any county, since a county is not a key of the building table. <see cref="DiGi.Analytical.Building.Query.PartyWalls(System.Collections.Generic.IEnumerable{DiGi.Analytical.Building.Classes.BuildingModel?}?, System.Collections.Generic.IEnumerable{DiGi.Analytical.Building.Classes.BuildingModel?}?, double, double, double, double)"/> then measures the shared walls of the whole batch in one call, so each model's envelope is built once. A neighbour with no stored model is counted in <see cref="MissingNeighbourModelCount"/>, and a batch whose neighbours cannot be read keeps its party wall columns as they were and is counted in <see cref="PartyWallFailedBatchCount"/>; neither fails the run.</para>
     /// <para>The run is idempotent: the read is deterministic (the latest stored version of a model wins), the classification is pure, and the push upserts on county and reference, so a re-run writes the same values.</para>
     /// </summary>
     public class PostgreSQLBuildingDataExternalComponentsUpdateTask : ReportableBackgroundTask<long>, IGISPostgreSQLObject
@@ -275,15 +275,21 @@ namespace DiGi.GIS.PostgreSQL.Classes
                     }
                     else
                     {
+                        Dictionary<string, DiGi.Geometry.Planar.Classes.BoundingBox2D> boundingBox2Ds_ByReference = [];
                         foreach (Building2D building2D in building2Ds_County)
                         {
                             if (building2D?.Reference is string reference_Building2D && building2D.ToDiGi() is GIS.Classes.Building2D building2D_GIS && building2D_GIS.PolygonalFace2D is not null)
                             {
                                 building2Ds_ByReference[reference_Building2D] = building2D_GIS;
+                                if (building2D_GIS.PolygonalFace2D.GetBoundingBox() is DiGi.Geometry.Planar.Classes.BoundingBox2D boundingBox2D_Building2D)
+                                {
+                                    boundingBox2Ds_ByReference[reference_Building2D] = boundingBox2D_Building2D;
+                                }
                             }
                         }
 
-                        references_List.Sort(Query.ZOrderComparison(building2Ds_ByReference));
+                        // Along a Z-order curve of 100 m cells, so that a batch covers a compact area.
+                        references_List.Sort(DiGi.Geometry.Planar.Query.ZOrderComparison(boundingBox2Ds_ByReference, 100.0));
                     }
                 }
 
@@ -631,39 +637,75 @@ namespace DiGi.GIS.PostgreSQL.Classes
                         }
                     }
 
-                    // The neighbours of each subject: outlines within the distance of its outline, other than its own.
+                    // The candidates indexed once by the 50 m cells their boxes cover, so each subject is tested against the
+                    // outlines around it rather than against the whole neighbourhood of the batch.
+                    const double cellSize = 50.0;
+                    Dictionary<Tuple<long, long>, List<Tuple<int, string>>> candidateKeys_ByCell = [];
+                    foreach (KeyValuePair<Tuple<int, string>, GIS.Classes.Building2D> candidate in candidates)
+                    {
+                        if (candidate.Value.PolygonalFace2D?.GetBoundingBox() is not DiGi.Geometry.Planar.Classes.BoundingBox2D boundingBox2D_Candidate)
+                        {
+                            continue;
+                        }
+
+                        for (long x = (long)Math.Floor(boundingBox2D_Candidate.Min.X / cellSize); x <= (long)Math.Floor(boundingBox2D_Candidate.Max.X / cellSize); x++)
+                        {
+                            for (long y = (long)Math.Floor(boundingBox2D_Candidate.Min.Y / cellSize); y <= (long)Math.Floor(boundingBox2D_Candidate.Max.Y / cellSize); y++)
+                            {
+                                Tuple<long, long> cell = new(x, y);
+                                if (!candidateKeys_ByCell.TryGetValue(cell, out List<Tuple<int, string>>? candidateKeys_Cell))
+                                {
+                                    candidateKeys_Cell = [];
+                                    candidateKeys_ByCell[cell] = candidateKeys_Cell;
+                                }
+
+                                candidateKeys_Cell.Add(candidate.Key);
+                            }
+                        }
+                    }
+
+                    // The neighbours of each subject: outlines in range of its outline - touching, overlapping, inside it or
+                    // within the distance - other than its own.
                     List<List<Tuple<int, string>>> neighbourKeys_BySubject = [];
                     HashSet<Tuple<int, string>> neighbourKeys = [];
                     foreach (Tuple<BuildingModel, DiGi.Analytical.Building.Classes.BuildingModel, GIS.Classes.Building2D> subject in subjects)
                     {
                         List<Tuple<int, string>> neighbourKeys_Subject = [];
+                        neighbourKeys_BySubject.Add(neighbourKeys_Subject);
+
                         DiGi.Geometry.Planar.Classes.PolygonalFace2D polygonalFace2D_Subject = subject.Item3.PolygonalFace2D!;
-                        DiGi.Geometry.Planar.Classes.BoundingBox2D? boundingBox2D_Subject = polygonalFace2D_Subject.GetBoundingBox();
-                        Tuple<int, string> key_Subject = new(countyId, subject.Item1.Reference!);
-
-                        foreach (KeyValuePair<Tuple<int, string>, GIS.Classes.Building2D> candidate in candidates)
+                        if (polygonalFace2D_Subject.GetBoundingBox() is not DiGi.Geometry.Planar.Classes.BoundingBox2D boundingBox2D_Subject)
                         {
-                            if (candidate.Key.Equals(key_Subject) || candidate.Value.PolygonalFace2D is not DiGi.Geometry.Planar.Classes.PolygonalFace2D polygonalFace2D_Candidate)
-                            {
-                                continue;
-                            }
-
-                            if (boundingBox2D_Subject is null || polygonalFace2D_Candidate.GetBoundingBox() is not DiGi.Geometry.Planar.Classes.BoundingBox2D boundingBox2D_Candidate || !boundingBox2D_Subject.InRange(boundingBox2D_Candidate, partyWallMaxDistance))
-                            {
-                                continue;
-                            }
-
-                            double distance = DiGi.Geometry.Planar.Query.Distance(polygonalFace2D_Subject.ExternalEdge, polygonalFace2D_Candidate.ExternalEdge, out _, out _);
-                            if (!(distance <= partyWallMaxDistance))
-                            {
-                                continue;
-                            }
-
-                            neighbourKeys_Subject.Add(candidate.Key);
-                            neighbourKeys.Add(candidate.Key);
+                            continue;
                         }
 
-                        neighbourKeys_BySubject.Add(neighbourKeys_Subject);
+                        Tuple<int, string> key_Subject = new(countyId, subject.Item1.Reference!);
+                        HashSet<Tuple<int, string>> candidateKeys_Tested = [];
+
+                        for (long x = (long)Math.Floor((boundingBox2D_Subject.Min.X - partyWallMaxDistance) / cellSize); x <= (long)Math.Floor((boundingBox2D_Subject.Max.X + partyWallMaxDistance) / cellSize); x++)
+                        {
+                            for (long y = (long)Math.Floor((boundingBox2D_Subject.Min.Y - partyWallMaxDistance) / cellSize); y <= (long)Math.Floor((boundingBox2D_Subject.Max.Y + partyWallMaxDistance) / cellSize); y++)
+                            {
+                                if (!candidateKeys_ByCell.TryGetValue(new Tuple<long, long>(x, y), out List<Tuple<int, string>>? candidateKeys_Cell))
+                                {
+                                    continue;
+                                }
+
+                                foreach (Tuple<int, string> candidateKey in candidateKeys_Cell)
+                                {
+                                    if (candidateKey.Equals(key_Subject) || !candidateKeys_Tested.Add(candidateKey))
+                                    {
+                                        continue;
+                                    }
+
+                                    if (DiGi.Geometry.Planar.Query.InRange(polygonalFace2D_Subject, candidates[candidateKey].PolygonalFace2D, partyWallMaxDistance))
+                                    {
+                                        neighbourKeys_Subject.Add(candidateKey);
+                                        neighbourKeys.Add(candidateKey);
+                                    }
+                                }
+                            }
+                        }
                     }
 
                     // The neighbours' models: the batch's own where the neighbour is in it, the rest read by reference, county by county.
@@ -716,14 +758,19 @@ namespace DiGi.GIS.PostgreSQL.Classes
                         }
                     }
 
+                    // The subjects with a neighbour, and the models of those neighbours, measured in one call: each model's
+                    // envelope is then built once for the batch rather than once for every building it touches.
+                    List<DiGi.Analytical.Building.Classes.BuildingModel> buildingModels_Examined = [];
+                    List<DiGi.Analytical.Building.Classes.BuildingModel> buildingModels_Touching = [];
                     for (int i = 0; i < subjects.Count; i++)
                     {
-                        List<DiGi.Analytical.Building.Classes.BuildingModel> buildingModels_Subject = [];
+                        bool touching = false;
                         foreach (Tuple<int, string> neighbourKey in neighbourKeys_BySubject[i])
                         {
                             if (buildingModels_Neighbour.TryGetValue(neighbourKey, out DiGi.Analytical.Building.Classes.BuildingModel? buildingModel_Neighbour))
                             {
-                                buildingModels_Subject.Add(buildingModel_Neighbour);
+                                touching = true;
+                                buildingModels_Touching.Add(buildingModel_Neighbour);
                             }
                             else
                             {
@@ -731,16 +778,22 @@ namespace DiGi.GIS.PostgreSQL.Classes
                             }
                         }
 
-                        if (buildingModels_Subject.Count == 0)
+                        if (touching)
                         {
-                            continue;
+                            buildingModels_Examined.Add(subjects[i].Item2);
                         }
+                    }
 
-                        List<DiGi.Analytical.Building.Classes.PartyWallResult>? partyWallResults_Subject = DiGi.Analytical.Building.Query.PartyWalls(subjects[i].Item2, buildingModels_Subject, partyWallMaxDistance);
-                        if (partyWallResults_Subject is not null && partyWallResults_Subject.Count != 0)
+                    Dictionary<Guid, List<DiGi.Analytical.Building.Classes.PartyWallResult>>? partyWallResults_ByGuid = DiGi.Analytical.Building.Query.PartyWalls(buildingModels_Examined, buildingModels_Touching, partyWallMaxDistance);
+                    if (partyWallResults_ByGuid is not null)
+                    {
+                        foreach (List<DiGi.Analytical.Building.Classes.PartyWallResult> partyWallResults_Subject in partyWallResults_ByGuid.Values)
                         {
-                            PartyWallBuildingCount++;
-                            result.AddRange(partyWallResults_Subject);
+                            if (partyWallResults_Subject.Count != 0)
+                            {
+                                PartyWallBuildingCount++;
+                                result.AddRange(partyWallResults_Subject);
+                            }
                         }
                     }
 

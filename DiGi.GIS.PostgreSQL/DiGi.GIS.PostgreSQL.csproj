@@ -21,6 +21,10 @@
 		<Compile Remove="$(IntermediateOutputPath)$(MSBuildProjectName).AssemblyAttributes.cs" />
 	</ItemGroup>
 	<ItemGroup>
+	  <!-- NetTopologySuite is a NuGet dependency of DiGi.Geometry (referenced via HintPath below). The party wall pass
+	       calls DiGi.Geometry.Planar.Query.InRange, whose overload set names NetTopologySuite.Geometries.Geometry, so
+	       the compiler needs the assembly to resolve the call (CS0012) even though no such type crosses this API. -->
+	  <PackageReference Include="NetTopologySuite" Version="2.6.0" />
 	  <PackageReference Include="Npgsql" Version="10.0.2" />
 	</ItemGroup>
 
