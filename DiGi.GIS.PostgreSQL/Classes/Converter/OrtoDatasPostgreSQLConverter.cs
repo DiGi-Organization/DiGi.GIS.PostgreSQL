@@ -1364,7 +1364,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
 
         /// <summary>
         /// Asynchronously updates the data based on the provided orthodata and tolerance.
-        /// <para>An entry that names no county row is resolved by geometry against every county its bounding box overlaps. When the county is known but which of its polygon parts is not, use <see cref="UpdateAsync(IEnumerable{OrtoDatas}, IEnumerable{int}, double, int, CancellationToken)"/> and hand over the parts - it narrows the field before the geometry runs.</para>
+        /// <para>An entry that names no county row is resolved by geometry against every county its bounding box overlaps. When the county is known but which of its polygon parts is not, use <see cref="UpdateAsync(IEnumerable{OrtoDatas}, IEnumerable{int}, AdministrativeAreal2DPostgreSQLConverter, double, int, CancellationToken)"/> and hand over the parts - it narrows the field before the geometry runs.</para>
         /// </summary>
         /// <param name="ortoDatas">A nullable enumerable collection of <see cref="OrtoDatas"/> to be processed for the update.</param>
         /// <param name="tolerance">A double-precision floating-point number representing the distance tolerance used during the update process. Defaults to <see cref="Core.Constants.Tolerance.MacroDistance"/>.</param>
@@ -1373,7 +1373,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// <returns>A task that represents the asynchronous operation. The task result contains the identifiers written and the rows dropped before the database, or null when the update could not be attempted at all - no connection, or the table could not be created.</returns>
         public async Task<PostgreSQLUpdateResult?> UpdateAsync(IEnumerable<OrtoDatas>? ortoDatas, double tolerance = Core.Constants.Tolerance.MacroDistance, int commandTimeout = 600, CancellationToken cancellationToken = default)
         {
-            return await UpdateAsync(ortoDatas, (IEnumerable<int>?)null, tolerance, commandTimeout, cancellationToken);
+            return await UpdateAsync(ortoDatas, (IEnumerable<int>?)null, null, tolerance, commandTimeout, cancellationToken);
         }
 
         /// <summary>
@@ -1382,14 +1382,16 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// <para>1. the entry's own county identifier - already names the row, nothing to infer.</para>
         /// <para>2. <paramref name="countyIds"/> - a county code names one row per polygon part, so the caller can state the county without stating the part. A single candidate resolves outright; several only narrow the field and are handed to tier 3.</para>
         /// <para>3. geometry - <see cref="Query.CountyId(IDictionary{int, Geometry.Planar.Interfaces.IPolygonal2D}, Geometry.Planar.Interfaces.IPolygonal2D, double)"/> decides which candidate the entry lies in, is nearest to, or overlaps most. With no candidates the field is every county its bounding box overlaps, which is both slower and wider than narrowing first.</para>
+        /// <para>Tier 3 reads <c>administrative_areal_2d</c>, which lives in the main database, while <c>orto_datas</c> lives in the storage database - so the county polygons are read through <paramref name="administrativeAreal2DPostgreSQLConverter"/>, never through this converter's own connection, and only once an entry actually reaches tier 3.</para>
         /// </summary>
         /// <param name="ortoDatas">A nullable enumerable collection of <see cref="OrtoDatas"/> to be processed for the update.</param>
         /// <param name="countyIds">The candidate county rows an entry with no county of its own may be filed under. Null or empty searches every county overlapping the entry instead.</param>
+        /// <param name="administrativeAreal2DPostgreSQLConverter">The converter reading the county polygons for tier 3, connected to the main database. Null falls back to this converter's own connection, which answers only where both tables share one database.</param>
         /// <param name="tolerance">A double-precision floating-point number representing the distance tolerance used during the update process. Defaults to <see cref="Core.Constants.Tolerance.MacroDistance"/>.</param>
         /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> to monitor for cancellation requests.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the identifiers written and the rows dropped before the database, or null when the update could not be attempted at all - no connection, or the table could not be created.</returns>
-        public async Task<PostgreSQLUpdateResult?> UpdateAsync(IEnumerable<OrtoDatas>? ortoDatas, IEnumerable<int>? countyIds, double tolerance = Core.Constants.Tolerance.MacroDistance, int commandTimeout = 600, CancellationToken cancellationToken = default)
+        public async Task<PostgreSQLUpdateResult?> UpdateAsync(IEnumerable<OrtoDatas>? ortoDatas, IEnumerable<int>? countyIds, AdministrativeAreal2DPostgreSQLConverter? administrativeAreal2DPostgreSQLConverter, double tolerance = Core.Constants.Tolerance.MacroDistance, int commandTimeout = 600, CancellationToken cancellationToken = default)
         {
             if (ortoDatas is null)
             {
@@ -1421,13 +1423,11 @@ namespace DiGi.GIS.PostgreSQL.Classes
             List<int> countyIds_Candidate = countyIds is null ? [] : [.. new HashSet<int>(countyIds)];
 
             // Derived once for the whole batch: a part's polygon is the same for every entry tested against
-            // it, and deriving one deserializes a county-sized geometry. Left null while there is nothing to
-            // choose between, so a single candidate costs no polygon at all.
+            // it, and deriving one deserializes a county-sized geometry. Read on the first entry that reaches
+            // the geometry tier, so a single candidate, or a batch whose parts the caller already resolved from
+            // building_2d, costs no polygon and no trip to the main database at all.
             Dictionary<int, Geometry.Planar.Interfaces.IPolygonal2D>? polygonal2Ds_ByCountyId = null;
-            if (countyIds_Candidate.Count > 1)
-            {
-                polygonal2Ds_ByCountyId = (await AdministrativeAreal2DPostgreSQLConverter.GetAdministrativeAreal2DsByIdsAsync(npgsqlConnection, countyIds_Candidate, commandTimeout, cancellationToken)).Polygonal2DsByCountyId();
-            }
+            bool polygonal2Ds_Read = false;
 
             Dictionary<int, List<OrtoDatas>> dictionary_OrtoDatas = [];
 
@@ -1462,6 +1462,17 @@ namespace DiGi.GIS.PostgreSQL.Classes
 
                         Geometry.Planar.Interfaces.IPolygonal2D? polygonal2D = (Polygon2D?)boundingBox2D;
 
+                        if (countyIds_Candidate.Count > 1 && !polygonal2Ds_Read)
+                        {
+                            polygonal2Ds_Read = true;
+
+                            List<AdministrativeAreal2D>? administrativeAreal2Ds_Candidate = administrativeAreal2DPostgreSQLConverter is null
+                                ? await AdministrativeAreal2DPostgreSQLConverter.GetAdministrativeAreal2DsByIdsAsync(npgsqlConnection, countyIds_Candidate, commandTimeout, cancellationToken)
+                                : await administrativeAreal2DPostgreSQLConverter.GetAdministrativeAreal2DsByIdsAsync(countyIds_Candidate, commandTimeout, cancellationToken);
+
+                            polygonal2Ds_ByCountyId = administrativeAreal2Ds_Candidate.Polygonal2DsByCountyId();
+                        }
+
                         if (polygonal2Ds_ByCountyId is not null)
                         {
                             countyId = polygonal2Ds_ByCountyId.CountyId(polygonal2D, tolerance);
@@ -1470,7 +1481,9 @@ namespace DiGi.GIS.PostgreSQL.Classes
                         {
                             // The bounding box path answers a different candidate set per entry, so there is
                             // nothing to cache across them.
-                            List<AdministrativeAreal2D>? administrativeAreal2Ds = await AdministrativeAreal2DPostgreSQLConverter.GetAdministrativeAreal2DsByBoundingBox2DAsync(npgsqlConnection, boundingBox2D, Enums.AdministrativeArealType.County, tolerance, commandTimeout, cancellationToken);
+                            List<AdministrativeAreal2D>? administrativeAreal2Ds = administrativeAreal2DPostgreSQLConverter is null
+                                ? await AdministrativeAreal2DPostgreSQLConverter.GetAdministrativeAreal2DsByBoundingBox2DAsync(npgsqlConnection, boundingBox2D, Enums.AdministrativeArealType.County, tolerance, commandTimeout, cancellationToken)
+                                : await administrativeAreal2DPostgreSQLConverter.GetAdministrativeAreal2DsByBoundingBox2DAsync(boundingBox2D, Enums.AdministrativeArealType.County, tolerance, commandTimeout, cancellationToken);
                             if (administrativeAreal2Ds is not null && administrativeAreal2Ds.Count != 0)
                             {
                                 // A single overlapping county is taken as it stands: the bounding box search
