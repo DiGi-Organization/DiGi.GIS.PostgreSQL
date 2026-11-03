@@ -22143,6 +22143,219 @@ A cancellation token that can be used to cancel the operation\.
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A task representing the asynchronous operation\. Returns true when the run could be attempted, every subdivision in scope was updated without error, every selected update type was written and every subdivision the radial ratios were asked for could be measured; otherwise, false \- including when a selected update type was counted against [UnfulfilledUpdateTypeCount](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLBuildingDataUpdateTask.UnfulfilledUpdateTypeCount 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLBuildingDataUpdateTask\.UnfulfilledUpdateTypeCount') or a subdivision against [RadialRatiosUnmeasuredSubdivisionCount](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLBuildingDataUpdateTask.RadialRatiosUnmeasuredSubdivisionCount 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLBuildingDataUpdateTask\.RadialRatiosUnmeasuredSubdivisionCount')\. A county's unassigned buildings whose radial ratios could not be measured are counted against [RadialRatiosUnmeasuredUnassignedCountyCount](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLBuildingDataUpdateTask.RadialRatiosUnmeasuredUnassignedCountyCount 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLBuildingDataUpdateTask\.RadialRatiosUnmeasuredUnassignedCountyCount') and do not affect the result; neither do [YearBuiltWrittenCount](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLBuildingDataUpdateTask.YearBuiltWrittenCount 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLBuildingDataUpdateTask\.YearBuiltWrittenCount') and [YearBuiltMissingBuildingCount](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLBuildingDataUpdateTask.YearBuiltMissingBuildingCount 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLBuildingDataUpdateTask\.YearBuiltMissingBuildingCount'), since a county without stored year built entries is not a fault of the run\.
 
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoDatasAcquisitionUpdateOptions'></a>
+
+## PostgreSQLOrtoDatasAcquisitionUpdateOptions Class
+
+Options of an acquisition\-date backfill of `orto_datas` \([PostgreSQLOrtoDatasAcquisitionUpdateTask](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoDatasAcquisitionUpdateTask 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLOrtoDatasAcquisitionUpdateTask')\)\.
+
+```csharp
+public class PostgreSQLOrtoDatasAcquisitionUpdateOptions : DiGi.Core.Classes.SerializableOptions
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [DiGi\.Core\.Classes\.Object](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.object 'DiGi\.Core\.Classes\.Object') → [DiGi\.Core\.Classes\.SerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.serializableobject 'DiGi\.Core\.Classes\.SerializableObject') → [DiGi\.Core\.Classes\.SerializableOptions](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.serializableoptions 'DiGi\.Core\.Classes\.SerializableOptions') → PostgreSQLOrtoDatasAcquisitionUpdateOptions
+### Constructors
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoDatasAcquisitionUpdateOptions.PostgreSQLOrtoDatasAcquisitionUpdateOptions()'></a>
+
+## PostgreSQLOrtoDatasAcquisitionUpdateOptions\(\) Constructor
+
+Initializes a new instance of the [PostgreSQLOrtoDatasAcquisitionUpdateOptions](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoDatasAcquisitionUpdateOptions 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLOrtoDatasAcquisitionUpdateOptions') class\.
+
+```csharp
+public PostgreSQLOrtoDatasAcquisitionUpdateOptions();
+```
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoDatasAcquisitionUpdateOptions.PostgreSQLOrtoDatasAcquisitionUpdateOptions(DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoDatasAcquisitionUpdateOptions)'></a>
+
+## PostgreSQLOrtoDatasAcquisitionUpdateOptions\(PostgreSQLOrtoDatasAcquisitionUpdateOptions\) Constructor
+
+Initializes a new instance of the [PostgreSQLOrtoDatasAcquisitionUpdateOptions](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoDatasAcquisitionUpdateOptions 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLOrtoDatasAcquisitionUpdateOptions') class by copying an existing options instance\.
+
+```csharp
+public PostgreSQLOrtoDatasAcquisitionUpdateOptions(DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoDatasAcquisitionUpdateOptions postgreSQLOrtoDatasAcquisitionUpdateOptions);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoDatasAcquisitionUpdateOptions.PostgreSQLOrtoDatasAcquisitionUpdateOptions(DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoDatasAcquisitionUpdateOptions).postgreSQLOrtoDatasAcquisitionUpdateOptions'></a>
+
+`postgreSQLOrtoDatasAcquisitionUpdateOptions` [PostgreSQLOrtoDatasAcquisitionUpdateOptions](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoDatasAcquisitionUpdateOptions 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLOrtoDatasAcquisitionUpdateOptions')
+
+The source options to copy from\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoDatasAcquisitionUpdateOptions.PostgreSQLOrtoDatasAcquisitionUpdateOptions(System.Text.Json.Nodes.JsonObject)'></a>
+
+## PostgreSQLOrtoDatasAcquisitionUpdateOptions\(JsonObject\) Constructor
+
+Initializes a new instance of the [PostgreSQLOrtoDatasAcquisitionUpdateOptions](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoDatasAcquisitionUpdateOptions 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLOrtoDatasAcquisitionUpdateOptions') class using a JSON object\.
+
+```csharp
+public PostgreSQLOrtoDatasAcquisitionUpdateOptions(System.Text.Json.Nodes.JsonObject jsonObject);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoDatasAcquisitionUpdateOptions.PostgreSQLOrtoDatasAcquisitionUpdateOptions(System.Text.Json.Nodes.JsonObject).jsonObject'></a>
+
+`jsonObject` [System\.Text\.Json\.Nodes\.JsonObject](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.nodes.jsonobject 'System\.Text\.Json\.Nodes\.JsonObject')
+
+The JSON object used to initialize the options\.
+### Properties
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoDatasAcquisitionUpdateOptions.CommandTimeout'></a>
+
+## PostgreSQLOrtoDatasAcquisitionUpdateOptions\.CommandTimeout Property
+
+Gets or sets the timeout in seconds of each command\.
+
+```csharp
+public int CommandTimeout { get; set; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoDatasAcquisitionUpdateOptions.CountyIds'></a>
+
+## PostgreSQLOrtoDatasAcquisitionUpdateOptions\.CountyIds Property
+
+Gets or sets the county polygon part identifiers to backfill\. A county code is not a key \- a multi\-part county has one identifier per polygon part \- so name every part that is wanted\. Null or empty backfills nothing\.
+
+```csharp
+public System.Collections.Generic.HashSet<int>? CountyIds { get; set; }
+```
+
+#### Property Value
+[System\.Collections\.Generic\.HashSet&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.hashset-1 'System\.Collections\.Generic\.HashSet\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.hashset-1 'System\.Collections\.Generic\.HashSet\`1')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoDatasAcquisitionUpdateOptions.LastYear'></a>
+
+## PostgreSQLOrtoDatasAcquisitionUpdateOptions\.LastYear Property
+
+Gets or sets the last year requested when the stored series were fetched \(`OrtoDatasOptions.Years`, by default up to the current year\): the run end of every series' last image\.
+
+```csharp
+public int LastYear { get; set; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoDatasAcquisitionUpdateOptions.PageSize'></a>
+
+## PostgreSQLOrtoDatasAcquisitionUpdateOptions\.PageSize Property
+
+Gets or sets the number of rows read per page; a stored series is several hundred kilobytes\.
+
+```csharp
+public int PageSize { get; set; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoDatasAcquisitionUpdateTask'></a>
+
+## PostgreSQLOrtoDatasAcquisitionUpdateTask Class
+
+Represents a background task that backfills the acquisition date, sheet and content hash of the stored images of the selected county parts from `orto_sheet` \([UpdateOrtoDatasAcquisitionAsync\(this OrtoDatasPostgreSQLConverter, OrtoSheetPostgreSQLConverter, IEnumerable&lt;int&gt;, int, int, int, CancellationToken\)](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Modify.UpdateOrtoDatasAcquisitionAsync(thisDiGi.GIS.PostgreSQL.Classes.OrtoDatasPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OrtoSheetPostgreSQLConverter,System.Collections.Generic.IEnumerable_int_,int,int,int,System.Threading.CancellationToken) 'DiGi\.GIS\.PostgreSQL\.Modify\.UpdateOrtoDatasAcquisitionAsync\(this DiGi\.GIS\.PostgreSQL\.Classes\.OrtoDatasPostgreSQLConverter, DiGi\.GIS\.PostgreSQL\.Classes\.OrtoSheetPostgreSQLConverter, System\.Collections\.Generic\.IEnumerable\<int\>, int, int, int, System\.Threading\.CancellationToken\)')\), one county part after another\.
+
+Progress is the number of county parts done; every part is logged with its counters, and the totals are in [OrtoDatasAcquisitionUpdateResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoDatasAcquisitionUpdateTask.OrtoDatasAcquisitionUpdateResult 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLOrtoDatasAcquisitionUpdateTask\.OrtoDatasAcquisitionUpdateResult'). Import the sheet index first ([PostgreSQLOrtoSheetUpdateTask](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoSheetUpdateTask 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLOrtoSheetUpdateTask')): without it every image is written back undated. Re-running is safe: a re-dated series that does not change is not written.
+
+```csharp
+public class PostgreSQLOrtoDatasAcquisitionUpdateTask : DiGi.Core.Classes.ReportableBackgroundTask<long>, DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLObject, DiGi.Core.Interfaces.IObject
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [DiGi\.Core\.Classes\.BackgroundTask](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.backgroundtask 'DiGi\.Core\.Classes\.BackgroundTask') → [DiGi\.Core\.Classes\.CancelableBackgroundTask](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.cancelablebackgroundtask 'DiGi\.Core\.Classes\.CancelableBackgroundTask') → [DiGi\.Core\.Classes\.ReportableBackgroundTask&lt;](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.reportablebackgroundtask-1 'DiGi\.Core\.Classes\.ReportableBackgroundTask\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.reportablebackgroundtask-1 'DiGi\.Core\.Classes\.ReportableBackgroundTask\`1') → PostgreSQLOrtoDatasAcquisitionUpdateTask
+
+Implements [IGISPostgreSQLObject](DiGi.GIS.PostgreSQL.Interfaces.md#DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLObject 'DiGi\.GIS\.PostgreSQL\.Interfaces\.IGISPostgreSQLObject'), [DiGi\.Core\.Interfaces\.IObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iobject 'DiGi\.Core\.Interfaces\.IObject')
+### Constructors
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoDatasAcquisitionUpdateTask.PostgreSQLOrtoDatasAcquisitionUpdateTask(DiGi.GIS.PostgreSQL.Classes.GISPostgreSQLConverterManager)'></a>
+
+## PostgreSQLOrtoDatasAcquisitionUpdateTask\(GISPostgreSQLConverterManager\) Constructor
+
+Initializes a new instance of the [PostgreSQLOrtoDatasAcquisitionUpdateTask](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoDatasAcquisitionUpdateTask 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLOrtoDatasAcquisitionUpdateTask') class\.
+
+```csharp
+public PostgreSQLOrtoDatasAcquisitionUpdateTask(DiGi.GIS.PostgreSQL.Classes.GISPostgreSQLConverterManager? gISPostgreSQLConverterManager);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoDatasAcquisitionUpdateTask.PostgreSQLOrtoDatasAcquisitionUpdateTask(DiGi.GIS.PostgreSQL.Classes.GISPostgreSQLConverterManager).gISPostgreSQLConverterManager'></a>
+
+`gISPostgreSQLConverterManager` [GISPostgreSQLConverterManager](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.GISPostgreSQLConverterManager 'DiGi\.GIS\.PostgreSQL\.Classes\.GISPostgreSQLConverterManager')
+
+The manager the `orto_datas` and `orto_sheet` converters are read from\.
+### Fields
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoDatasAcquisitionUpdateTask.gISPostgreSQLConverterManager'></a>
+
+## PostgreSQLOrtoDatasAcquisitionUpdateTask\.gISPostgreSQLConverterManager Field
+
+The manager the converters are read from\.
+
+```csharp
+protected readonly GISPostgreSQLConverterManager gISPostgreSQLConverterManager;
+```
+
+#### Field Value
+[GISPostgreSQLConverterManager](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.GISPostgreSQLConverterManager 'DiGi\.GIS\.PostgreSQL\.Classes\.GISPostgreSQLConverterManager')
+### Properties
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoDatasAcquisitionUpdateTask.OrtoDatasAcquisitionUpdateResult'></a>
+
+## PostgreSQLOrtoDatasAcquisitionUpdateTask\.OrtoDatasAcquisitionUpdateResult Property
+
+Gets the totals of the last run, or null before a run or when it could not start\.
+
+```csharp
+public DiGi.GIS.PostgreSQL.Classes.OrtoDatasAcquisitionUpdateResult? OrtoDatasAcquisitionUpdateResult { get; private set; }
+```
+
+#### Property Value
+[OrtoDatasAcquisitionUpdateResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoDatasAcquisitionUpdateResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoDatasAcquisitionUpdateResult')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoDatasAcquisitionUpdateTask.PostgreSQLOrtoDatasAcquisitionUpdateOptions'></a>
+
+## PostgreSQLOrtoDatasAcquisitionUpdateTask\.PostgreSQLOrtoDatasAcquisitionUpdateOptions Property
+
+Gets or sets the options used when the task runs\.
+
+```csharp
+public DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoDatasAcquisitionUpdateOptions PostgreSQLOrtoDatasAcquisitionUpdateOptions { get; set; }
+```
+
+#### Property Value
+[PostgreSQLOrtoDatasAcquisitionUpdateOptions](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoDatasAcquisitionUpdateOptions 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLOrtoDatasAcquisitionUpdateOptions')
+### Methods
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoDatasAcquisitionUpdateTask.ExecuteAsync(System.IProgress_long_,System.Threading.CancellationToken)'></a>
+
+## PostgreSQLOrtoDatasAcquisitionUpdateTask\.ExecuteAsync\(IProgress\<long\>, CancellationToken\) Method
+
+Executes the backfill\.
+
+```csharp
+protected override System.Threading.Tasks.Task<bool> ExecuteAsync(System.IProgress<long> progress, System.Threading.CancellationToken cancellationToken);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoDatasAcquisitionUpdateTask.ExecuteAsync(System.IProgress_long_,System.Threading.CancellationToken).progress'></a>
+
+`progress` [System\.IProgress&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.iprogress-1 'System\.IProgress\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.iprogress-1 'System\.IProgress\`1')
+
+Reports the number of county parts done\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoDatasAcquisitionUpdateTask.ExecuteAsync(System.IProgress_long_,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used to cancel the operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task representing the asynchronous operation\. Returns true when every county part was walked; otherwise, false\.
+
 <a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoDatasCreateDatabaseTask'></a>
 
 ## PostgreSQLOrtoDatasCreateDatabaseTask Class
@@ -22672,6 +22885,251 @@ A cancellation token that can be used to cancel the operation\.
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A task representing the asynchronous operation\. Returns true unless the run could not be attempted or was cancelled; a county stepped over does not make it false, so read [FailedCountyCount](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoDatasRefreshTask.FailedCountyCount 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLOrtoDatasRefreshTask\.FailedCountyCount') as well\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoSheetUpdateOptions'></a>
+
+## PostgreSQLOrtoSheetUpdateOptions Class
+
+Options of an orthophoto sheet index import into `orto_sheet` \([PostgreSQLOrtoSheetUpdateTask](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoSheetUpdateTask 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLOrtoSheetUpdateTask')\)\.
+
+```csharp
+public class PostgreSQLOrtoSheetUpdateOptions : DiGi.Core.Classes.SerializableOptions
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [DiGi\.Core\.Classes\.Object](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.object 'DiGi\.Core\.Classes\.Object') → [DiGi\.Core\.Classes\.SerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.serializableobject 'DiGi\.Core\.Classes\.SerializableObject') → [DiGi\.Core\.Classes\.SerializableOptions](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.serializableoptions 'DiGi\.Core\.Classes\.SerializableOptions') → PostgreSQLOrtoSheetUpdateOptions
+### Constructors
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoSheetUpdateOptions.PostgreSQLOrtoSheetUpdateOptions()'></a>
+
+## PostgreSQLOrtoSheetUpdateOptions\(\) Constructor
+
+Initializes a new instance of the [PostgreSQLOrtoSheetUpdateOptions](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoSheetUpdateOptions 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLOrtoSheetUpdateOptions') class\.
+
+```csharp
+public PostgreSQLOrtoSheetUpdateOptions();
+```
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoSheetUpdateOptions.PostgreSQLOrtoSheetUpdateOptions(DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoSheetUpdateOptions)'></a>
+
+## PostgreSQLOrtoSheetUpdateOptions\(PostgreSQLOrtoSheetUpdateOptions\) Constructor
+
+Initializes a new instance of the [PostgreSQLOrtoSheetUpdateOptions](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoSheetUpdateOptions 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLOrtoSheetUpdateOptions') class by copying an existing options instance\.
+
+```csharp
+public PostgreSQLOrtoSheetUpdateOptions(DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoSheetUpdateOptions postgreSQLOrtoSheetUpdateOptions);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoSheetUpdateOptions.PostgreSQLOrtoSheetUpdateOptions(DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoSheetUpdateOptions).postgreSQLOrtoSheetUpdateOptions'></a>
+
+`postgreSQLOrtoSheetUpdateOptions` [PostgreSQLOrtoSheetUpdateOptions](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoSheetUpdateOptions 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLOrtoSheetUpdateOptions')
+
+The source options to copy from\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoSheetUpdateOptions.PostgreSQLOrtoSheetUpdateOptions(System.Text.Json.Nodes.JsonObject)'></a>
+
+## PostgreSQLOrtoSheetUpdateOptions\(JsonObject\) Constructor
+
+Initializes a new instance of the [PostgreSQLOrtoSheetUpdateOptions](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoSheetUpdateOptions 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLOrtoSheetUpdateOptions') class using a JSON object\.
+
+```csharp
+public PostgreSQLOrtoSheetUpdateOptions(System.Text.Json.Nodes.JsonObject jsonObject);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoSheetUpdateOptions.PostgreSQLOrtoSheetUpdateOptions(System.Text.Json.Nodes.JsonObject).jsonObject'></a>
+
+`jsonObject` [System\.Text\.Json\.Nodes\.JsonObject](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.nodes.jsonobject 'System\.Text\.Json\.Nodes\.JsonObject')
+
+The JSON object used to initialize the options\.
+### Properties
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoSheetUpdateOptions.FirstYear'></a>
+
+## PostgreSQLOrtoSheetUpdateOptions\.FirstYear Property
+
+Gets or sets the first index year to import\. The oldest typename of 2026\-11\-03 is 1957; a year the service does not publish is reported as missing and skipped\.
+
+```csharp
+public int FirstYear { get; set; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoSheetUpdateOptions.LastYear'></a>
+
+## PostgreSQLOrtoSheetUpdateOptions\.LastYear Property
+
+Gets or sets the last index year to import\.
+
+```csharp
+public int LastYear { get; set; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoSheetUpdateOptions.PageSize'></a>
+
+## PostgreSQLOrtoSheetUpdateOptions\.PageSize Property
+
+Gets or sets the number of rows per WFS page\.
+
+```csharp
+public int PageSize { get; set; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoSheetUpdateOptions.RetryCount'></a>
+
+## PostgreSQLOrtoSheetUpdateOptions\.RetryCount Property
+
+Gets or sets the number of times a transient failure of the index service is retried\.
+
+```csharp
+public int RetryCount { get; set; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoSheetUpdateOptions.RetryDelaySeconds'></a>
+
+## PostgreSQLOrtoSheetUpdateOptions\.RetryDelaySeconds Property
+
+Gets or sets the delay, in seconds, before the first retry\.
+
+```csharp
+public double RetryDelaySeconds { get; set; }
+```
+
+#### Property Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoSheetUpdateTask'></a>
+
+## PostgreSQLOrtoSheetUpdateTask Class
+
+Represents a background task that imports the GUGiK orthophoto sheet index into `orto_sheet` \([UpdateOrtoSheetsAsync\(this OrtoSheetPostgreSQLConverter, HttpClient, IEnumerable&lt;int&gt;, int, int, TimeSpan, int, int, CancellationToken\)](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Modify.UpdateOrtoSheetsAsync(thisDiGi.GIS.PostgreSQL.Classes.OrtoSheetPostgreSQLConverter,System.Net.Http.HttpClient,System.Collections.Generic.IEnumerable_int_,int,int,System.TimeSpan,int,int,System.Threading.CancellationToken) 'DiGi\.GIS\.PostgreSQL\.Modify\.UpdateOrtoSheetsAsync\(this DiGi\.GIS\.PostgreSQL\.Classes\.OrtoSheetPostgreSQLConverter, System\.Net\.Http\.HttpClient, System\.Collections\.Generic\.IEnumerable\<int\>, int, int, System\.TimeSpan, int, int, System\.Threading\.CancellationToken\)')\), one index year after another from [FirstYear](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoSheetUpdateOptions.FirstYear 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLOrtoSheetUpdateOptions\.FirstYear') to [LastYear](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoSheetUpdateOptions.LastYear 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLOrtoSheetUpdateOptions\.LastYear')\.
+
+Progress is the number of years done; every year is logged with its count from the service and the rows read and written, and the totals are in [OrtoSheetUpdateResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoSheetUpdateTask.OrtoSheetUpdateResult 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLOrtoSheetUpdateTask\.OrtoSheetUpdateResult'). A year the service does not publish is skipped. Run it before the acquisition backfill ([PostgreSQLOrtoDatasAcquisitionUpdateTask](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoDatasAcquisitionUpdateTask 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLOrtoDatasAcquisitionUpdateTask')), and again when GUGiK publishes a new year.
+
+```csharp
+public class PostgreSQLOrtoSheetUpdateTask : DiGi.Core.Classes.ReportableBackgroundTask<long>, DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLObject, DiGi.Core.Interfaces.IObject
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [DiGi\.Core\.Classes\.BackgroundTask](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.backgroundtask 'DiGi\.Core\.Classes\.BackgroundTask') → [DiGi\.Core\.Classes\.CancelableBackgroundTask](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.cancelablebackgroundtask 'DiGi\.Core\.Classes\.CancelableBackgroundTask') → [DiGi\.Core\.Classes\.ReportableBackgroundTask&lt;](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.reportablebackgroundtask-1 'DiGi\.Core\.Classes\.ReportableBackgroundTask\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.reportablebackgroundtask-1 'DiGi\.Core\.Classes\.ReportableBackgroundTask\`1') → PostgreSQLOrtoSheetUpdateTask
+
+Implements [IGISPostgreSQLObject](DiGi.GIS.PostgreSQL.Interfaces.md#DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLObject 'DiGi\.GIS\.PostgreSQL\.Interfaces\.IGISPostgreSQLObject'), [DiGi\.Core\.Interfaces\.IObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iobject 'DiGi\.Core\.Interfaces\.IObject')
+### Constructors
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoSheetUpdateTask.PostgreSQLOrtoSheetUpdateTask(System.Net.Http.HttpClient,DiGi.GIS.PostgreSQL.Classes.GISPostgreSQLConverterManager)'></a>
+
+## PostgreSQLOrtoSheetUpdateTask\(HttpClient, GISPostgreSQLConverterManager\) Constructor
+
+Initializes a new instance of the [PostgreSQLOrtoSheetUpdateTask](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoSheetUpdateTask 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLOrtoSheetUpdateTask') class\.
+
+```csharp
+public PostgreSQLOrtoSheetUpdateTask(System.Net.Http.HttpClient? httpClient, DiGi.GIS.PostgreSQL.Classes.GISPostgreSQLConverterManager? gISPostgreSQLConverterManager);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoSheetUpdateTask.PostgreSQLOrtoSheetUpdateTask(System.Net.Http.HttpClient,DiGi.GIS.PostgreSQL.Classes.GISPostgreSQLConverterManager).httpClient'></a>
+
+`httpClient` [System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient')
+
+The client the index service is read with\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoSheetUpdateTask.PostgreSQLOrtoSheetUpdateTask(System.Net.Http.HttpClient,DiGi.GIS.PostgreSQL.Classes.GISPostgreSQLConverterManager).gISPostgreSQLConverterManager'></a>
+
+`gISPostgreSQLConverterManager` [GISPostgreSQLConverterManager](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.GISPostgreSQLConverterManager 'DiGi\.GIS\.PostgreSQL\.Classes\.GISPostgreSQLConverterManager')
+
+The manager the sheet converter is read from\.
+### Fields
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoSheetUpdateTask.gISPostgreSQLConverterManager'></a>
+
+## PostgreSQLOrtoSheetUpdateTask\.gISPostgreSQLConverterManager Field
+
+The manager the sheet converter is read from\.
+
+```csharp
+protected readonly GISPostgreSQLConverterManager gISPostgreSQLConverterManager;
+```
+
+#### Field Value
+[GISPostgreSQLConverterManager](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.GISPostgreSQLConverterManager 'DiGi\.GIS\.PostgreSQL\.Classes\.GISPostgreSQLConverterManager')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoSheetUpdateTask.httpClient'></a>
+
+## PostgreSQLOrtoSheetUpdateTask\.httpClient Field
+
+The client the index service is read with\.
+
+```csharp
+protected readonly HttpClient? httpClient;
+```
+
+#### Field Value
+[System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient')
+### Properties
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoSheetUpdateTask.OrtoSheetUpdateResult'></a>
+
+## PostgreSQLOrtoSheetUpdateTask\.OrtoSheetUpdateResult Property
+
+Gets the totals of the last run, or null before a run or when it could not start\.
+
+```csharp
+public DiGi.GIS.PostgreSQL.Classes.OrtoSheetUpdateResult? OrtoSheetUpdateResult { get; private set; }
+```
+
+#### Property Value
+[OrtoSheetUpdateResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoSheetUpdateResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoSheetUpdateResult')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoSheetUpdateTask.PostgreSQLOrtoSheetUpdateOptions'></a>
+
+## PostgreSQLOrtoSheetUpdateTask\.PostgreSQLOrtoSheetUpdateOptions Property
+
+Gets or sets the options used when the task runs\.
+
+```csharp
+public DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoSheetUpdateOptions PostgreSQLOrtoSheetUpdateOptions { get; set; }
+```
+
+#### Property Value
+[PostgreSQLOrtoSheetUpdateOptions](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoSheetUpdateOptions 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLOrtoSheetUpdateOptions')
+### Methods
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoSheetUpdateTask.ExecuteAsync(System.IProgress_long_,System.Threading.CancellationToken)'></a>
+
+## PostgreSQLOrtoSheetUpdateTask\.ExecuteAsync\(IProgress\<long\>, CancellationToken\) Method
+
+Executes the import\.
+
+```csharp
+protected override System.Threading.Tasks.Task<bool> ExecuteAsync(System.IProgress<long> progress, System.Threading.CancellationToken cancellationToken);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoSheetUpdateTask.ExecuteAsync(System.IProgress_long_,System.Threading.CancellationToken).progress'></a>
+
+`progress` [System\.IProgress&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.iprogress-1 'System\.IProgress\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.iprogress-1 'System\.IProgress\`1')
+
+Reports the number of index years done\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoSheetUpdateTask.ExecuteAsync(System.IProgress_long_,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used to cancel the operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task representing the asynchronous operation\. Returns true when every year was read in full; otherwise, false\.
 
 <a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLStatisticalDataCollectionCreateTableTask'></a>
 
