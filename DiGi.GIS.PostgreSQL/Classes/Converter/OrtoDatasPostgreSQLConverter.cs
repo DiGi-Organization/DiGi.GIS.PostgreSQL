@@ -2524,5 +2524,216 @@ namespace DiGi.GIS.PostgreSQL.Classes
 
             return await npgsqlConnection.RefreshCountyIdsAsync(TableName.OrtoDatas, references, countyId, countyIds_Source, batchSize, commandTimeout, cancellationToken);
         }
+
+        /// <summary>
+        /// Asynchronously reads one page of a county part's <c>orto_datas</c> rows in physical (heap) order, continuing after the position the previous page ended at.
+        /// <para>Use it to walk a whole partition (<see cref="Modify.UpdateOrtoDatasAcquisitionAsync"/>): reading by key costs one random heap read per row, and a stored series is several hundred kilobytes of JSON. The page reads windows of heap blocks bounded on both sides (<see cref="DiGi.PostgreSQL.Table.Query.PhysicalOrderPullCommandText"/>), served by a TID Range Scan and sized from the partition's statistics (<c>reltuples / relpages</c>), or from a row count when it was never analysed (<c>Coding - PostgreSQL.md</c> §3). It moves on to the next window until the page is full or the partition's blocks run out.</para>
+        /// <para>A row updated during a walk moves: it is read again when its new position lies ahead (an idempotent caller then finds nothing to change) and missed when it lies behind, which only a concurrent writer can cause. Re-running the walk picks such rows up. Requires PostgreSQL 14 or later.</para>
+        /// </summary>
+        /// <param name="npgsqlConnection">The open database connection.</param>
+        /// <param name="countyId">The county part whose partition is read.</param>
+        /// <param name="lastPosition">The position the previous call returned, or null to start at the beginning of the partition.</param>
+        /// <param name="pageSize">The maximum number of rows to read. Must be positive.</param>
+        /// <param name="commandTimeout">The timeout in seconds for each command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The cancellation token to monitor for cancellation requests.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the series of the page by row id, and the position to continue from: the last row's position when the page came back full, <see cref="string.Empty"/> when the partition is exhausted (also for a missing or empty one), or null when the read cannot run (no connection, a non-positive page size, a malformed position, a server older than PostgreSQL 14).</returns>
+        public static async Task<(Dictionary<long, GIS.Classes.OrtoDatas>? OrtoDatas, string? Position)> PullByPhysicalOrderAsync(NpgsqlConnection? npgsqlConnection, int countyId, string? lastPosition, int pageSize = 100, int commandTimeout = 120, CancellationToken cancellationToken = default)
+        {
+            if (npgsqlConnection is null || pageSize < 1 || !DiGi.PostgreSQL.Table.Query.IsPhysicalOrderSupported(npgsqlConnection))
+            {
+                return (null, null);
+            }
+
+            long block_Lower = 0;
+            string position_Lower = "(0,0)";
+            if (lastPosition is not null)
+            {
+                // A tid is a 32-bit block number and a 16-bit offset; anything else would make the server reject the cast.
+                System.Text.RegularExpressions.Match match = System.Text.RegularExpressions.Regex.Match(lastPosition, @"^\((\d{1,10}),(\d{1,5})\)$");
+                if (!match.Success || !uint.TryParse(match.Groups[1].Value, out uint block) || !ushort.TryParse(match.Groups[2].Value, out _))
+                {
+                    return (null, null);
+                }
+
+                block_Lower = block;
+                position_Lower = lastPosition;
+            }
+
+            string? commandText = DiGi.PostgreSQL.Table.Query.PhysicalOrderPullCommandText(TableName.OrtoDatas, ["id", "object"], "county_id");
+            if (commandText is null)
+            {
+                return (null, null);
+            }
+
+            long blockCount;
+            double? rowsPerBlock = null;
+            string commandText_Statistics = $@"
+                SELECT pg_relation_size(c.oid) / current_setting('block_size')::bigint, c.reltuples, c.relpages
+                FROM pg_class c
+                WHERE c.oid = (SELECT tableoid FROM {TableName.OrtoDatas} WHERE county_id = @county_id LIMIT 1)";
+
+            try
+            {
+                await using NpgsqlCommand npgsqlCommand_Statistics = new(commandText_Statistics, npgsqlConnection);
+                npgsqlCommand_Statistics.CommandTimeout = commandTimeout;
+                npgsqlCommand_Statistics.Parameters.Add(new NpgsqlParameter("county_id", NpgsqlDbType.Integer) { Value = countyId });
+
+                await using NpgsqlDataReader npgsqlDataReader_Statistics = await npgsqlCommand_Statistics.ExecuteReaderAsync(cancellationToken);
+                if (!await npgsqlDataReader_Statistics.ReadAsync(cancellationToken))
+                {
+                    return ([], string.Empty);
+                }
+
+                blockCount = npgsqlDataReader_Statistics.GetInt64(0);
+                float reltuples = npgsqlDataReader_Statistics.GetFloat(1);
+                int relpages = npgsqlDataReader_Statistics.GetInt32(2);
+                if (reltuples > 0 && relpages > 0)
+                {
+                    rowsPerBlock = reltuples / relpages;
+                }
+            }
+            catch (PostgresException postgresException) when (postgresException.SqlState == PostgresErrorCodes.UndefinedTable)
+            {
+                return ([], string.Empty);
+            }
+
+            // A partition that was never analysed reports reltuples -1: count its rows instead of guessing its density.
+            if (rowsPerBlock is null)
+            {
+                await using NpgsqlCommand npgsqlCommand_Count = new($"SELECT count(*) FROM {TableName.OrtoDatas} WHERE county_id = @county_id", npgsqlConnection);
+                npgsqlCommand_Count.CommandTimeout = commandTimeout;
+                npgsqlCommand_Count.Parameters.Add(new NpgsqlParameter("county_id", NpgsqlDbType.Integer) { Value = countyId });
+
+                long count = System.Convert.ToInt64(await npgsqlCommand_Count.ExecuteScalarAsync(cancellationToken));
+                if (count == 0)
+                {
+                    return ([], string.Empty);
+                }
+
+                rowsPerBlock = (double)count / Math.Max(1, blockCount);
+            }
+
+            long blockStep = Math.Max(1, (long)Math.Ceiling(pageSize / Math.Max(rowsPerBlock.Value, 0.001)));
+
+            Dictionary<long, GIS.Classes.OrtoDatas> result = [];
+            string? position_Last = null;
+            while (block_Lower < blockCount)
+            {
+                long block_Upper = Math.Min(block_Lower + blockStep, blockCount);
+
+                await using (NpgsqlCommand npgsqlCommand_Select = new(commandText, npgsqlConnection))
+                {
+                    npgsqlCommand_Select.CommandTimeout = commandTimeout;
+                    npgsqlCommand_Select.Parameters.Add(new NpgsqlParameter("partitionValue", NpgsqlDbType.Integer) { Value = countyId });
+                    npgsqlCommand_Select.Parameters.AddWithValue("lowerPosition", position_Lower);
+                    npgsqlCommand_Select.Parameters.AddWithValue("upperPosition", $"({block_Upper},0)");
+                    npgsqlCommand_Select.Parameters.AddWithValue("pageSize", pageSize - result.Count);
+
+                    await using NpgsqlDataReader npgsqlDataReader_Select = await npgsqlCommand_Select.ExecuteReaderAsync(cancellationToken);
+                    while (await npgsqlDataReader_Select.ReadAsync(cancellationToken))
+                    {
+                        position_Last = npgsqlDataReader_Select.GetString(2);
+                        if (!npgsqlDataReader_Select.IsDBNull(1) && JsonNode.Parse(npgsqlDataReader_Select.GetString(1)) is JsonObject jsonObject)
+                        {
+                            result[npgsqlDataReader_Select.GetInt64(0)] = new GIS.Classes.OrtoDatas(jsonObject);
+                        }
+                    }
+                }
+
+                if (result.Count >= pageSize)
+                {
+                    return (result, position_Last);
+                }
+
+                // Offsets start at 1, so "(n,0)" is below every row of block n.
+                block_Lower = block_Upper;
+                position_Lower = $"({block_Upper},0)";
+            }
+
+            return (result, string.Empty);
+        }
+
+        /// <summary>
+        /// Asynchronously replaces the <c>object</c> column of existing <c>orto_datas</c> rows of one county part, by row id.
+        /// <para>Only the stored series changes: the reference, the box, the subdivision and the county part are left as they are, so a re-dated series never moves a row. Rows that do not exist are not inserted. Rows are written <paramref name="batchSize"/> at a time.</para>
+        /// </summary>
+        /// <param name="npgsqlConnection">The open database connection.</param>
+        /// <param name="countyId">The county part the rows are filed under.</param>
+        /// <param name="ortoDatas">The series to write, by row id.</param>
+        /// <param name="batchSize">The number of rows written per statement; a stored series is several hundred kilobytes.</param>
+        /// <param name="commandTimeout">The timeout in seconds for each command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The cancellation token to monitor for cancellation requests.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the number of rows updated, or null when the connection or the series are null.</returns>
+        public static async Task<long?> UpdateObjectsAsync(NpgsqlConnection? npgsqlConnection, int countyId, IDictionary<long, GIS.Classes.OrtoDatas>? ortoDatas, int batchSize = 50, int commandTimeout = 120, CancellationToken cancellationToken = default)
+        {
+            if (npgsqlConnection is null || ortoDatas is null)
+            {
+                return null;
+            }
+
+            List<KeyValuePair<long, GIS.Classes.OrtoDatas>> keyValuePairs = [.. ortoDatas.Where(x => x.Value is not null)];
+            batchSize = Math.Max(1, batchSize);
+
+            string commandText = $@"
+                UPDATE {TableName.OrtoDatas} o
+                SET object = t.object
+                FROM unnest(@ids, @objects) AS t(id, object)
+                WHERE o.county_id = @county_id AND o.id = t.id;";
+
+            long result = 0;
+            for (int i = 0; i < keyValuePairs.Count; i += batchSize)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                List<KeyValuePair<long, GIS.Classes.OrtoDatas>> keyValuePairs_Batch = keyValuePairs.GetRange(i, Math.Min(batchSize, keyValuePairs.Count - i));
+
+                await using NpgsqlCommand npgsqlCommand = new(commandText, npgsqlConnection);
+                npgsqlCommand.CommandTimeout = commandTimeout;
+                npgsqlCommand.Parameters.Add(new NpgsqlParameter("county_id", NpgsqlDbType.Integer) { Value = countyId });
+                npgsqlCommand.Parameters.Add(new NpgsqlParameter("ids", NpgsqlDbType.Array | NpgsqlDbType.Bigint) { Value = keyValuePairs_Batch.Select(x => x.Key).ToArray() });
+                npgsqlCommand.Parameters.Add(new NpgsqlParameter("objects", NpgsqlDbType.Array | NpgsqlDbType.Jsonb) { Value = keyValuePairs_Batch.Select(x => x.Value.ToJsonObject()?.ToJsonString() ?? "{}").ToArray() });
+
+                result += await npgsqlCommand.ExecuteNonQueryAsync(cancellationToken);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Asynchronously reads the box covering every stored series of one county part, from the <c>min_x</c> … <c>max_y</c> columns.
+        /// </summary>
+        /// <param name="npgsqlConnection">The open database connection.</param>
+        /// <param name="countyId">The county part.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The cancellation token to monitor for cancellation requests.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the box, or null when the connection is null or the part has no row with a box.</returns>
+        public static async Task<BoundingBox2D?> GetBoundingBox2DAsync(NpgsqlConnection? npgsqlConnection, int countyId, int commandTimeout = 120, CancellationToken cancellationToken = default)
+        {
+            if (npgsqlConnection is null)
+            {
+                return null;
+            }
+
+            string commandText = $"SELECT min(min_x), min(min_y), max(max_x), max(max_y) FROM {TableName.OrtoDatas} WHERE county_id = @county_id;";
+
+            try
+            {
+                await using NpgsqlCommand npgsqlCommand = new(commandText, npgsqlConnection);
+                npgsqlCommand.CommandTimeout = commandTimeout;
+                npgsqlCommand.Parameters.Add(new NpgsqlParameter("county_id", NpgsqlDbType.Integer) { Value = countyId });
+
+                await using NpgsqlDataReader npgsqlDataReader = await npgsqlCommand.ExecuteReaderAsync(cancellationToken);
+                if (!await npgsqlDataReader.ReadAsync(cancellationToken) || npgsqlDataReader.IsDBNull(0) || npgsqlDataReader.IsDBNull(1) || npgsqlDataReader.IsDBNull(2) || npgsqlDataReader.IsDBNull(3))
+                {
+                    return null;
+                }
+
+                return new BoundingBox2D(new Point2D(npgsqlDataReader.GetDouble(0), npgsqlDataReader.GetDouble(1)), new Point2D(npgsqlDataReader.GetDouble(2), npgsqlDataReader.GetDouble(3)));
+            }
+            catch (PostgresException postgresException) when (postgresException.SqlState == PostgresErrorCodes.UndefinedTable)
+            {
+                return null;
+            }
+        }
     }
 }

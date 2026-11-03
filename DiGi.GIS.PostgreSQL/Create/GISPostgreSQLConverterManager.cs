@@ -1,4 +1,4 @@
-using DiGi.Analytical.Building.Enums;
+﻿using DiGi.Analytical.Building.Enums;
 using DiGi.GIS.PostgreSQL.Classes;
 using DiGi.PostgreSQL.Classes;
 using System.IO;
@@ -64,6 +64,7 @@ namespace DiGi.GIS.PostgreSQL
                     result.Add(new BuildingSolarRadiationPostgreSQLConverter(connectionData), postgreSQLConfigurationFile_Storage);
                     result.Add(new BuildingPostgreSQLConverter(connectionData), postgreSQLConfigurationFile_Storage);
                     result.Add(new TerrainPointPostgreSQLConverter(connectionData), postgreSQLConfigurationFile_Storage);
+                    result.Add(new OrtoSheetPostgreSQLConverter(connectionData), postgreSQLConfigurationFile_Storage);
                 }
             }
 

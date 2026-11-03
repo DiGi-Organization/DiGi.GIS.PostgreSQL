@@ -1,4 +1,4 @@
-using DiGi.GIS.PostgreSQL.Classes;
+﻿using DiGi.GIS.PostgreSQL.Classes;
 using Npgsql;
 using System;
 using System.Threading;
@@ -648,6 +648,70 @@ namespace DiGi.GIS.PostgreSQL
             catch (NpgsqlException ex)
             {
                 Console.WriteLine($"Postgres Error ({nameof(TableAsync_EPWFile)}): {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Asynchronously creates the <see cref="Constants.TableName.OrtoSheet"/> table, the orthophoto sheet index, with its supporting indexes.
+        /// <para>One row per sheet image, unique on <c>download_url</c>. The footprint box (<c>min_x</c> … <c>max_y</c>, EPSG:2180, easting in X) carries the spatial lookup: the schema has no PostGIS, so <see cref="OrtoSheetPostgreSQLConverter.GetOrtoSheetsByBoundingBoxAsync(NpgsqlConnection?, Geometry.Planar.Classes.BoundingBox2D?, double, int, CancellationToken)"/> prefilters on the box as one bounded range per axis, served by the <c>min_x</c> and <c>min_y</c> indexes, and the exact footprint test is made in C#. The table lives on the Storage database beside <c>orto_datas</c> (DiGi.GIS.PostgreSQL#122).</para>
+        /// </summary>
+        /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> instance used to execute the command.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> to monitor for cancellation requests.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result is true if the table exists or was created; otherwise, false.</returns>
+        public static async Task<bool> TableAsync_OrtoSheet(this NpgsqlConnection? npgsqlConnection, int commandTimeout = 30, CancellationToken cancellationToken = default)
+        {
+            if (npgsqlConnection is null)
+            {
+                return false;
+            }
+
+            string commandText = $@"
+                CREATE TABLE IF NOT EXISTS {Constants.TableName.OrtoSheet} (
+                    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+                    sheet_id TEXT NOT NULL,
+                    type_name TEXT,
+                    year INT NOT NULL,
+                    date timestamptz,
+                    date_precision SMALLINT NOT NULL,
+                    pixel_size DOUBLE PRECISION,
+                    color_mode SMALLINT NOT NULL,
+                    orto_type SMALLINT NOT NULL,
+                    sheet_filled BOOLEAN,
+                    register_date timestamptz,
+                    min_x DOUBLE PRECISION NOT NULL,
+                    min_y DOUBLE PRECISION NOT NULL,
+                    max_x DOUBLE PRECISION NOT NULL,
+                    max_y DOUBLE PRECISION NOT NULL,
+                    download_url TEXT NOT NULL UNIQUE,
+                    object JSONB NOT NULL,
+                    created_at timestamptz DEFAULT now()
+                );
+
+                -- The box prefilter of the spatial lookup: one bounded range per axis (Query.OrtoSheetBoundingBoxCommandText).
+                CREATE INDEX IF NOT EXISTS idx_{Constants.TableName.OrtoSheet}_min_x
+                ON {Constants.TableName.OrtoSheet} (min_x);
+
+                CREATE INDEX IF NOT EXISTS idx_{Constants.TableName.OrtoSheet}_min_y
+                ON {Constants.TableName.OrtoSheet} (min_y);
+
+                -- The per-year counts of an import.
+                CREATE INDEX IF NOT EXISTS idx_{Constants.TableName.OrtoSheet}_year
+                ON {Constants.TableName.OrtoSheet} (year);
+                ";
+
+            try
+            {
+                await using NpgsqlCommand npgsqlCommand = new(commandText, npgsqlConnection);
+                npgsqlCommand.CommandTimeout = commandTimeout;
+
+                await npgsqlCommand.ExecuteNonQueryAsync(cancellationToken);
+                return true;
+            }
+            catch (NpgsqlException ex)
+            {
+                Console.WriteLine($"Postgres Error ({nameof(TableAsync_OrtoSheet)}): {ex.Message}");
                 return false;
             }
         }

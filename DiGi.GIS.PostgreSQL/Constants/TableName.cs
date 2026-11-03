@@ -1,4 +1,4 @@
-namespace DiGi.GIS.PostgreSQL.Constants
+﻿namespace DiGi.GIS.PostgreSQL.Constants
 {
     /// <summary>
     /// Provides constant values for database table names used in the PostgreSQL GIS system.
@@ -24,6 +24,11 @@ namespace DiGi.GIS.PostgreSQL.Constants
         /// The name of the ortho-datas table.
         /// </summary>
         public const string OrtoDatas = "orto_datas";
+
+        /// <summary>
+        /// The name of the orthophoto sheet index table: one row per sheet image of the GUGiK index, on the Storage database beside <see cref="OrtoDatas"/>.
+        /// </summary>
+        public const string OrtoSheet = "orto_sheet";
 
         /// <summary>
         /// The name of the building table.

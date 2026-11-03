@@ -211,6 +211,19 @@ public const string OrtoDatas_Building2DReference_Update = "orto_datas_building_
 #### Field Value
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
+<a name='DiGi.GIS.PostgreSQL.Constants.TableName.OrtoSheet'></a>
+
+## TableName\.OrtoSheet Field
+
+The name of the orthophoto sheet index table: one row per sheet image of the GUGiK index, on the Storage database beside [OrtoDatas](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.TableName.OrtoDatas 'DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.OrtoDatas')\.
+
+```csharp
+public const string OrtoSheet = "orto_sheet";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
 <a name='DiGi.GIS.PostgreSQL.Constants.TableName.StatisticalDataCollection'></a>
 
 ## TableName\.StatisticalDataCollection Field
