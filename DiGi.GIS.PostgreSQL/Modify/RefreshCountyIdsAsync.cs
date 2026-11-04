@@ -14,17 +14,17 @@ namespace DiGi.GIS.PostgreSQL
         /// <para>A building belongs to the county polygon part its footprint lies in, and <c>building_2d</c> is where that is recorded. Everything else keyed on a building has to follow it: every read of these tables filters on <c>county_id</c> first, so a row left under the part the building came from answers nothing, for anyone, ever again. This is the move that keeps them together, and it is meant to be called for the same references immediately after <c>Building2DPostgreSQLConverter.RefreshCountyIdsAsync</c> has moved the buildings themselves.</para>
         /// <para><c>county_id</c> is the <b>partition key</b>, so this is a row movement between partitions rather than an ordinary column update. The destination partition is created first, and the identifiers of the rows are preserved.</para>
         /// <para><b>Nothing is deleted.</b> A row cannot move onto a destination that already holds the same key, and two rows carrying one key under two different parts cannot both arrive; such a row stays where it is and its reference is not reported, so a caller comparing the result against what it passed in learns what is left to settle by hand.</para>
-        /// <para><b>Only three tables are accepted</b> - <c>building</c>, <c>building_data</c> and <c>orto_datas</c> - and their key columns are named here rather than taken from the caller, so no identifier in the statement below comes from outside this method. Every one of them is checked against the columns the table actually has before it reaches the database. The tables holding referenced objects are keyed on <c>unique_id</c> instead and are moved by <c>Building2DReferencedObjectPostgreSQLConverter.RefreshCountyIdsAsync</c>; <c>building_2d</c> has its own method on its own converter.</para>
+        /// <para><b>Only four tables are accepted</b> - <c>building</c>, <c>building_data</c>, <c>orto_datas</c> and <c>orto_data_acquisition</c> - and their key columns are named here rather than taken from the caller, so no identifier in the statement below comes from outside this method. Every one of them is checked against the columns the table actually has before it reaches the database. The tables holding referenced objects are keyed on <c>unique_id</c> instead and are moved by <c>Building2DReferencedObjectPostgreSQLConverter.RefreshCountyIdsAsync</c>; <c>building_2d</c> has its own method on its own converter.</para>
         /// </summary>
         /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> used to connect to the PostgreSQL database.</param>
-        /// <param name="tableName">The table to move rows in. One of <c>building</c>, <c>building_data</c> or <c>orto_datas</c>; anything else is refused.</param>
+        /// <param name="tableName">The table to move rows in. One of <c>building</c>, <c>building_data</c>, <c>orto_datas</c> or <c>orto_data_acquisition</c>; anything else is refused.</param>
         /// <param name="references">The building references known to belong to <paramref name="countyId"/>.</param>
         /// <param name="countyId">The identifier of the county polygon part the rows should be held under.</param>
         /// <param name="countyIds_Source">The parts the rows may currently sit under, normally the other parts of the same county code. When null every part is searched, which cannot be pruned to a partition and reads the whole table.</param>
         /// <param name="batchSize">The number of references sent in one statement.</param>
         /// <param name="commandTimeout">The timeout in seconds for the execution of each command. A value of 0 disables the timeout.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains the references that had at least one row moved, an empty set when the table does not exist, or null when the connection was null, no references were given, or the table is not one of the three this handles.</returns>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the references that had at least one row moved, an empty set when the table does not exist, or null when the connection was null, no references were given, or the table is not one of the four this handles.</returns>
         public static async Task<HashSet<string>?> RefreshCountyIdsAsync(
             this NpgsqlConnection? npgsqlConnection,
             string? tableName,
@@ -59,6 +59,11 @@ namespace DiGi.GIS.PostgreSQL
             else if (tableName == Constants.TableName.OrtoDatas)
             {
                 columnNames_Key = [("reference", false)];
+            }
+            else if (tableName == Constants.TableName.OrtoDataAcquisition)
+            {
+                // One row per stored image, so the requested year is part of the key (DiGi.GIS.PostgreSQL#123).
+                columnNames_Key = [("reference", false), ("year", false)];
             }
             else if (tableName == Constants.TableName.BuildingData)
             {

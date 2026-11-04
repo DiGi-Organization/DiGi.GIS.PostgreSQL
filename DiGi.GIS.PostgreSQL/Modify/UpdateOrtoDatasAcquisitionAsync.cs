@@ -16,8 +16,9 @@ namespace DiGi.GIS.PostgreSQL
         /// <summary>
         /// Backfills the acquisition date, sheet and content hash of every stored image of the given county parts from the orthophoto sheet index (<c>orto_sheet</c>), DiGi.GIS#18.
         /// <para>Per county part: the sheets covering the box of its stored series are read once (<see cref="OrtoSheetPostgreSQLConverter.GetOrtoSheetsByBoundingBoxAsync(NpgsqlConnection?, BoundingBox2D?, double, int, CancellationToken)"/>) and bucketed into a grid of 1 km cells, a one-pass index built for this walk only. Every series is then re-dated against the sheets of the cell of its first image's centre (<see cref="GIS.Create.OrtoDatas(GIS.Classes.OrtoDatas?, IEnumerable{OrtoSheet?}?, int)"/>), so one image is tested against a few dozen sheets, not every sheet of the part.</para>
-        /// <para>The partition is walked in physical order (<see cref="OrtoDatasPostgreSQLConverter.PullByPhysicalOrderAsync(NpgsqlConnection?, int, string?, int, int, CancellationToken)"/>), and a row is written back (<see cref="OrtoDatasPostgreSQLConverter.UpdateObjectsAsync(NpgsqlConnection?, int, IDictionary{long, GIS.Classes.OrtoDatas}?, int, int, CancellationToken)"/>) only when its series changed. A rewritten row moves ahead of the walk and is read again; it is skipped by its id, so every row counts once. Re-dating is idempotent, so a re-run writes nothing. The walk and the writes use two connections to the Storage database, which holds both tables.</para>
-        /// <para><paramref name="countyIds"/> are county part ids: rows are re-dated where they are filed and never move (<c>Coding - GIS Administrative Data.md</c>). Import the sheet index first (<see cref="UpdateOrtoSheetsAsync"/>): without it every image is written back undated.</para>
+        /// <para>The partition is walked in physical order (<see cref="OrtoDatasPostgreSQLConverter.PullByPhysicalOrderAsync(NpgsqlConnection?, int, string?, int, int, CancellationToken)"/>), and the dates are written to <see cref="Constants.TableName.OrtoDataAcquisition"/>, one row per image (<see cref="OrtoDatasPostgreSQLConverter.UpdateOrtoDataAcquisitionsAsync"/>); <c>orto_datas</c> is only read. Nothing therefore moves ahead of the walk and every row is read once - the id check below is a guard, not a skip (DiGi.GIS.PostgreSQL#123: rewriting <c>object</c> cost about 0.5 MB per row, bloated the partition and read every rewritten row twice). A row whose acquisition rows already say the same is not written, so a re-run writes nothing. The walk and the writes use two connections to the Storage database, which holds all three tables.</para>
+        /// <para>Series rewritten by the first backfill (DiGi.GIS.PostgreSQL.UI#37, county part 55417) keep the acquisition members inside <c>object</c>; they are harmless and ignored, and the side table is the source of truth.</para>
+        /// <para><paramref name="countyIds"/> are county part ids: rows are re-dated where they are filed and never move (<c>Coding - GIS Administrative Data.md</c>). Import the sheet index first (<see cref="UpdateOrtoSheetsAsync"/>): without it every image is recorded as undated.</para>
         /// </summary>
         /// <param name="ortoDatasPostgreSQLConverter">The converter of the <c>orto_datas</c> table.</param>
         /// <param name="ortoSheetPostgreSQLConverter">The converter of the <c>orto_sheet</c> table.</param>
@@ -26,7 +27,7 @@ namespace DiGi.GIS.PostgreSQL
         /// <param name="pageSize">The number of rows read per page; a stored series is several hundred kilobytes.</param>
         /// <param name="commandTimeout">The timeout in seconds for each command. A value of 0 disables the timeout.</param>
         /// <param name="cancellationToken">The cancellation token to observe.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result counts the rows and images, or is null when a converter or the county parts are missing, a connection cannot be opened, or a read or write cannot run.</returns>
+        /// <returns>A task that represents the asynchronous operation. The task result counts the rows and images, with <see cref="OrtoDatasAcquisitionUpdateResult.Changed"/> the rows whose acquisition rows were inserted or changed, or is null when a converter or the county parts are missing, a connection cannot be opened, a table cannot be created, or a read or write cannot run.</returns>
         public static async Task<OrtoDatasAcquisitionUpdateResult?> UpdateOrtoDatasAcquisitionAsync(this OrtoDatasPostgreSQLConverter? ortoDatasPostgreSQLConverter, OrtoSheetPostgreSQLConverter? ortoSheetPostgreSQLConverter, IEnumerable<int>? countyIds, int lastYear, int pageSize = 100, int commandTimeout = 300, CancellationToken cancellationToken = default)
         {
             int[] countyIds_Array = countyIds is null ? [] : [.. countyIds.Distinct()];
@@ -49,6 +50,11 @@ namespace DiGi.GIS.PostgreSQL
             await npgsqlConnection_Write.OpenAsync(cancellationToken);
             await npgsqlConnection_Sheet.OpenAsync(cancellationToken);
 
+            if (!await Create.TableAsync_OrtoDataAcquisition(npgsqlConnection_Write, commandTimeout, cancellationToken))
+            {
+                return null;
+            }
+
             long sheets = 0;
             long rows = 0;
             long changed = 0;
@@ -70,6 +76,8 @@ namespace DiGi.GIS.PostgreSQL
                 }
 
                 sheets += ortoSheets.Count;
+
+                await Create.TableAsync_OrtoDataAcquisition_Partition(npgsqlConnection_Write, countyId, commandTimeout, cancellationToken);
 
                 // Every sheet is filed under each 1 km cell its footprint box touches.
                 Dictionary<(long, long), List<OrtoSheet>> dictionary_Cells = [];
@@ -95,7 +103,7 @@ namespace DiGi.GIS.PostgreSQL
                     }
                 }
 
-                // A row this walk rewrites gets a new position at the end of the heap, ahead of the walk, and is read again.
+                // orto_datas is never written here, so no row moves; a row read twice would only come from a concurrent writer.
                 HashSet<long> ids = [];
 
                 string? position = null;
@@ -109,7 +117,7 @@ namespace DiGi.GIS.PostgreSQL
                         return null;
                     }
 
-                    Dictionary<long, GIS.Classes.OrtoDatas> ortoDatas_Changed = [];
+                    List<OrtoDataAcquisition> ortoDataAcquisitions_Page = [];
                     foreach (KeyValuePair<long, GIS.Classes.OrtoDatas> keyValuePair in ortoDatas_Page)
                     {
                         if (!ids.Add(keyValuePair.Key))
@@ -141,21 +149,22 @@ namespace DiGi.GIS.PostgreSQL
                             }
                         }
 
-                        if (keyValuePair.Value.ToJsonObject()?.ToJsonString() != ortoDatas_Redated.ToJsonObject()?.ToJsonString())
+                        List<OrtoDataAcquisition>? ortoDataAcquisitions = ortoDatas_Redated.OrtoDataAcquisitions(countyId);
+                        if (ortoDataAcquisitions is not null)
                         {
-                            ortoDatas_Changed[keyValuePair.Key] = ortoDatas_Redated;
+                            ortoDataAcquisitions_Page.AddRange(ortoDataAcquisitions);
                         }
                     }
 
-                    if (ortoDatas_Changed.Count != 0)
+                    if (ortoDataAcquisitions_Page.Count != 0)
                     {
-                        long? written = await OrtoDatasPostgreSQLConverter.UpdateObjectsAsync(npgsqlConnection_Write, countyId, ortoDatas_Changed, commandTimeout: commandTimeout, cancellationToken: cancellationToken);
-                        if (written is null)
+                        HashSet<string>? references_Changed = await OrtoDatasPostgreSQLConverter.UpdateOrtoDataAcquisitionsAsync(npgsqlConnection_Write, countyId, ortoDataAcquisitions_Page, commandTimeout: commandTimeout, cancellationToken: cancellationToken);
+                        if (references_Changed is null)
                         {
                             return null;
                         }
 
-                        changed += written.Value;
+                        changed += references_Changed.Count;
                     }
 
                     position = position_Next;

@@ -468,6 +468,35 @@ public static DiGi.GIS.PostgreSQL.Classes.GISPostgreSQLConverterManager? GISPost
 [GISPostgreSQLConverterManager](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.GISPostgreSQLConverterManager 'DiGi\.GIS\.PostgreSQL\.Classes\.GISPostgreSQLConverterManager')  
 A configured [GISPostgreSQLConverterManager\(\)](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Create.GISPostgreSQLConverterManager() 'DiGi\.GIS\.PostgreSQL\.Create\.GISPostgreSQLConverterManager\(\)') if successful; otherwise, null\.
 
+<a name='DiGi.GIS.PostgreSQL.Create.OrtoDataAcquisitions(thisDiGi.GIS.Classes.OrtoDatas,int)'></a>
+
+## Create\.OrtoDataAcquisitions\(this OrtoDatas, int\) Method
+
+Builds the [OrtoDataAcquisition](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.TableName.OrtoDataAcquisition 'DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.OrtoDataAcquisition') rows of one stored series: one per image, keyed by its requested year\.
+
+Images without bytes are skipped. Two images of one year cannot both be a row, so the later one in the series wins, as it would on a re-fetch.
+
+```csharp
+public static System.Collections.Generic.List<DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisition>? OrtoDataAcquisitions(this DiGi.GIS.Classes.OrtoDatas? ortoDatas, int countyId);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Create.OrtoDataAcquisitions(thisDiGi.GIS.Classes.OrtoDatas,int).ortoDatas'></a>
+
+`ortoDatas` [DiGi\.GIS\.Classes\.OrtoDatas](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.ortodatas 'DiGi\.GIS\.Classes\.OrtoDatas')
+
+The series, already re\-dated \([DiGi\.GIS\.Create\.OrtoDatas\(DiGi\.GIS\.Classes\.OrtoDatas,System\.Collections\.Generic\.IEnumerable\{DiGi\.GIS\.Classes\.OrtoSheet\},System\.Int32\)](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.create.ortodatas#digi-gis-create-ortodatas(digi-gis-classes-ortodatas-system-collections-generic-ienumerable{digi-gis-classes-ortosheet}-system-int32) 'DiGi\.GIS\.Create\.OrtoDatas\(DiGi\.GIS\.Classes\.OrtoDatas,System\.Collections\.Generic\.IEnumerable\{DiGi\.GIS\.Classes\.OrtoSheet\},System\.Int32\)')\)\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.OrtoDataAcquisitions(thisDiGi.GIS.Classes.OrtoDatas,int).countyId'></a>
+
+`countyId` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The county part the series is filed under\.
+
+#### Returns
+[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[OrtoDataAcquisition](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisition 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoDataAcquisition')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')  
+The rows ordered by year, or null when the series or its reference is missing\.
+
 <a name='DiGi.GIS.PostgreSQL.Create.Reference(DiGi.Analytical.Building.Classes.BuildingModel,DiGi.Analytical.Building.Interfaces.IBuildingGuidObject,System.Nullable_int_)'></a>
 
 ## Create\.Reference\(BuildingModel, IBuildingGuidObject, Nullable\<int\>\) Method
@@ -996,6 +1025,80 @@ The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dot
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A task that represents the asynchronous operation\. The task result is true if the table was created successfully; otherwise, false\.
 
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_OrtoDataAcquisition(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken)'></a>
+
+## Create\.TableAsync\_OrtoDataAcquisition\(this NpgsqlConnection, int, CancellationToken\) Method
+
+Asynchronously creates the [OrtoDataAcquisition](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.TableName.OrtoDataAcquisition 'DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.OrtoDataAcquisition') table, partitioned by county part like [OrtoDatas](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.TableName.OrtoDatas 'DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.OrtoDatas')\.
+
+One row per stored image: the key `(county_id, reference, year)` names the image by its building and its requested year ([DiGi\.GIS\.Classes\.OrtoData\.DateTime](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.ortodata.datetime 'DiGi\.GIS\.Classes\.OrtoData\.DateTime')). `acquisition_date` is null and `date_precision` is [DiGi\.GIS\.Enums\.OrtoDatePrecision\.Undefined](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.enums.ortodateprecision.undefined 'DiGi\.GIS\.Enums\.OrtoDatePrecision\.Undefined') when no index sheet dates the image; a missing row means the image was not backfilled yet. The table, not the members inside `orto_datas.object`, is the source of truth for the acquisition date (DiGi.GIS.PostgreSQL#123). Every statement is idempotent.
+
+```csharp
+public static System.Threading.Tasks.Task<bool> TableAsync_OrtoDataAcquisition(this Npgsql.NpgsqlConnection? npgsqlConnection, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_OrtoDataAcquisition(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken).npgsqlConnection'></a>
+
+`npgsqlConnection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
+
+The [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection') instance used to execute the command\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_OrtoDataAcquisition(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_OrtoDataAcquisition(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken') to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result is true if the table exists afterwards; otherwise, false\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_OrtoDataAcquisition_Partition(thisNpgsql.NpgsqlConnection,int,int,System.Threading.CancellationToken)'></a>
+
+## Create\.TableAsync\_OrtoDataAcquisition\_Partition\(this NpgsqlConnection, int, int, CancellationToken\) Method
+
+Asynchronously creates the partition of the [OrtoDataAcquisition](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.TableName.OrtoDataAcquisition 'DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.OrtoDataAcquisition') table for one county part\.
+
+```csharp
+public static System.Threading.Tasks.Task<bool> TableAsync_OrtoDataAcquisition_Partition(this Npgsql.NpgsqlConnection? npgsqlConnection, int countyId, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_OrtoDataAcquisition_Partition(thisNpgsql.NpgsqlConnection,int,int,System.Threading.CancellationToken).npgsqlConnection'></a>
+
+`npgsqlConnection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
+
+The PostgreSQL connection instance used to execute the command\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_OrtoDataAcquisition_Partition(thisNpgsql.NpgsqlConnection,int,int,System.Threading.CancellationToken).countyId'></a>
+
+`countyId` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The county part the partition holds\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_OrtoDataAcquisition_Partition(thisNpgsql.NpgsqlConnection,int,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_OrtoDataAcquisition_Partition(thisNpgsql.NpgsqlConnection,int,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken') to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result is true if the partition exists afterwards; false when the connection is null\.
+
 <a name='DiGi.GIS.PostgreSQL.Create.TableAsync_OrtoDatas(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken)'></a>
 
 ## Create\.TableAsync\_OrtoDatas\(this NpgsqlConnection, int, CancellationToken\) Method
@@ -1429,7 +1532,7 @@ A building belongs to the county polygon part its footprint lies in, and `buildi
 
 <b>Nothing is deleted.</b> A row cannot move onto a destination that already holds the same key, and two rows carrying one key under two different parts cannot both arrive; such a row stays where it is and its reference is not reported, so a caller comparing the result against what it passed in learns what is left to settle by hand.
 
-<b>Only three tables are accepted</b> - `building`, `building_data` and `orto_datas` - and their key columns are named here rather than taken from the caller, so no identifier in the statement below comes from outside this method. Every one of them is checked against the columns the table actually has before it reaches the database. The tables holding referenced objects are keyed on `unique_id` instead and are moved by `Building2DReferencedObjectPostgreSQLConverter.RefreshCountyIdsAsync`; `building_2d` has its own method on its own converter.
+<b>Only four tables are accepted</b> - `building`, `building_data`, `orto_datas` and `orto_data_acquisition` - and their key columns are named here rather than taken from the caller, so no identifier in the statement below comes from outside this method. Every one of them is checked against the columns the table actually has before it reaches the database. The tables holding referenced objects are keyed on `unique_id` instead and are moved by `Building2DReferencedObjectPostgreSQLConverter.RefreshCountyIdsAsync`; `building_2d` has its own method on its own converter.
 
 ```csharp
 public static System.Threading.Tasks.Task<System.Collections.Generic.HashSet<string>?> RefreshCountyIdsAsync(this Npgsql.NpgsqlConnection? npgsqlConnection, string? tableName, System.Collections.Generic.IEnumerable<string>? references, int countyId, System.Collections.Generic.IEnumerable<int>? countyIds_Source=null, int batchSize=1000, int commandTimeout=600, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
@@ -1446,7 +1549,7 @@ The [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgs
 
 `tableName` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
-The table to move rows in\. One of `building`, `building_data` or `orto_datas`; anything else is refused\.
+The table to move rows in\. One of `building`, `building_data`, `orto_datas` or `orto_data_acquisition`; anything else is refused\.
 
 <a name='DiGi.GIS.PostgreSQL.Modify.RefreshCountyIdsAsync(thisNpgsql.NpgsqlConnection,string,System.Collections.Generic.IEnumerable_string_,int,System.Collections.Generic.IEnumerable_int_,int,int,System.Threading.CancellationToken).references'></a>
 
@@ -1486,7 +1589,7 @@ The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dot
 
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.HashSet&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.hashset-1 'System\.Collections\.Generic\.HashSet\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.hashset-1 'System\.Collections\.Generic\.HashSet\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
-A task that represents the asynchronous operation\. The task result contains the references that had at least one row moved, an empty set when the table does not exist, or null when the connection was null, no references were given, or the table is not one of the three this handles\.
+A task that represents the asynchronous operation\. The task result contains the references that had at least one row moved, an empty set when the table does not exist, or null when the connection was null, no references were given, or the table is not one of the four this handles\.
 
 <a name='DiGi.GIS.PostgreSQL.Modify.RefreshOrtoDatasAsync(thisDiGi.GIS.PostgreSQL.Classes.GISPostgreSQLConverterManager,DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoDatasRefreshOptions,System.IProgress_long_,System.Threading.CancellationToken)'></a>
 
@@ -1805,9 +1908,11 @@ Backfills the acquisition date, sheet and content hash of every stored image of 
 
 Per county part: the sheets covering the box of its stored series are read once ([GetOrtoSheetsByBoundingBoxAsync\(NpgsqlConnection, BoundingBox2D, double, int, CancellationToken\)](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoSheetPostgreSQLConverter.GetOrtoSheetsByBoundingBoxAsync(Npgsql.NpgsqlConnection,DiGi.Geometry.Planar.Classes.BoundingBox2D,double,int,System.Threading.CancellationToken) 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoSheetPostgreSQLConverter\.GetOrtoSheetsByBoundingBoxAsync\(Npgsql\.NpgsqlConnection, DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D, double, int, System\.Threading\.CancellationToken\)')) and bucketed into a grid of 1 km cells, a one-pass index built for this walk only. Every series is then re-dated against the sheets of the cell of its first image's centre ([DiGi\.GIS\.Create\.OrtoDatas\(DiGi\.GIS\.Classes\.OrtoDatas,System\.Collections\.Generic\.IEnumerable\{DiGi\.GIS\.Classes\.OrtoSheet\},System\.Int32\)](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.create.ortodatas#digi-gis-create-ortodatas(digi-gis-classes-ortodatas-system-collections-generic-ienumerable{digi-gis-classes-ortosheet}-system-int32) 'DiGi\.GIS\.Create\.OrtoDatas\(DiGi\.GIS\.Classes\.OrtoDatas,System\.Collections\.Generic\.IEnumerable\{DiGi\.GIS\.Classes\.OrtoSheet\},System\.Int32\)')), so one image is tested against a few dozen sheets, not every sheet of the part.
 
-The partition is walked in physical order ([PullByPhysicalOrderAsync\(NpgsqlConnection, int, string, int, int, CancellationToken\)](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoDatasPostgreSQLConverter.PullByPhysicalOrderAsync(Npgsql.NpgsqlConnection,int,string,int,int,System.Threading.CancellationToken) 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoDatasPostgreSQLConverter\.PullByPhysicalOrderAsync\(Npgsql\.NpgsqlConnection, int, string, int, int, System\.Threading\.CancellationToken\)')), and a row is written back ([UpdateObjectsAsync\(NpgsqlConnection, int, IDictionary&lt;long,OrtoDatas&gt;, int, int, CancellationToken\)](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoDatasPostgreSQLConverter.UpdateObjectsAsync(Npgsql.NpgsqlConnection,int,System.Collections.Generic.IDictionary_long,DiGi.GIS.Classes.OrtoDatas_,int,int,System.Threading.CancellationToken) 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoDatasPostgreSQLConverter\.UpdateObjectsAsync\(Npgsql\.NpgsqlConnection, int, System\.Collections\.Generic\.IDictionary\<long,DiGi\.GIS\.Classes\.OrtoDatas\>, int, int, System\.Threading\.CancellationToken\)')) only when its series changed. A rewritten row moves ahead of the walk and is read again; it is skipped by its id, so every row counts once. Re-dating is idempotent, so a re-run writes nothing. The walk and the writes use two connections to the Storage database, which holds both tables.
+The partition is walked in physical order ([PullByPhysicalOrderAsync\(NpgsqlConnection, int, string, int, int, CancellationToken\)](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoDatasPostgreSQLConverter.PullByPhysicalOrderAsync(Npgsql.NpgsqlConnection,int,string,int,int,System.Threading.CancellationToken) 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoDatasPostgreSQLConverter\.PullByPhysicalOrderAsync\(Npgsql\.NpgsqlConnection, int, string, int, int, System\.Threading\.CancellationToken\)')), and the dates are written to [OrtoDataAcquisition](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.TableName.OrtoDataAcquisition 'DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.OrtoDataAcquisition'), one row per image ([UpdateOrtoDataAcquisitionsAsync\(NpgsqlConnection, int, IEnumerable&lt;OrtoDataAcquisition&gt;, int, int, CancellationToken\)](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoDatasPostgreSQLConverter.UpdateOrtoDataAcquisitionsAsync(Npgsql.NpgsqlConnection,int,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisition_,int,int,System.Threading.CancellationToken) 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoDatasPostgreSQLConverter\.UpdateOrtoDataAcquisitionsAsync\(Npgsql\.NpgsqlConnection, int, System\.Collections\.Generic\.IEnumerable\<DiGi\.GIS\.PostgreSQL\.Classes\.OrtoDataAcquisition\>, int, int, System\.Threading\.CancellationToken\)')); `orto_datas` is only read. Nothing therefore moves ahead of the walk and every row is read once - the id check below is a guard, not a skip (DiGi.GIS.PostgreSQL#123: rewriting `object` cost about 0.5 MB per row, bloated the partition and read every rewritten row twice). A row whose acquisition rows already say the same is not written, so a re-run writes nothing. The walk and the writes use two connections to the Storage database, which holds all three tables.
 
-[countyIds](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Modify.UpdateOrtoDatasAcquisitionAsync(thisDiGi.GIS.PostgreSQL.Classes.OrtoDatasPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OrtoSheetPostgreSQLConverter,System.Collections.Generic.IEnumerable_int_,int,int,int,System.Threading.CancellationToken).countyIds 'DiGi\.GIS\.PostgreSQL\.Modify\.UpdateOrtoDatasAcquisitionAsync\(this DiGi\.GIS\.PostgreSQL\.Classes\.OrtoDatasPostgreSQLConverter, DiGi\.GIS\.PostgreSQL\.Classes\.OrtoSheetPostgreSQLConverter, System\.Collections\.Generic\.IEnumerable\<int\>, int, int, int, System\.Threading\.CancellationToken\)\.countyIds') are county part ids: rows are re-dated where they are filed and never move (`Coding - GIS Administrative Data.md`). Import the sheet index first ([UpdateOrtoSheetsAsync\(this OrtoSheetPostgreSQLConverter, HttpClient, IEnumerable&lt;int&gt;, int, int, TimeSpan, int, int, CancellationToken\)](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Modify.UpdateOrtoSheetsAsync(thisDiGi.GIS.PostgreSQL.Classes.OrtoSheetPostgreSQLConverter,System.Net.Http.HttpClient,System.Collections.Generic.IEnumerable_int_,int,int,System.TimeSpan,int,int,System.Threading.CancellationToken) 'DiGi\.GIS\.PostgreSQL\.Modify\.UpdateOrtoSheetsAsync\(this DiGi\.GIS\.PostgreSQL\.Classes\.OrtoSheetPostgreSQLConverter, System\.Net\.Http\.HttpClient, System\.Collections\.Generic\.IEnumerable\<int\>, int, int, System\.TimeSpan, int, int, System\.Threading\.CancellationToken\)')): without it every image is written back undated.
+Series rewritten by the first backfill (DiGi.GIS.PostgreSQL.UI#37, county part 55417) keep the acquisition members inside `object`; they are harmless and ignored, and the side table is the source of truth.
+
+[countyIds](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Modify.UpdateOrtoDatasAcquisitionAsync(thisDiGi.GIS.PostgreSQL.Classes.OrtoDatasPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OrtoSheetPostgreSQLConverter,System.Collections.Generic.IEnumerable_int_,int,int,int,System.Threading.CancellationToken).countyIds 'DiGi\.GIS\.PostgreSQL\.Modify\.UpdateOrtoDatasAcquisitionAsync\(this DiGi\.GIS\.PostgreSQL\.Classes\.OrtoDatasPostgreSQLConverter, DiGi\.GIS\.PostgreSQL\.Classes\.OrtoSheetPostgreSQLConverter, System\.Collections\.Generic\.IEnumerable\<int\>, int, int, int, System\.Threading\.CancellationToken\)\.countyIds') are county part ids: rows are re-dated where they are filed and never move (`Coding - GIS Administrative Data.md`). Import the sheet index first ([UpdateOrtoSheetsAsync\(this OrtoSheetPostgreSQLConverter, HttpClient, IEnumerable&lt;int&gt;, int, int, TimeSpan, int, int, CancellationToken\)](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Modify.UpdateOrtoSheetsAsync(thisDiGi.GIS.PostgreSQL.Classes.OrtoSheetPostgreSQLConverter,System.Net.Http.HttpClient,System.Collections.Generic.IEnumerable_int_,int,int,System.TimeSpan,int,int,System.Threading.CancellationToken) 'DiGi\.GIS\.PostgreSQL\.Modify\.UpdateOrtoSheetsAsync\(this DiGi\.GIS\.PostgreSQL\.Classes\.OrtoSheetPostgreSQLConverter, System\.Net\.Http\.HttpClient, System\.Collections\.Generic\.IEnumerable\<int\>, int, int, System\.TimeSpan, int, int, System\.Threading\.CancellationToken\)')): without it every image is recorded as undated.
 
 ```csharp
 public static System.Threading.Tasks.Task<DiGi.GIS.PostgreSQL.Classes.OrtoDatasAcquisitionUpdateResult?> UpdateOrtoDatasAcquisitionAsync(this DiGi.GIS.PostgreSQL.Classes.OrtoDatasPostgreSQLConverter? ortoDatasPostgreSQLConverter, DiGi.GIS.PostgreSQL.Classes.OrtoSheetPostgreSQLConverter? ortoSheetPostgreSQLConverter, System.Collections.Generic.IEnumerable<int>? countyIds, int lastYear, int pageSize=100, int commandTimeout=300, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
@@ -1858,7 +1963,7 @@ The cancellation token to observe\.
 
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[OrtoDatasAcquisitionUpdateResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoDatasAcquisitionUpdateResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoDatasAcquisitionUpdateResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
-A task that represents the asynchronous operation\. The task result counts the rows and images, or is null when a converter or the county parts are missing, a connection cannot be opened, or a read or write cannot run\.
+A task that represents the asynchronous operation\. The task result counts the rows and images, with [Changed](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoDatasAcquisitionUpdateResult.Changed 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoDatasAcquisitionUpdateResult\.Changed') the rows whose acquisition rows were inserted or changed, or is null when a converter or the county parts are missing, a connection cannot be opened, a table cannot be created, or a read or write cannot run\.
 
 <a name='DiGi.GIS.PostgreSQL.Modify.UpdateOrtoSheetsAsync(thisDiGi.GIS.PostgreSQL.Classes.OrtoSheetPostgreSQLConverter,System.Net.Http.HttpClient,System.Collections.Generic.IEnumerable_int_,int,int,System.TimeSpan,int,int,System.Threading.CancellationToken)'></a>
 

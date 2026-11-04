@@ -8,8 +8,8 @@ using System.Threading.Tasks;
 namespace DiGi.GIS.PostgreSQL.Classes
 {
     /// <summary>
-    /// Represents a background task that backfills the acquisition date, sheet and content hash of the stored images of the selected county parts from <c>orto_sheet</c> (<see cref="Modify.UpdateOrtoDatasAcquisitionAsync"/>), one county part after another.
-    /// <para>Progress is the number of county parts done; every part is logged with its counters, and the totals are in <see cref="OrtoDatasAcquisitionUpdateResult"/>. Import the sheet index first (<see cref="PostgreSQLOrtoSheetUpdateTask"/>): without it every image is written back undated. Re-running is safe: a re-dated series that does not change is not written.</para>
+    /// Represents a background task that backfills the acquisition date, sheet and content hash of the stored images of the selected county parts from <c>orto_sheet</c> into <c>orto_data_acquisition</c> (<see cref="Modify.UpdateOrtoDatasAcquisitionAsync"/>), one county part after another.
+    /// <para>Progress is the number of county parts done; every part is logged with its counters, and the totals are in <see cref="OrtoDatasAcquisitionUpdateResult"/>. Import the sheet index first (<see cref="PostgreSQLOrtoSheetUpdateTask"/>): without it every image is recorded as undated. Re-running is safe: an acquisition row that does not change is not written.</para>
     /// </summary>
     public class PostgreSQLOrtoDatasAcquisitionUpdateTask : ReportableBackgroundTask<long>, IGISPostgreSQLObject
     {

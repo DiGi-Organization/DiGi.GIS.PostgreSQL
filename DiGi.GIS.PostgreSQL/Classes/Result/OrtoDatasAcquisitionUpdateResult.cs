@@ -7,7 +7,7 @@ using System.Text.Json.Serialization;
 namespace DiGi.GIS.PostgreSQL.Classes
 {
     /// <summary>
-    /// The outcome of an acquisition-date backfill of <c>orto_datas</c> (<see cref="Modify.UpdateOrtoDatasAcquisitionAsync"/>): the rows and images read, the rows written, and how many images an index sheet dated.
+    /// The outcome of an acquisition-date backfill of <c>orto_datas</c> (<see cref="Modify.UpdateOrtoDatasAcquisitionAsync"/>): the rows and images read, the rows whose acquisition rows (<c>orto_data_acquisition</c>) were written, and how many images an index sheet dated.
     /// </summary>
     public class OrtoDatasAcquisitionUpdateResult : SerializableResult, IGISPostgreSQLSerializableObject
     {
@@ -35,7 +35,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// <param name="countyIds">The county parts walked.</param>
         /// <param name="sheets">The index sheets read for those parts.</param>
         /// <param name="rows">The <c>orto_datas</c> rows read.</param>
-        /// <param name="changed">The rows whose stored series changed and were written.</param>
+        /// <param name="changed">The rows whose acquisition rows were inserted or changed.</param>
         /// <param name="images">The images of the rows read.</param>
         /// <param name="dated">The images an index sheet dated after the backfill; the rest stay undated.</param>
         public OrtoDatasAcquisitionUpdateResult(IEnumerable<int>? countyIds, long sheets, long rows, long changed, long images, long dated)
@@ -76,7 +76,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
         }
 
         /// <summary>
-        /// Gets the rows whose stored series changed and were written.
+        /// Gets the rows whose acquisition rows were inserted or changed; <c>orto_datas</c> itself is never written.
         /// </summary>
         [JsonIgnore]
         public long Changed => changed;

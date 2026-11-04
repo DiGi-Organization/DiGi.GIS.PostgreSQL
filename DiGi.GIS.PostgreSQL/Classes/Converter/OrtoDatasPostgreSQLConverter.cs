@@ -399,8 +399,9 @@ namespace DiGi.GIS.PostgreSQL.Classes
 
             bool result_1 = await DiGi.PostgreSQL.Modify.ClearAsync(npgsqlConnection, TableName.OrtoDatas, commandTimeout: commandTimeout, cancellationToken: cancellationToken);
             bool result_2 = await DiGi.PostgreSQL.Modify.ClearAsync(npgsqlConnection, TableName.OrtoDatas_Building2DReference_Update, commandTimeout: commandTimeout, cancellationToken: cancellationToken);
+            bool result_3 = await DiGi.PostgreSQL.Modify.ClearAsync(npgsqlConnection, TableName.OrtoDataAcquisition, commandTimeout: commandTimeout, cancellationToken: cancellationToken);
 
-            return result_1 || result_2;
+            return result_1 || result_2 || result_3;
         }
 
         /// <summary>
@@ -1382,6 +1383,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// <para>1. the entry's own county identifier - already names the row, nothing to infer.</para>
         /// <para>2. <paramref name="countyIds"/> - a county code names one row per polygon part, so the caller can state the county without stating the part. A single candidate resolves outright; several only narrow the field and are handed to tier 3.</para>
         /// <para>3. geometry - <see cref="Query.CountyId(IDictionary{int, Geometry.Planar.Interfaces.IPolygonal2D}, Geometry.Planar.Interfaces.IPolygonal2D, double)"/> decides which candidate the entry lies in, is nearest to, or overlaps most. With no candidates the field is every county its bounding box overlaps, which is both slower and wider than narrowing first.</para>
+        /// <para>Every series written drops the <see cref="TableName.OrtoDataAcquisition"/> rows of its reference in its county part: the images, and the run-end years they were dated against, may have changed, so the series is undated until the next acquisition backfill (<see cref="Modify.UpdateOrtoDatasAcquisitionAsync"/>) dates it again.</para>
         /// <para>Tier 3 reads <c>administrative_areal_2d</c>, which lives in the main database, while <c>orto_datas</c> lives in the storage database - so the county polygons are read through <paramref name="administrativeAreal2DPostgreSQLConverter"/>, never through this converter's own connection, and only once an entry actually reaches tier 3.</para>
         /// </summary>
         /// <param name="ortoDatas">A nullable enumerable collection of <see cref="OrtoDatas"/> to be processed for the update.</param>
@@ -1407,6 +1409,13 @@ namespace DiGi.GIS.PostgreSQL.Classes
             await npgsqlConnection.OpenAsync(cancellationToken);
 
             bool succeded = await Create.TableAsync_OrtoDatas(npgsqlConnection, commandTimeout, cancellationToken);
+            if (!succeded)
+            {
+                return null;
+            }
+
+            // The acquisition rows of a re-fetched series are dropped below, so the table has to exist.
+            succeded = await Create.TableAsync_OrtoDataAcquisition(npgsqlConnection, commandTimeout, cancellationToken);
             if (!succeded)
             {
                 return null;
@@ -1567,6 +1576,16 @@ namespace DiGi.GIS.PostgreSQL.Classes
 
                     npgsqlBatch.BatchCommands.Add(npgsqlBatchCommand);
                 }
+
+                // A written series invalidates the acquisition rows of its reference: its images, and the run-end
+                // years they were dated against, may have changed. The next backfill dates it again. A part with no
+                // acquisition partition yet has nothing to delete.
+                NpgsqlBatchCommand npgsqlBatchCommand_Acquisition = new($@"
+                    DELETE FROM {TableName.OrtoDataAcquisition}
+                    WHERE county_id = @county_id AND reference = ANY(@references);");
+                npgsqlBatchCommand_Acquisition.Parameters.Add(new NpgsqlParameter("county_id", NpgsqlDbType.Integer) { Value = countyId });
+                npgsqlBatchCommand_Acquisition.Parameters.Add(new NpgsqlParameter("references", NpgsqlDbType.Array | NpgsqlDbType.Text) { Value = keyValuePair.Value.Select(x => x.Reference ?? string.Empty).Distinct().ToArray() });
+                npgsqlBatch.BatchCommands.Add(npgsqlBatchCommand_Acquisition);
             }
 
             // Every row was dropped, so there is nothing to execute. Npgsql 10.0.2 answers a zero-command
@@ -2498,6 +2517,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// <summary>
         /// Asynchronously moves the rows held for the given building references onto <paramref name="countyId"/>, so that they stay under the same county polygon part as the building itself.
         /// <para>Called after a building has been re-filed under the part its footprint lies in. A row left behind under the part the building came from is unreachable: every read here filters on <c>county_id</c> first. Nothing is deleted - a row the destination will not take is left where it is and its reference is not reported.</para>
+        /// <para>The acquisition rows of the references (<see cref="TableName.OrtoDataAcquisition"/>) are moved the same way, so a moved building keeps its dates; the result names the <c>orto_datas</c> moves only.</para>
         /// <para>The move, its collision guards and what it costs are described on <see cref="Modify.RefreshCountyIdsAsync(NpgsqlConnection, string, IEnumerable{string}, int, IEnumerable{int}, int, int, CancellationToken)"/>.</para>
         /// </summary>
         /// <param name="references">The building references known to belong to <paramref name="countyId"/>.</param>
@@ -2522,7 +2542,12 @@ namespace DiGi.GIS.PostgreSQL.Classes
 
             await npgsqlConnection.OpenAsync(cancellationToken);
 
-            return await npgsqlConnection.RefreshCountyIdsAsync(TableName.OrtoDatas, references, countyId, countyIds_Source, batchSize, commandTimeout, cancellationToken);
+            HashSet<string>? result = await npgsqlConnection.RefreshCountyIdsAsync(TableName.OrtoDatas, references, countyId, countyIds_Source, batchSize, commandTimeout, cancellationToken);
+
+            // The acquisition rows follow their series, so a moved building keeps its dates.
+            await npgsqlConnection.RefreshCountyIdsAsync(TableName.OrtoDataAcquisition, references, countyId, countyIds_Source, batchSize, commandTimeout, cancellationToken);
+
+            return result;
         }
 
         /// <summary>
@@ -2734,6 +2759,163 @@ namespace DiGi.GIS.PostgreSQL.Classes
             {
                 return null;
             }
+        }
+
+        /// <summary>
+        /// Asynchronously writes acquisition rows of one county part into <see cref="TableName.OrtoDataAcquisition"/>, inserting new keys and updating a key only when its date, precision, sheet or hash differs (DiGi.GIS.PostgreSQL#123).
+        /// <para>The table and the county part's partition must exist (<see cref="Create.TableAsync_OrtoDataAcquisition"/>, <see cref="Create.TableAsync_OrtoDataAcquisition_Partition"/>). <c>orto_datas</c> is not touched. Rows of another county part are ignored, and a key given twice keeps its last row, since one statement cannot write a key twice.</para>
+        /// </summary>
+        /// <param name="npgsqlConnection">The open database connection.</param>
+        /// <param name="countyId">The county part the rows are filed under.</param>
+        /// <param name="ortoDataAcquisitions">The rows to write.</param>
+        /// <param name="batchSize">The number of rows written per statement.</param>
+        /// <param name="commandTimeout">The timeout in seconds for each command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The cancellation token to monitor for cancellation requests.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the references that had at least one row inserted or changed, or null when the connection or the rows are null.</returns>
+        public static async Task<HashSet<string>?> UpdateOrtoDataAcquisitionsAsync(NpgsqlConnection? npgsqlConnection, int countyId, IEnumerable<OrtoDataAcquisition>? ortoDataAcquisitions, int batchSize = 1000, int commandTimeout = 120, CancellationToken cancellationToken = default)
+        {
+            if (npgsqlConnection is null || ortoDataAcquisitions is null)
+            {
+                return null;
+            }
+
+            Dictionary<(string, int), OrtoDataAcquisition> dictionary = [];
+            foreach (OrtoDataAcquisition ortoDataAcquisition in ortoDataAcquisitions)
+            {
+                if (ortoDataAcquisition?.Reference is string reference && ortoDataAcquisition.CountyId == countyId)
+                {
+                    dictionary[(reference, ortoDataAcquisition.Year)] = ortoDataAcquisition;
+                }
+            }
+
+            List<OrtoDataAcquisition> ortoDataAcquisitions_Unique = [.. dictionary.Values];
+            batchSize = Math.Max(1, batchSize);
+
+            // The WHERE on the conflict branch keeps a re-run from rewriting a row that already says the same thing,
+            // so RETURNING names only what changed.
+            string commandText = $@"
+                INSERT INTO {TableName.OrtoDataAcquisition} AS a (county_id, reference, year, acquisition_date, date_precision, sheet_id, content_hash)
+                SELECT @county_id, u.reference, u.year, u.acquisition_date, u.date_precision, u.sheet_id, u.content_hash
+                FROM unnest(@references, @years, @acquisition_dates, @date_precisions, @sheet_ids, @content_hashes) AS u(reference, year, acquisition_date, date_precision, sheet_id, content_hash)
+                ON CONFLICT (county_id, reference, year)
+                DO UPDATE SET
+                    acquisition_date = EXCLUDED.acquisition_date,
+                    date_precision = EXCLUDED.date_precision,
+                    sheet_id = EXCLUDED.sheet_id,
+                    content_hash = EXCLUDED.content_hash,
+                    created_at = now()
+                WHERE (a.acquisition_date, a.date_precision, a.sheet_id, a.content_hash)
+                      IS DISTINCT FROM (EXCLUDED.acquisition_date, EXCLUDED.date_precision, EXCLUDED.sheet_id, EXCLUDED.content_hash)
+                RETURNING a.reference;";
+
+            HashSet<string> result = [];
+            for (int i = 0; i < ortoDataAcquisitions_Unique.Count; i += batchSize)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                List<OrtoDataAcquisition> ortoDataAcquisitions_Batch = ortoDataAcquisitions_Unique.GetRange(i, Math.Min(batchSize, ortoDataAcquisitions_Unique.Count - i));
+
+                await using NpgsqlCommand npgsqlCommand = new(commandText, npgsqlConnection);
+                npgsqlCommand.CommandTimeout = commandTimeout;
+                npgsqlCommand.Parameters.Add(new NpgsqlParameter("county_id", NpgsqlDbType.Integer) { Value = countyId });
+                npgsqlCommand.Parameters.Add(new NpgsqlParameter("references", NpgsqlDbType.Array | NpgsqlDbType.Text) { Value = ortoDataAcquisitions_Batch.Select(x => x.Reference!).ToArray() });
+                npgsqlCommand.Parameters.Add(new NpgsqlParameter("years", NpgsqlDbType.Array | NpgsqlDbType.Integer) { Value = ortoDataAcquisitions_Batch.Select(x => x.Year).ToArray() });
+                npgsqlCommand.Parameters.Add(new NpgsqlParameter("acquisition_dates", NpgsqlDbType.Array | NpgsqlDbType.TimestampTz) { Value = ortoDataAcquisitions_Batch.Select(x => x.AcquisitionDate?.UtcDateTime).ToArray() });
+                npgsqlCommand.Parameters.Add(new NpgsqlParameter("date_precisions", NpgsqlDbType.Array | NpgsqlDbType.Smallint) { Value = ortoDataAcquisitions_Batch.Select(x => (short)x.AcquisitionDatePrecision).ToArray() });
+                npgsqlCommand.Parameters.Add(new NpgsqlParameter("sheet_ids", NpgsqlDbType.Array | NpgsqlDbType.Text) { Value = ortoDataAcquisitions_Batch.Select(x => x.SheetId).ToArray() });
+                npgsqlCommand.Parameters.Add(new NpgsqlParameter("content_hashes", NpgsqlDbType.Array | NpgsqlDbType.Text) { Value = ortoDataAcquisitions_Batch.Select(x => x.ContentHash).ToArray() });
+
+                await using NpgsqlDataReader npgsqlDataReader = await npgsqlCommand.ExecuteReaderAsync(cancellationToken);
+                while (await npgsqlDataReader.ReadAsync(cancellationToken))
+                {
+                    result.Add(npgsqlDataReader.GetString(0));
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Asynchronously reads the acquisition rows of the given building references from <see cref="TableName.OrtoDataAcquisition"/>: the date, sheet and content hash of each stored image, by requested year (DiGi.GIS.PostgreSQL#123, read by DiGi.GIS.ML#19 beside the images).
+        /// <para>A reference with no row was not backfilled yet; a row with <see cref="GIS.Enums.OrtoDatePrecision.Undefined"/> was backfilled and no index sheet dates it.</para>
+        /// </summary>
+        /// <param name="npgsqlConnection">The open database connection.</param>
+        /// <param name="references">The building references.</param>
+        /// <param name="countyId">The county part the references are filed under, or null to search every part (no partition pruning).</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The cancellation token to monitor for cancellation requests.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the rows ordered by county part, reference and year (empty when the table does not exist), or null when the connection or the references are null.</returns>
+        public static async Task<List<OrtoDataAcquisition>?> GetOrtoDataAcquisitionsByReferencesAsync(NpgsqlConnection? npgsqlConnection, IEnumerable<string>? references, int? countyId, int commandTimeout = 30, CancellationToken cancellationToken = default)
+        {
+            if (npgsqlConnection is null || references is null)
+            {
+                return null;
+            }
+
+            string[] references_Array = [.. new HashSet<string>(references.Where(x => !string.IsNullOrWhiteSpace(x)))];
+            if (references_Array.Length == 0)
+            {
+                return [];
+            }
+
+            string condition_CountyId = countyId is null ? string.Empty : " AND county_id = @county_id";
+            string commandText = $@"
+                SELECT county_id, reference, year, acquisition_date, date_precision, sheet_id, content_hash
+                FROM {TableName.OrtoDataAcquisition}
+                WHERE reference = ANY(@references){condition_CountyId}
+                ORDER BY county_id, reference, year;";
+
+            List<OrtoDataAcquisition> result = [];
+            try
+            {
+                await using NpgsqlCommand npgsqlCommand = new(commandText, npgsqlConnection);
+                npgsqlCommand.CommandTimeout = commandTimeout;
+                npgsqlCommand.Parameters.Add(new NpgsqlParameter("references", NpgsqlDbType.Array | NpgsqlDbType.Text) { Value = references_Array });
+                if (countyId is not null)
+                {
+                    npgsqlCommand.Parameters.Add(new NpgsqlParameter("county_id", NpgsqlDbType.Integer) { Value = countyId.Value });
+                }
+
+                await using NpgsqlDataReader npgsqlDataReader = await npgsqlCommand.ExecuteReaderAsync(cancellationToken);
+                while (await npgsqlDataReader.ReadAsync(cancellationToken))
+                {
+                    result.Add(new OrtoDataAcquisition(
+                        npgsqlDataReader.GetInt32(0),
+                        npgsqlDataReader.GetString(1),
+                        npgsqlDataReader.GetInt32(2),
+                        npgsqlDataReader.IsDBNull(3) ? null : new DateTimeOffset(npgsqlDataReader.GetDateTime(3), TimeSpan.Zero),
+                        (GIS.Enums.OrtoDatePrecision)npgsqlDataReader.GetInt16(4),
+                        npgsqlDataReader.IsDBNull(5) ? null : npgsqlDataReader.GetString(5),
+                        npgsqlDataReader.IsDBNull(6) ? null : npgsqlDataReader.GetString(6)));
+                }
+            }
+            catch (PostgresException postgresException) when (postgresException.SqlState == PostgresErrorCodes.UndefinedTable)
+            {
+                return [];
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Asynchronously reads the acquisition rows of the given building references (<see cref="GetOrtoDataAcquisitionsByReferencesAsync(NpgsqlConnection?, IEnumerable{string}?, int?, int, CancellationToken)"/>) over a connection of its own.
+        /// </summary>
+        /// <param name="references">The building references.</param>
+        /// <param name="countyId">The county part the references are filed under, or null to search every part.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The cancellation token to monitor for cancellation requests.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the rows ordered by county part, reference and year, or null when no connection could be created or the references are null.</returns>
+        public async Task<List<OrtoDataAcquisition>?> GetOrtoDataAcquisitionsByReferencesAsync(IEnumerable<string>? references, int? countyId, int commandTimeout = 30, CancellationToken cancellationToken = default)
+        {
+            await using NpgsqlConnection? npgsqlConnection = DiGi.PostgreSQL.Create.NpgsqlConnection(ConnectionData);
+            if (npgsqlConnection is null)
+            {
+                return null;
+            }
+
+            await npgsqlConnection.OpenAsync(cancellationToken);
+
+            return await GetOrtoDataAcquisitionsByReferencesAsync(npgsqlConnection, references, countyId, commandTimeout, cancellationToken);
         }
     }
 }

@@ -717,6 +717,75 @@ namespace DiGi.GIS.PostgreSQL
         }
 
         /// <summary>
+        /// Asynchronously creates the <see cref="Constants.TableName.OrtoDataAcquisition"/> table, partitioned by county part like <see cref="Constants.TableName.OrtoDatas"/>.
+        /// <para>One row per stored image: the key <c>(county_id, reference, year)</c> names the image by its building and its requested year (<see cref="GIS.Classes.OrtoData.DateTime"/>). <c>acquisition_date</c> is null and <c>date_precision</c> is <see cref="GIS.Enums.OrtoDatePrecision.Undefined"/> when no index sheet dates the image; a missing row means the image was not backfilled yet. The table, not the members inside <c>orto_datas.object</c>, is the source of truth for the acquisition date (DiGi.GIS.PostgreSQL#123). Every statement is idempotent.</para>
+        /// </summary>
+        /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> instance used to execute the command.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> to monitor for cancellation requests.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result is true if the table exists afterwards; otherwise, false.</returns>
+        public static async Task<bool> TableAsync_OrtoDataAcquisition(this NpgsqlConnection? npgsqlConnection, int commandTimeout = 30, CancellationToken cancellationToken = default)
+        {
+            if (npgsqlConnection is null)
+            {
+                return false;
+            }
+
+            string commandText = $@"
+                CREATE TABLE IF NOT EXISTS {Constants.TableName.OrtoDataAcquisition} (
+                    county_id INT NOT NULL,
+                    reference TEXT NOT NULL,
+                    year INT NOT NULL,
+                    acquisition_date timestamptz,
+                    date_precision SMALLINT NOT NULL,
+                    sheet_id TEXT,
+                    content_hash TEXT,
+                    created_at timestamptz DEFAULT now(),
+                    PRIMARY KEY (county_id, reference, year)
+                ) PARTITION BY LIST (county_id);
+                ";
+
+            try
+            {
+                await using NpgsqlCommand npgsqlCommand = new(commandText, npgsqlConnection);
+                npgsqlCommand.CommandTimeout = commandTimeout;
+
+                await npgsqlCommand.ExecuteNonQueryAsync(cancellationToken);
+                return true;
+            }
+            catch (NpgsqlException ex)
+            {
+                Console.WriteLine($"Postgres Error ({nameof(TableAsync_OrtoDataAcquisition)}): {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Asynchronously creates the partition of the <see cref="Constants.TableName.OrtoDataAcquisition"/> table for one county part.
+        /// </summary>
+        /// <param name="npgsqlConnection">The PostgreSQL connection instance used to execute the command.</param>
+        /// <param name="countyId">The county part the partition holds.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> to monitor for cancellation requests.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result is true if the partition exists afterwards; false when the connection is null.</returns>
+        public static async Task<bool> TableAsync_OrtoDataAcquisition_Partition(this NpgsqlConnection? npgsqlConnection, int countyId, int commandTimeout = 30, CancellationToken cancellationToken = default)
+        {
+            if (npgsqlConnection is null)
+            {
+                return false;
+            }
+
+            string commandText = Query.PartitionCommandText(Constants.TableName.OrtoDataAcquisition, countyId);
+
+            await using NpgsqlCommand npgsqlCommand = new(commandText, npgsqlConnection);
+            npgsqlCommand.CommandTimeout = commandTimeout;
+
+            await npgsqlCommand.ExecuteNonQueryAsync(cancellationToken);
+
+            return true;
+        }
+
+        /// <summary>
         /// Asynchronously creates the OrtoDatas table in the PostgreSQL database.
         /// </summary>
         /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> instance used to execute the command.</param>

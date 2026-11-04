@@ -185,6 +185,19 @@ public const string OccupancyData_Building2D = "occupancy_data_building_2d";
 #### Field Value
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
+<a name='DiGi.GIS.PostgreSQL.Constants.TableName.OrtoDataAcquisition'></a>
+
+## TableName\.OrtoDataAcquisition Field
+
+The name of the orthophoto acquisition table: one row per stored image of [OrtoDatas](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.TableName.OrtoDatas 'DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.OrtoDatas'), keyed by county part, building reference and requested year, holding the date, sheet and content hash read from [OrtoSheet](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.TableName.OrtoSheet 'DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.OrtoSheet') \(DiGi\.GIS\.PostgreSQL\#123\)\. On the Storage database, partitioned by county part like [OrtoDatas](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.TableName.OrtoDatas 'DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.OrtoDatas')\.
+
+```csharp
+public const string OrtoDataAcquisition = "orto_data_acquisition";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
 <a name='DiGi.GIS.PostgreSQL.Constants.TableName.OrtoDatas'></a>
 
 ## TableName\.OrtoDatas Field

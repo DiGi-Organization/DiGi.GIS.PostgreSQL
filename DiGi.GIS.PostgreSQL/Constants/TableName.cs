@@ -31,6 +31,11 @@
         public const string OrtoSheet = "orto_sheet";
 
         /// <summary>
+        /// The name of the orthophoto acquisition table: one row per stored image of <see cref="OrtoDatas"/>, keyed by county part, building reference and requested year, holding the date, sheet and content hash read from <see cref="OrtoSheet"/> (DiGi.GIS.PostgreSQL#123). On the Storage database, partitioned by county part like <see cref="OrtoDatas"/>.
+        /// </summary>
+        public const string OrtoDataAcquisition = "orto_data_acquisition";
+
+        /// <summary>
         /// The name of the building table.
         /// </summary>
         public const string Building = "building";
