@@ -2726,6 +2726,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
 
         /// <summary>
         /// Asynchronously reads the box covering every stored series of one county part, from the <c>min_x</c> … <c>max_y</c> columns.
+        /// <para>Rows whose box is <c>NaN</c> are left out: <see cref="Convert.ToPostgreSQL(GIS.Classes.OrtoDatas?, int?, int?)"/> stores <c>NaN</c> for a series with no readable image, PostgreSQL sorts <c>NaN</c> above every number, so one such row made <c>max</c> answer <c>NaN</c>. <see cref="BoundingBox2D"/> then collapsed to the minimum corner and the 2026-11-04 backfill of county part 55417 (155 290 rows, 5 with a <c>NaN</c> box) read 13 sheets and dated none of 1 716 766 images (DiGi.GIS.PostgreSQL#123).</para>
         /// </summary>
         /// <param name="npgsqlConnection">The open database connection.</param>
         /// <param name="countyId">The county part.</param>
@@ -2739,7 +2740,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 return null;
             }
 
-            string commandText = $"SELECT min(min_x), min(min_y), max(max_x), max(max_y) FROM {TableName.OrtoDatas} WHERE county_id = @county_id;";
+            string commandText = $"SELECT min(min_x), min(min_y), max(max_x), max(max_y) FROM {TableName.OrtoDatas} WHERE county_id = @county_id AND min_x <> 'NaN' AND min_y <> 'NaN' AND max_x <> 'NaN' AND max_y <> 'NaN';";
 
             try
             {

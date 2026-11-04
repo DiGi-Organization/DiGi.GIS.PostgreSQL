@@ -16629,6 +16629,8 @@ A task that represents the asynchronous operation\. The task result contains a [
 
 Asynchronously reads the box covering every stored series of one county part, from the `min_x` … `max_y` columns\.
 
+Rows whose box is `NaN` are left out: [ToPostgreSQL\(this OrtoDatas, Nullable&lt;int&gt;, Nullable&lt;int&gt;\)](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Convert.ToPostgreSQL(thisDiGi.GIS.Classes.OrtoDatas,System.Nullable_int_,System.Nullable_int_) 'DiGi\.GIS\.PostgreSQL\.Convert\.ToPostgreSQL\(this DiGi\.GIS\.Classes\.OrtoDatas, System\.Nullable\<int\>, System\.Nullable\<int\>\)') stores `NaN` for a series with no readable image, PostgreSQL sorts `NaN` above every number, so one such row made `max` answer `NaN`. [DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.boundingbox2d 'DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D') then collapsed to the minimum corner and the 2026-11-04 backfill of county part 55417 (155 290 rows, 5 with a `NaN` box) read 13 sheets and dated none of 1 716 766 images (DiGi.GIS.PostgreSQL#123).
+
 ```csharp
 public static System.Threading.Tasks.Task<DiGi.Geometry.Planar.Classes.BoundingBox2D?> GetBoundingBox2DAsync(Npgsql.NpgsqlConnection? npgsqlConnection, int countyId, int commandTimeout=120, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
 ```
