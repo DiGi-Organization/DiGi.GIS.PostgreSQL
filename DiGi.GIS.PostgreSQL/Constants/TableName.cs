@@ -36,6 +36,26 @@
         public const string OrtoDataAcquisition = "orto_data_acquisition";
 
         /// <summary>
+        /// The name of the full-interpretation test area table: one row per test area, carrying its bounding box envelope, sampling grid parameters and the sampled cells inside <c>object</c> (DiGi.GIS.PostgreSQL#129). On the Main database.
+        /// </summary>
+        public const string OrtoArea = "orto_area";
+
+        /// <summary>
+        /// The name of the test area object table: one row per polygon drawn in a test area, keyed by its server-assigned identifier and filed under <c>area_key</c> (DiGi.GIS.PostgreSQL#129). On the Main database.
+        /// </summary>
+        public const string OrtoAreaObject = "orto_area_object";
+
+        /// <summary>
+        /// The name of the test area label table: one row per (area, object identity, epoch, interpreter), where the object identity is exactly one of the footprint pair or the drawn-object identifier, unique under a <c>NULLS NOT DISTINCT</c> index (DiGi.GIS.PostgreSQL#129). On the Main database.
+        /// </summary>
+        public const string OrtoAreaLabel = "orto_area_label";
+
+        /// <summary>
+        /// The name of the test area image table: one materialised area tile per test area and imagery epoch, negative rows of missing or failed imagery included (DiGi.GIS.PostgreSQL#129). On the Storage database beside <see cref="OrtoDatas"/>.
+        /// </summary>
+        public const string OrtoAreaImage = "orto_area_image";
+
+        /// <summary>
         /// The name of the building table.
         /// </summary>
         public const string Building = "building";

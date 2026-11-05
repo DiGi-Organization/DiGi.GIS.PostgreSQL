@@ -15640,6 +15640,1831 @@ public class GISPostgreSQLConverterManager : DiGi.PostgreSQL.Classes.PostgreSQLC
 
 Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [DiGi\.PostgreSQL\.Classes\.PostgreSQLConverterManager&lt;](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.classes.postgresqlconvertermanager-1 'DiGi\.PostgreSQL\.Classes\.PostgreSQLConverterManager\`1')[IGISPostgreSQLConverter](DiGi.GIS.PostgreSQL.Interfaces.md#DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Interfaces\.IGISPostgreSQLConverter')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.classes.postgresqlconvertermanager-1 'DiGi\.PostgreSQL\.Classes\.PostgreSQLConverterManager\`1') → GISPostgreSQLConverterManager
 
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoArea'></a>
+
+## OrtoArea Class
+
+One full\-interpretation test area: a row of [OrtoArea](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.TableName.OrtoArea 'DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.OrtoArea') carrying its extent, sampling grid and naming \(DiGi\.GIS\.PostgreSQL\#129\)\.
+
+The table's `object` column stores the whole instance, [Cells](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoArea.Cells 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoArea\.Cells') included, so one read returns the area with its sampled cells in index order; the envelope columns (`min_x` ... `max_y`) duplicate the box for keyed and ranged lookup. The table lives on the Main database, beside `building_2d`. The imagery materialised for the area lives on the Storage database ([OrtoAreaImage](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.TableName.OrtoAreaImage 'DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.OrtoAreaImage')) and is never read in the same statement as this row.
+
+```csharp
+public class OrtoArea : DiGi.Core.Classes.SerializableObject, DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLSerializableObject, DiGi.Core.Interfaces.ISerializableObject, DiGi.Core.Interfaces.ICloneableObject<DiGi.Core.Interfaces.ISerializableObject>, DiGi.Core.Interfaces.ICloneableObject, DiGi.Core.Interfaces.IObject
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [DiGi\.Core\.Classes\.Object](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.object 'DiGi\.Core\.Classes\.Object') → [DiGi\.Core\.Classes\.SerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.serializableobject 'DiGi\.Core\.Classes\.SerializableObject') → OrtoArea
+
+Implements [IGISPostgreSQLSerializableObject](DiGi.GIS.PostgreSQL.Interfaces.md#DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLSerializableObject 'DiGi\.GIS\.PostgreSQL\.Interfaces\.IGISPostgreSQLSerializableObject'), [DiGi\.Core\.Interfaces\.ISerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iserializableobject 'DiGi\.Core\.Interfaces\.ISerializableObject'), [DiGi\.Core\.Interfaces\.ICloneableObject&lt;](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject-1 'DiGi\.Core\.Interfaces\.ICloneableObject\`1')[DiGi\.Core\.Interfaces\.ISerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iserializableobject 'DiGi\.Core\.Interfaces\.ISerializableObject')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject-1 'DiGi\.Core\.Interfaces\.ICloneableObject\`1'), [DiGi\.Core\.Interfaces\.ICloneableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject 'DiGi\.Core\.Interfaces\.ICloneableObject'), [DiGi\.Core\.Interfaces\.IObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iobject 'DiGi\.Core\.Interfaces\.IObject')
+### Constructors
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoArea.OrtoArea(DiGi.GIS.PostgreSQL.Classes.OrtoArea)'></a>
+
+## OrtoArea\(OrtoArea\) Constructor
+
+Initializes a new instance of the [OrtoArea](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoArea 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoArea') class as a copy of another instance\.
+
+```csharp
+public OrtoArea(DiGi.GIS.PostgreSQL.Classes.OrtoArea? ortoArea);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoArea.OrtoArea(DiGi.GIS.PostgreSQL.Classes.OrtoArea).ortoArea'></a>
+
+`ortoArea` [OrtoArea](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoArea 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoArea')
+
+The instance to copy\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoArea.OrtoArea(string,DiGi.Geometry.Planar.Classes.BoundingBox2D,string,string,double,int,long,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OrtoAreaCell_)'></a>
+
+## OrtoArea\(string, BoundingBox2D, string, string, double, int, long, IEnumerable\<OrtoAreaCell\>\) Constructor
+
+Initializes a new instance of the [OrtoArea](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoArea 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoArea') class\.
+
+```csharp
+public OrtoArea(string? areaKey, DiGi.Geometry.Planar.Classes.BoundingBox2D? boundingBox2D, string? name, string? stratum, double cellSize, int cellCount, long seed, System.Collections.Generic.IEnumerable<DiGi.GIS.PostgreSQL.Classes.OrtoAreaCell>? cells);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoArea.OrtoArea(string,DiGi.Geometry.Planar.Classes.BoundingBox2D,string,string,double,int,long,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OrtoAreaCell_).areaKey'></a>
+
+`areaKey` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The invariant location key of the area's bounding box that names the row\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoArea.OrtoArea(string,DiGi.Geometry.Planar.Classes.BoundingBox2D,string,string,double,int,long,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OrtoAreaCell_).boundingBox2D'></a>
+
+`boundingBox2D` [DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.boundingbox2d 'DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D')
+
+The area extent in EPSG:2180, easting in X\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoArea.OrtoArea(string,DiGi.Geometry.Planar.Classes.BoundingBox2D,string,string,double,int,long,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OrtoAreaCell_).name'></a>
+
+`name` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The display name of the area, or null when it is unnamed\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoArea.OrtoArea(string,DiGi.Geometry.Planar.Classes.BoundingBox2D,string,string,double,int,long,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OrtoAreaCell_).stratum'></a>
+
+`stratum` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The named stratum of the area, or null when it is unstratified\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoArea.OrtoArea(string,DiGi.Geometry.Planar.Classes.BoundingBox2D,string,string,double,int,long,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OrtoAreaCell_).cellSize'></a>
+
+`cellSize` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The edge length of one sampled cell, in m\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoArea.OrtoArea(string,DiGi.Geometry.Planar.Classes.BoundingBox2D,string,string,double,int,long,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OrtoAreaCell_).cellCount'></a>
+
+`cellCount` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+How many cells the sampling grid holds\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoArea.OrtoArea(string,DiGi.Geometry.Planar.Classes.BoundingBox2D,string,string,double,int,long,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OrtoAreaCell_).seed'></a>
+
+`seed` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+The seed the sampling grid was drawn with\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoArea.OrtoArea(string,DiGi.Geometry.Planar.Classes.BoundingBox2D,string,string,double,int,long,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OrtoAreaCell_).cells'></a>
+
+`cells` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[OrtoAreaCell](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaCell 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaCell')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The sampled cells in index order, or null for none\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoArea.OrtoArea(System.Text.Json.Nodes.JsonObject)'></a>
+
+## OrtoArea\(JsonObject\) Constructor
+
+Initializes a new instance of the [OrtoArea](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoArea 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoArea') class from its JSON representation\.
+
+```csharp
+public OrtoArea(System.Text.Json.Nodes.JsonObject? jsonObject);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoArea.OrtoArea(System.Text.Json.Nodes.JsonObject).jsonObject'></a>
+
+`jsonObject` [System\.Text\.Json\.Nodes\.JsonObject](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.nodes.jsonobject 'System\.Text\.Json\.Nodes\.JsonObject')
+
+The JSON object\.
+### Properties
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoArea.AreaKey'></a>
+
+## OrtoArea\.AreaKey Property
+
+Gets the invariant location key of the area's bounding box that names the row\.
+
+```csharp
+public string AreaKey { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoArea.BoundingBox2D'></a>
+
+## OrtoArea\.BoundingBox2D Property
+
+Gets a clone of the area extent in EPSG:2180, easting in X\.
+
+```csharp
+public DiGi.Geometry.Planar.Classes.BoundingBox2D? BoundingBox2D { get; }
+```
+
+#### Property Value
+[DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.boundingbox2d 'DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoArea.CellCount'></a>
+
+## OrtoArea\.CellCount Property
+
+Gets how many cells the sampling grid holds\.
+
+```csharp
+public int CellCount { get; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoArea.Cells'></a>
+
+## OrtoArea\.Cells Property
+
+Gets the sampled cells in index order\.
+
+```csharp
+public System.Collections.Generic.List<DiGi.GIS.PostgreSQL.Classes.OrtoAreaCell> Cells { get; }
+```
+
+#### Property Value
+[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[OrtoAreaCell](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaCell 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaCell')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoArea.CellSize'></a>
+
+## OrtoArea\.CellSize Property
+
+Gets the edge length of one sampled cell, in m\.
+
+```csharp
+public double CellSize { get; }
+```
+
+#### Property Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoArea.Name'></a>
+
+## OrtoArea\.Name Property
+
+Gets the display name of the area, or null when it is unnamed\.
+
+```csharp
+public string? Name { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoArea.Seed'></a>
+
+## OrtoArea\.Seed Property
+
+Gets the seed the sampling grid was drawn with\.
+
+```csharp
+public long Seed { get; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoArea.Stratum'></a>
+
+## OrtoArea\.Stratum Property
+
+Gets the named stratum of the area, or null when it is unstratified\.
+
+```csharp
+public string? Stratum { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaCell'></a>
+
+## OrtoAreaCell Class
+
+One sampled cell of a full\-interpretation test area: one element of [Cells](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoArea.Cells 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoArea\.Cells') \(DiGi\.GIS\.PostgreSQL\#129\)\.
+
+[Index](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaCell.Index 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaCell\.Index') is the 0-based position of the cell in the sampling grid, and [BoundingBox2D](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaCell.BoundingBox2D 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaCell\.BoundingBox2D') is the cell extent in EPSG:2180, easting in X. Cells travel inside the [OrtoArea](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoArea 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoArea') object in [OrtoArea](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.TableName.OrtoArea 'DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.OrtoArea'); there is no cell table of their own.
+
+```csharp
+public class OrtoAreaCell : DiGi.Core.Classes.SerializableObject, DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLSerializableObject, DiGi.Core.Interfaces.ISerializableObject, DiGi.Core.Interfaces.ICloneableObject<DiGi.Core.Interfaces.ISerializableObject>, DiGi.Core.Interfaces.ICloneableObject, DiGi.Core.Interfaces.IObject
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [DiGi\.Core\.Classes\.Object](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.object 'DiGi\.Core\.Classes\.Object') → [DiGi\.Core\.Classes\.SerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.serializableobject 'DiGi\.Core\.Classes\.SerializableObject') → OrtoAreaCell
+
+Implements [IGISPostgreSQLSerializableObject](DiGi.GIS.PostgreSQL.Interfaces.md#DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLSerializableObject 'DiGi\.GIS\.PostgreSQL\.Interfaces\.IGISPostgreSQLSerializableObject'), [DiGi\.Core\.Interfaces\.ISerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iserializableobject 'DiGi\.Core\.Interfaces\.ISerializableObject'), [DiGi\.Core\.Interfaces\.ICloneableObject&lt;](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject-1 'DiGi\.Core\.Interfaces\.ICloneableObject\`1')[DiGi\.Core\.Interfaces\.ISerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iserializableobject 'DiGi\.Core\.Interfaces\.ISerializableObject')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject-1 'DiGi\.Core\.Interfaces\.ICloneableObject\`1'), [DiGi\.Core\.Interfaces\.ICloneableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject 'DiGi\.Core\.Interfaces\.ICloneableObject'), [DiGi\.Core\.Interfaces\.IObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iobject 'DiGi\.Core\.Interfaces\.IObject')
+### Constructors
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaCell.OrtoAreaCell(DiGi.GIS.PostgreSQL.Classes.OrtoAreaCell)'></a>
+
+## OrtoAreaCell\(OrtoAreaCell\) Constructor
+
+Initializes a new instance of the [OrtoAreaCell](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaCell 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaCell') class as a copy of another instance\.
+
+```csharp
+public OrtoAreaCell(DiGi.GIS.PostgreSQL.Classes.OrtoAreaCell? ortoAreaCell);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaCell.OrtoAreaCell(DiGi.GIS.PostgreSQL.Classes.OrtoAreaCell).ortoAreaCell'></a>
+
+`ortoAreaCell` [OrtoAreaCell](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaCell 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaCell')
+
+The instance to copy\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaCell.OrtoAreaCell(int,DiGi.Geometry.Planar.Classes.BoundingBox2D)'></a>
+
+## OrtoAreaCell\(int, BoundingBox2D\) Constructor
+
+Initializes a new instance of the [OrtoAreaCell](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaCell 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaCell') class\.
+
+```csharp
+public OrtoAreaCell(int index, DiGi.Geometry.Planar.Classes.BoundingBox2D? boundingBox2D);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaCell.OrtoAreaCell(int,DiGi.Geometry.Planar.Classes.BoundingBox2D).index'></a>
+
+`index` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The 0\-based position of the cell in the sampling grid\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaCell.OrtoAreaCell(int,DiGi.Geometry.Planar.Classes.BoundingBox2D).boundingBox2D'></a>
+
+`boundingBox2D` [DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.boundingbox2d 'DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D')
+
+The cell extent in EPSG:2180, easting in X\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaCell.OrtoAreaCell(System.Text.Json.Nodes.JsonObject)'></a>
+
+## OrtoAreaCell\(JsonObject\) Constructor
+
+Initializes a new instance of the [OrtoAreaCell](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaCell 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaCell') class from its JSON representation\.
+
+```csharp
+public OrtoAreaCell(System.Text.Json.Nodes.JsonObject? jsonObject);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaCell.OrtoAreaCell(System.Text.Json.Nodes.JsonObject).jsonObject'></a>
+
+`jsonObject` [System\.Text\.Json\.Nodes\.JsonObject](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.nodes.jsonobject 'System\.Text\.Json\.Nodes\.JsonObject')
+
+The JSON object\.
+### Properties
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaCell.BoundingBox2D'></a>
+
+## OrtoAreaCell\.BoundingBox2D Property
+
+Gets a clone of the cell extent in EPSG:2180, easting in X\.
+
+```csharp
+public DiGi.Geometry.Planar.Classes.BoundingBox2D? BoundingBox2D { get; }
+```
+
+#### Property Value
+[DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.boundingbox2d 'DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaCell.Index'></a>
+
+## OrtoAreaCell\.Index Property
+
+Gets the 0\-based position of the cell in the sampling grid\.
+
+```csharp
+public int Index { get; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaImage'></a>
+
+## OrtoAreaImage Class
+
+One materialised area tile of a full\-interpretation test area for one epoch: a row of [OrtoAreaImage](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.TableName.OrtoAreaImage 'DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.OrtoAreaImage') \(DiGi\.GIS\.PostgreSQL\#129\)\.
+
+The row is keyed by `(area_key, epoch_year)`: a re-fetch replaces it, never appends. [Status](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaImage.Status 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaImage\.Status') is 0 when [Bytes](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaImage.Bytes 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaImage\.Bytes') holds the imagery, 1 when the source holds no imagery for the area and 2 when the fetch failed - the negative rows of 1 and 2 carry no bytes, and they cache the answer so the WMS is not asked again. The table lives on the Storage database beside `orto_datas`; the area registry itself lives on the Main database and is never read in the same statement as this row.
+
+```csharp
+public class OrtoAreaImage : DiGi.Core.Classes.SerializableObject, DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLSerializableObject, DiGi.Core.Interfaces.ISerializableObject, DiGi.Core.Interfaces.ICloneableObject<DiGi.Core.Interfaces.ISerializableObject>, DiGi.Core.Interfaces.ICloneableObject, DiGi.Core.Interfaces.IObject
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [DiGi\.Core\.Classes\.Object](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.object 'DiGi\.Core\.Classes\.Object') → [DiGi\.Core\.Classes\.SerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.serializableobject 'DiGi\.Core\.Classes\.SerializableObject') → OrtoAreaImage
+
+Implements [IGISPostgreSQLSerializableObject](DiGi.GIS.PostgreSQL.Interfaces.md#DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLSerializableObject 'DiGi\.GIS\.PostgreSQL\.Interfaces\.IGISPostgreSQLSerializableObject'), [DiGi\.Core\.Interfaces\.ISerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iserializableobject 'DiGi\.Core\.Interfaces\.ISerializableObject'), [DiGi\.Core\.Interfaces\.ICloneableObject&lt;](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject-1 'DiGi\.Core\.Interfaces\.ICloneableObject\`1')[DiGi\.Core\.Interfaces\.ISerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iserializableobject 'DiGi\.Core\.Interfaces\.ISerializableObject')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject-1 'DiGi\.Core\.Interfaces\.ICloneableObject\`1'), [DiGi\.Core\.Interfaces\.ICloneableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject 'DiGi\.Core\.Interfaces\.ICloneableObject'), [DiGi\.Core\.Interfaces\.IObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iobject 'DiGi\.Core\.Interfaces\.IObject')
+### Constructors
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaImage.OrtoAreaImage(DiGi.GIS.PostgreSQL.Classes.OrtoAreaImage)'></a>
+
+## OrtoAreaImage\(OrtoAreaImage\) Constructor
+
+Initializes a new instance of the [OrtoAreaImage](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaImage 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaImage') class as a copy of another instance\.
+
+```csharp
+public OrtoAreaImage(DiGi.GIS.PostgreSQL.Classes.OrtoAreaImage? ortoAreaImage);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaImage.OrtoAreaImage(DiGi.GIS.PostgreSQL.Classes.OrtoAreaImage).ortoAreaImage'></a>
+
+`ortoAreaImage` [OrtoAreaImage](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaImage 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaImage')
+
+The instance to copy\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaImage.OrtoAreaImage(string,DiGi.Geometry.Planar.Classes.BoundingBox2D,short,int,int,short,string,System.DateTimeOffset,byte[])'></a>
+
+## OrtoAreaImage\(string, BoundingBox2D, short, int, int, short, string, DateTimeOffset, byte\[\]\) Constructor
+
+Initializes a new instance of the [OrtoAreaImage](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaImage 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaImage') class\.
+
+```csharp
+public OrtoAreaImage(string? areaKey, DiGi.Geometry.Planar.Classes.BoundingBox2D? boundingBox2D, short epochYear, int width, int height, short status, string? sourceUrl, System.DateTimeOffset fetchedAt, byte[]? bytes);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaImage.OrtoAreaImage(string,DiGi.Geometry.Planar.Classes.BoundingBox2D,short,int,int,short,string,System.DateTimeOffset,byte[]).areaKey'></a>
+
+`areaKey` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The invariant location key of the test area the tile belongs to\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaImage.OrtoAreaImage(string,DiGi.Geometry.Planar.Classes.BoundingBox2D,short,int,int,short,string,System.DateTimeOffset,byte[]).boundingBox2D'></a>
+
+`boundingBox2D` [DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.boundingbox2d 'DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D')
+
+The area extent in EPSG:2180, easting in X\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaImage.OrtoAreaImage(string,DiGi.Geometry.Planar.Classes.BoundingBox2D,short,int,int,short,string,System.DateTimeOffset,byte[]).epochYear'></a>
+
+`epochYear` [System\.Int16](https://learn.microsoft.com/en-us/dotnet/api/system.int16 'System\.Int16')
+
+The imagery epoch the tile was fetched for\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaImage.OrtoAreaImage(string,DiGi.Geometry.Planar.Classes.BoundingBox2D,short,int,int,short,string,System.DateTimeOffset,byte[]).width'></a>
+
+`width` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The width of the tile in px\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaImage.OrtoAreaImage(string,DiGi.Geometry.Planar.Classes.BoundingBox2D,short,int,int,short,string,System.DateTimeOffset,byte[]).height'></a>
+
+`height` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The height of the tile in px\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaImage.OrtoAreaImage(string,DiGi.Geometry.Planar.Classes.BoundingBox2D,short,int,int,short,string,System.DateTimeOffset,byte[]).status'></a>
+
+`status` [System\.Int16](https://learn.microsoft.com/en-us/dotnet/api/system.int16 'System\.Int16')
+
+What the fetch produced: 0 imagery, 1 no imagery, 2 fetch error\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaImage.OrtoAreaImage(string,DiGi.Geometry.Planar.Classes.BoundingBox2D,short,int,int,short,string,System.DateTimeOffset,byte[]).sourceUrl'></a>
+
+`sourceUrl` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The URL the bytes were fetched from, or null when none\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaImage.OrtoAreaImage(string,DiGi.Geometry.Planar.Classes.BoundingBox2D,short,int,int,short,string,System.DateTimeOffset,byte[]).fetchedAt'></a>
+
+`fetchedAt` [System\.DateTimeOffset](https://learn.microsoft.com/en-us/dotnet/api/system.datetimeoffset 'System\.DateTimeOffset')
+
+When the fetch produced this row\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaImage.OrtoAreaImage(string,DiGi.Geometry.Planar.Classes.BoundingBox2D,short,int,int,short,string,System.DateTimeOffset,byte[]).bytes'></a>
+
+`bytes` [System\.Byte](https://learn.microsoft.com/en-us/dotnet/api/system.byte 'System\.Byte')[\[\]](https://learn.microsoft.com/en-us/dotnet/api/system.array 'System\.Array')
+
+The encoded tile image, or null for the negative rows of status 1 and 2\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaImage.OrtoAreaImage(System.Text.Json.Nodes.JsonObject)'></a>
+
+## OrtoAreaImage\(JsonObject\) Constructor
+
+Initializes a new instance of the [OrtoAreaImage](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaImage 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaImage') class from its JSON representation\.
+
+```csharp
+public OrtoAreaImage(System.Text.Json.Nodes.JsonObject? jsonObject);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaImage.OrtoAreaImage(System.Text.Json.Nodes.JsonObject).jsonObject'></a>
+
+`jsonObject` [System\.Text\.Json\.Nodes\.JsonObject](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.nodes.jsonobject 'System\.Text\.Json\.Nodes\.JsonObject')
+
+The JSON object\.
+### Properties
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaImage.AreaKey'></a>
+
+## OrtoAreaImage\.AreaKey Property
+
+Gets the invariant location key of the test area the tile belongs to\.
+
+```csharp
+public string AreaKey { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaImage.BoundingBox2D'></a>
+
+## OrtoAreaImage\.BoundingBox2D Property
+
+Gets a clone of the area extent in EPSG:2180, easting in X\.
+
+```csharp
+public DiGi.Geometry.Planar.Classes.BoundingBox2D? BoundingBox2D { get; }
+```
+
+#### Property Value
+[DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.boundingbox2d 'DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaImage.Bytes'></a>
+
+## OrtoAreaImage\.Bytes Property
+
+Gets the encoded tile image, or null for the negative rows of status 1 and 2\.
+
+```csharp
+public byte[]? Bytes { get; }
+```
+
+#### Property Value
+[System\.Byte](https://learn.microsoft.com/en-us/dotnet/api/system.byte 'System\.Byte')[\[\]](https://learn.microsoft.com/en-us/dotnet/api/system.array 'System\.Array')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaImage.EpochYear'></a>
+
+## OrtoAreaImage\.EpochYear Property
+
+Gets the imagery epoch the tile was fetched for\.
+
+```csharp
+public short EpochYear { get; }
+```
+
+#### Property Value
+[System\.Int16](https://learn.microsoft.com/en-us/dotnet/api/system.int16 'System\.Int16')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaImage.FetchedAt'></a>
+
+## OrtoAreaImage\.FetchedAt Property
+
+Gets when the fetch produced this row\.
+
+```csharp
+public System.DateTimeOffset FetchedAt { get; }
+```
+
+#### Property Value
+[System\.DateTimeOffset](https://learn.microsoft.com/en-us/dotnet/api/system.datetimeoffset 'System\.DateTimeOffset')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaImage.Height'></a>
+
+## OrtoAreaImage\.Height Property
+
+Gets the height of the tile in px\.
+
+```csharp
+public int Height { get; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaImage.SourceUrl'></a>
+
+## OrtoAreaImage\.SourceUrl Property
+
+Gets the URL the bytes were fetched from, or null when none\.
+
+```csharp
+public string? SourceUrl { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaImage.Status'></a>
+
+## OrtoAreaImage\.Status Property
+
+Gets what the fetch produced: 0 imagery, 1 no imagery, 2 fetch error\.
+
+```csharp
+public short Status { get; }
+```
+
+#### Property Value
+[System\.Int16](https://learn.microsoft.com/en-us/dotnet/api/system.int16 'System\.Int16')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaImage.Width'></a>
+
+## OrtoAreaImage\.Width Property
+
+Gets the width of the tile in px\.
+
+```csharp
+public int Width { get; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaImagePostgreSQLConverter'></a>
+
+## OrtoAreaImagePostgreSQLConverter Class
+
+Stores and reads the materialised area tiles of full\-interpretation test areas in the [OrtoAreaImage](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.TableName.OrtoAreaImage 'DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.OrtoAreaImage') table: one row per test area and imagery epoch \(DiGi\.GIS\.PostgreSQL\#129\)\.
+
+The row is keyed by `(area_key, epoch_year)`, so a re-fetch replaces it, never appends. Negative rows - status 1 (no imagery) and status 2 (fetch error) - are stored with a null `bytes` and cache the answer, so the source WMS is not asked again for an epoch that has nothing to give. The table lives on the Storage database beside `orto_datas`; the area registry is a Main read through [OrtoAreaPostgreSQLConverter](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaPostgreSQLConverter'), and no statement ever reads the two databases at once.
+
+```csharp
+public class OrtoAreaImagePostgreSQLConverter : DiGi.PostgreSQL.Classes.PostgreSQLConverter<DiGi.GIS.PostgreSQL.Classes.OrtoAreaImage>, DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLConverter, DiGi.PostgreSQL.Interfaces.IPostgreSQLConverter, DiGi.PostgreSQL.Interfaces.IPostgreSQLObject, DiGi.Core.Interfaces.IObject, DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLObject
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [DiGi\.PostgreSQL\.Classes\.PostgreSQLConverter&lt;](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.classes.postgresqlconverter-1 'DiGi\.PostgreSQL\.Classes\.PostgreSQLConverter\`1')[OrtoAreaImage](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaImage 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaImage')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.classes.postgresqlconverter-1 'DiGi\.PostgreSQL\.Classes\.PostgreSQLConverter\`1') → OrtoAreaImagePostgreSQLConverter
+
+Implements [IGISPostgreSQLConverter](DiGi.GIS.PostgreSQL.Interfaces.md#DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Interfaces\.IGISPostgreSQLConverter'), [DiGi\.PostgreSQL\.Interfaces\.IPostgreSQLConverter](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.interfaces.ipostgresqlconverter 'DiGi\.PostgreSQL\.Interfaces\.IPostgreSQLConverter'), [DiGi\.PostgreSQL\.Interfaces\.IPostgreSQLObject](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.interfaces.ipostgresqlobject 'DiGi\.PostgreSQL\.Interfaces\.IPostgreSQLObject'), [DiGi\.Core\.Interfaces\.IObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iobject 'DiGi\.Core\.Interfaces\.IObject'), [IGISPostgreSQLObject](DiGi.GIS.PostgreSQL.Interfaces.md#DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLObject 'DiGi\.GIS\.PostgreSQL\.Interfaces\.IGISPostgreSQLObject')
+### Constructors
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaImagePostgreSQLConverter.OrtoAreaImagePostgreSQLConverter(DiGi.PostgreSQL.Classes.ConnectionData)'></a>
+
+## OrtoAreaImagePostgreSQLConverter\(ConnectionData\) Constructor
+
+Initializes a new instance of the [OrtoAreaImagePostgreSQLConverter](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaImagePostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaImagePostgreSQLConverter') class\.
+
+```csharp
+public OrtoAreaImagePostgreSQLConverter(DiGi.PostgreSQL.Classes.ConnectionData? connectionData);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaImagePostgreSQLConverter.OrtoAreaImagePostgreSQLConverter(DiGi.PostgreSQL.Classes.ConnectionData).connectionData'></a>
+
+`connectionData` [DiGi\.PostgreSQL\.Classes\.ConnectionData](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.classes.connectiondata 'DiGi\.PostgreSQL\.Classes\.ConnectionData')
+
+The [DiGi\.PostgreSQL\.Classes\.ConnectionData](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.classes.connectiondata 'DiGi\.PostgreSQL\.Classes\.ConnectionData') containing the connection settings required to establish a connection to the PostgreSQL database\. This value can be null\.
+### Properties
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaImagePostgreSQLConverter.TableName'></a>
+
+## OrtoAreaImagePostgreSQLConverter\.TableName Property
+
+Gets the name of the database table associated with materialised test area tiles\.
+
+```csharp
+public static string TableName { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+### Methods
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaImagePostgreSQLConverter.GetOrtoAreaImageAsync(Npgsql.NpgsqlConnection,string,short,int,System.Threading.CancellationToken)'></a>
+
+## OrtoAreaImagePostgreSQLConverter\.GetOrtoAreaImageAsync\(NpgsqlConnection, string, short, int, CancellationToken\) Method
+
+Asynchronously reads the materialised tile of one test area for one imagery epoch\.
+
+A pair that was never fetched, and a table that does not exist yet, both answer null: a missing row is a different answer from a stored negative row of status 1 or 2 ([OrtoAreaImageByAreaKeyAndEpochYearCommandText\(\)](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Query.OrtoAreaImageByAreaKeyAndEpochYearCommandText() 'DiGi\.GIS\.PostgreSQL\.Query\.OrtoAreaImageByAreaKeyAndEpochYearCommandText\(\)')).
+
+```csharp
+public static System.Threading.Tasks.Task<DiGi.GIS.PostgreSQL.Classes.OrtoAreaImage?> GetOrtoAreaImageAsync(Npgsql.NpgsqlConnection? npgsqlConnection, string? areaKey, short epochYear, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaImagePostgreSQLConverter.GetOrtoAreaImageAsync(Npgsql.NpgsqlConnection,string,short,int,System.Threading.CancellationToken).npgsqlConnection'></a>
+
+`npgsqlConnection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
+
+The [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection') used to connect to the database\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaImagePostgreSQLConverter.GetOrtoAreaImageAsync(Npgsql.NpgsqlConnection,string,short,int,System.Threading.CancellationToken).areaKey'></a>
+
+`areaKey` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The invariant location key of the test area\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaImagePostgreSQLConverter.GetOrtoAreaImageAsync(Npgsql.NpgsqlConnection,string,short,int,System.Threading.CancellationToken).epochYear'></a>
+
+`epochYear` [System\.Int16](https://learn.microsoft.com/en-us/dotnet/api/system.int16 'System\.Int16')
+
+The imagery epoch the tile was fetched for\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaImagePostgreSQLConverter.GetOrtoAreaImageAsync(Npgsql.NpgsqlConnection,string,short,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaImagePostgreSQLConverter.GetOrtoAreaImageAsync(Npgsql.NpgsqlConnection,string,short,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The cancellation token to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[OrtoAreaImage](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaImage 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaImage')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result contains the tile, or null when the connection or the key is null or the pair is not stored\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaImagePostgreSQLConverter.GetOrtoAreaImageAsync(string,short,int,System.Threading.CancellationToken)'></a>
+
+## OrtoAreaImagePostgreSQLConverter\.GetOrtoAreaImageAsync\(string, short, int, CancellationToken\) Method
+
+Asynchronously reads the materialised tile of one test area for one imagery epoch, automatically managing the connection\.
+
+```csharp
+public System.Threading.Tasks.Task<DiGi.GIS.PostgreSQL.Classes.OrtoAreaImage?> GetOrtoAreaImageAsync(string? areaKey, short epochYear, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaImagePostgreSQLConverter.GetOrtoAreaImageAsync(string,short,int,System.Threading.CancellationToken).areaKey'></a>
+
+`areaKey` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The invariant location key of the test area\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaImagePostgreSQLConverter.GetOrtoAreaImageAsync(string,short,int,System.Threading.CancellationToken).epochYear'></a>
+
+`epochYear` [System\.Int16](https://learn.microsoft.com/en-us/dotnet/api/system.int16 'System\.Int16')
+
+The imagery epoch the tile was fetched for\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaImagePostgreSQLConverter.GetOrtoAreaImageAsync(string,short,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaImagePostgreSQLConverter.GetOrtoAreaImageAsync(string,short,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The cancellation token to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[OrtoAreaImage](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaImage 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaImage')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result contains the tile, or null when nothing could be read\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaImagePostgreSQLConverter.UpdateAsync(DiGi.GIS.PostgreSQL.Classes.OrtoAreaImage,int,System.Threading.CancellationToken)'></a>
+
+## OrtoAreaImagePostgreSQLConverter\.UpdateAsync\(OrtoAreaImage, int, CancellationToken\) Method
+
+Asynchronously stores one materialised area tile, automatically managing the connection\.
+
+```csharp
+public System.Threading.Tasks.Task<System.Nullable<long>> UpdateAsync(DiGi.GIS.PostgreSQL.Classes.OrtoAreaImage? ortoAreaImage, int commandTimeout=120, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaImagePostgreSQLConverter.UpdateAsync(DiGi.GIS.PostgreSQL.Classes.OrtoAreaImage,int,System.Threading.CancellationToken).ortoAreaImage'></a>
+
+`ortoAreaImage` [OrtoAreaImage](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaImage 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaImage')
+
+The tile to store\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaImagePostgreSQLConverter.UpdateAsync(DiGi.GIS.PostgreSQL.Classes.OrtoAreaImage,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaImagePostgreSQLConverter.UpdateAsync(DiGi.GIS.PostgreSQL.Classes.OrtoAreaImage,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The cancellation token to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result contains the number of rows inserted or replaced, or null when nothing could be stored\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaImagePostgreSQLConverter.UpdateAsync(Npgsql.NpgsqlConnection,DiGi.GIS.PostgreSQL.Classes.OrtoAreaImage,int,System.Threading.CancellationToken)'></a>
+
+## OrtoAreaImagePostgreSQLConverter\.UpdateAsync\(NpgsqlConnection, OrtoAreaImage, int, CancellationToken\) Method
+
+Asynchronously stores one materialised area tile, replacing the row of the same area and epoch\.
+
+The conflict target is `(area_key, epoch_year)`: one area and one epoch hold one row, and a re-fetch - negative rows of status 1 and 2 included - replaces it, never appends. [Bytes](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaImage.Bytes 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaImage\.Bytes') is stored as NULL when it is null, which is the shape of those negative rows. The table is created when missing, and an image without an area key or without a bounding box is not written.
+
+```csharp
+public static System.Threading.Tasks.Task<System.Nullable<long>> UpdateAsync(Npgsql.NpgsqlConnection? npgsqlConnection, DiGi.GIS.PostgreSQL.Classes.OrtoAreaImage? ortoAreaImage, int commandTimeout=120, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaImagePostgreSQLConverter.UpdateAsync(Npgsql.NpgsqlConnection,DiGi.GIS.PostgreSQL.Classes.OrtoAreaImage,int,System.Threading.CancellationToken).npgsqlConnection'></a>
+
+`npgsqlConnection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
+
+The [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection') used to connect to the database\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaImagePostgreSQLConverter.UpdateAsync(Npgsql.NpgsqlConnection,DiGi.GIS.PostgreSQL.Classes.OrtoAreaImage,int,System.Threading.CancellationToken).ortoAreaImage'></a>
+
+`ortoAreaImage` [OrtoAreaImage](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaImage 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaImage')
+
+The tile to store\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaImagePostgreSQLConverter.UpdateAsync(Npgsql.NpgsqlConnection,DiGi.GIS.PostgreSQL.Classes.OrtoAreaImage,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaImagePostgreSQLConverter.UpdateAsync(Npgsql.NpgsqlConnection,DiGi.GIS.PostgreSQL.Classes.OrtoAreaImage,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The cancellation token to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result contains the number of rows inserted or replaced, or null when the connection or the tile is null or the table could not be created\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel'></a>
+
+## OrtoAreaLabel Class
+
+One interpretation of one epoch of a full\-interpretation test area by one interpreter: a row of [OrtoAreaLabel](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.TableName.OrtoAreaLabel 'DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.OrtoAreaLabel') \(DiGi\.GIS\.PostgreSQL\#129\)\.
+
+The identity of a label is `(area, object identity, epoch, interpreter)`, where the object identity is exactly one of the footprint pair ([CountyId](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel.CountyId 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaLabel\.CountyId') with [Reference](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel.Reference 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaLabel\.Reference')) or [ObjectId](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel.ObjectId 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaLabel\.ObjectId'). Two interpreters file their own row for the same object, and the same interpreter re-upserting her or his row updates it in place. The table lives on the Main database, beside `building_2d`.
+
+```csharp
+public class OrtoAreaLabel : DiGi.Core.Classes.SerializableObject, DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLSerializableObject, DiGi.Core.Interfaces.ISerializableObject, DiGi.Core.Interfaces.ICloneableObject<DiGi.Core.Interfaces.ISerializableObject>, DiGi.Core.Interfaces.ICloneableObject, DiGi.Core.Interfaces.IObject
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [DiGi\.Core\.Classes\.Object](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.object 'DiGi\.Core\.Classes\.Object') → [DiGi\.Core\.Classes\.SerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.serializableobject 'DiGi\.Core\.Classes\.SerializableObject') → OrtoAreaLabel
+
+Implements [IGISPostgreSQLSerializableObject](DiGi.GIS.PostgreSQL.Interfaces.md#DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLSerializableObject 'DiGi\.GIS\.PostgreSQL\.Interfaces\.IGISPostgreSQLSerializableObject'), [DiGi\.Core\.Interfaces\.ISerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iserializableobject 'DiGi\.Core\.Interfaces\.ISerializableObject'), [DiGi\.Core\.Interfaces\.ICloneableObject&lt;](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject-1 'DiGi\.Core\.Interfaces\.ICloneableObject\`1')[DiGi\.Core\.Interfaces\.ISerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iserializableobject 'DiGi\.Core\.Interfaces\.ISerializableObject')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject-1 'DiGi\.Core\.Interfaces\.ICloneableObject\`1'), [DiGi\.Core\.Interfaces\.ICloneableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject 'DiGi\.Core\.Interfaces\.ICloneableObject'), [DiGi\.Core\.Interfaces\.IObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iobject 'DiGi\.Core\.Interfaces\.IObject')
+### Constructors
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel.OrtoAreaLabel(DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel)'></a>
+
+## OrtoAreaLabel\(OrtoAreaLabel\) Constructor
+
+Initializes a new instance of the [OrtoAreaLabel](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaLabel') class as a copy of another instance\.
+
+```csharp
+public OrtoAreaLabel(DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel? ortoAreaLabel);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel.OrtoAreaLabel(DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel).ortoAreaLabel'></a>
+
+`ortoAreaLabel` [OrtoAreaLabel](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaLabel')
+
+The instance to copy\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel.OrtoAreaLabel(string,System.Nullable_int_,string,string,short,short,System.Nullable_System.DateOnly_,System.Nullable_System.DateOnly_,string,string,System.DateTimeOffset)'></a>
+
+## OrtoAreaLabel\(string, Nullable\<int\>, string, string, short, short, Nullable\<DateOnly\>, Nullable\<DateOnly\>, string, string, DateTimeOffset\) Constructor
+
+Initializes a new instance of the [OrtoAreaLabel](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaLabel') class\.
+
+```csharp
+public OrtoAreaLabel(string? areaKey, System.Nullable<int> countyId, string? reference, string? objectId, short epochYear, short state, System.Nullable<System.DateOnly> observationDateMin, System.Nullable<System.DateOnly> observationDateMax, string? interpreter, string? note, System.DateTimeOffset updatedAt);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel.OrtoAreaLabel(string,System.Nullable_int_,string,string,short,short,System.Nullable_System.DateOnly_,System.Nullable_System.DateOnly_,string,string,System.DateTimeOffset).areaKey'></a>
+
+`areaKey` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The invariant location key of the test area the label was filed under\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel.OrtoAreaLabel(string,System.Nullable_int_,string,string,short,short,System.Nullable_System.DateOnly_,System.Nullable_System.DateOnly_,string,string,System.DateTimeOffset).countyId'></a>
+
+`countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The county part of the footprint identity, or null for a label of a drawn object\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel.OrtoAreaLabel(string,System.Nullable_int_,string,string,short,short,System.Nullable_System.DateOnly_,System.Nullable_System.DateOnly_,string,string,System.DateTimeOffset).reference'></a>
+
+`reference` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The building reference of the footprint identity, or null for a label of a drawn object\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel.OrtoAreaLabel(string,System.Nullable_int_,string,string,short,short,System.Nullable_System.DateOnly_,System.Nullable_System.DateOnly_,string,string,System.DateTimeOffset).objectId'></a>
+
+`objectId` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The identifier of the drawn object the label was filed under, or null for a label of the footprint identity\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel.OrtoAreaLabel(string,System.Nullable_int_,string,string,short,short,System.Nullable_System.DateOnly_,System.Nullable_System.DateOnly_,string,string,System.DateTimeOffset).epochYear'></a>
+
+`epochYear` [System\.Int16](https://learn.microsoft.com/en-us/dotnet/api/system.int16 'System\.Int16')
+
+The imagery epoch the label interprets\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel.OrtoAreaLabel(string,System.Nullable_int_,string,string,short,short,System.Nullable_System.DateOnly_,System.Nullable_System.DateOnly_,string,string,System.DateTimeOffset).state'></a>
+
+`state` [System\.Int16](https://learn.microsoft.com/en-us/dotnet/api/system.int16 'System\.Int16')
+
+What the interpreter saw: 0 present, 1 absent, 2 indeterminate\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel.OrtoAreaLabel(string,System.Nullable_int_,string,string,short,short,System.Nullable_System.DateOnly_,System.Nullable_System.DateOnly_,string,string,System.DateTimeOffset).observationDateMin'></a>
+
+`observationDateMin` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.DateOnly](https://learn.microsoft.com/en-us/dotnet/api/system.dateonly 'System\.DateOnly')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The earliest observation date of the epoch, or null when undated\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel.OrtoAreaLabel(string,System.Nullable_int_,string,string,short,short,System.Nullable_System.DateOnly_,System.Nullable_System.DateOnly_,string,string,System.DateTimeOffset).observationDateMax'></a>
+
+`observationDateMax` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.DateOnly](https://learn.microsoft.com/en-us/dotnet/api/system.dateonly 'System\.DateOnly')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The latest observation date of the epoch, or null when undated\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel.OrtoAreaLabel(string,System.Nullable_int_,string,string,short,short,System.Nullable_System.DateOnly_,System.Nullable_System.DateOnly_,string,string,System.DateTimeOffset).interpreter'></a>
+
+`interpreter` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The email of the user who filed the label\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel.OrtoAreaLabel(string,System.Nullable_int_,string,string,short,short,System.Nullable_System.DateOnly_,System.Nullable_System.DateOnly_,string,string,System.DateTimeOffset).note'></a>
+
+`note` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The free\-text note of the interpreter, or null when unnoted\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel.OrtoAreaLabel(string,System.Nullable_int_,string,string,short,short,System.Nullable_System.DateOnly_,System.Nullable_System.DateOnly_,string,string,System.DateTimeOffset).updatedAt'></a>
+
+`updatedAt` [System\.DateTimeOffset](https://learn.microsoft.com/en-us/dotnet/api/system.datetimeoffset 'System\.DateTimeOffset')
+
+When the label was last filed or revised\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel.OrtoAreaLabel(System.Text.Json.Nodes.JsonObject)'></a>
+
+## OrtoAreaLabel\(JsonObject\) Constructor
+
+Initializes a new instance of the [OrtoAreaLabel](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaLabel') class from its JSON representation\.
+
+```csharp
+public OrtoAreaLabel(System.Text.Json.Nodes.JsonObject? jsonObject);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel.OrtoAreaLabel(System.Text.Json.Nodes.JsonObject).jsonObject'></a>
+
+`jsonObject` [System\.Text\.Json\.Nodes\.JsonObject](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.nodes.jsonobject 'System\.Text\.Json\.Nodes\.JsonObject')
+
+The JSON object\.
+### Properties
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel.AreaKey'></a>
+
+## OrtoAreaLabel\.AreaKey Property
+
+Gets the invariant location key of the test area the label was filed under\.
+
+```csharp
+public string AreaKey { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel.CountyId'></a>
+
+## OrtoAreaLabel\.CountyId Property
+
+Gets the county part of the footprint identity, or null for a label of a drawn object\.
+
+```csharp
+public System.Nullable<int> CountyId { get; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel.EpochYear'></a>
+
+## OrtoAreaLabel\.EpochYear Property
+
+Gets the imagery epoch the label interprets\.
+
+```csharp
+public short EpochYear { get; }
+```
+
+#### Property Value
+[System\.Int16](https://learn.microsoft.com/en-us/dotnet/api/system.int16 'System\.Int16')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel.Interpreter'></a>
+
+## OrtoAreaLabel\.Interpreter Property
+
+Gets the email of the user who filed the label\.
+
+```csharp
+public string Interpreter { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel.Note'></a>
+
+## OrtoAreaLabel\.Note Property
+
+Gets the free\-text note of the interpreter, or null when unnoted\.
+
+```csharp
+public string? Note { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel.ObjectId'></a>
+
+## OrtoAreaLabel\.ObjectId Property
+
+Gets the identifier of the drawn object the label was filed under, or null for a label of the footprint identity\.
+
+```csharp
+public string? ObjectId { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel.ObservationDateMax'></a>
+
+## OrtoAreaLabel\.ObservationDateMax Property
+
+Gets the latest observation date of the epoch, or null when undated\.
+
+```csharp
+public System.Nullable<System.DateOnly> ObservationDateMax { get; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.DateOnly](https://learn.microsoft.com/en-us/dotnet/api/system.dateonly 'System\.DateOnly')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel.ObservationDateMin'></a>
+
+## OrtoAreaLabel\.ObservationDateMin Property
+
+Gets the earliest observation date of the epoch, or null when undated\.
+
+```csharp
+public System.Nullable<System.DateOnly> ObservationDateMin { get; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.DateOnly](https://learn.microsoft.com/en-us/dotnet/api/system.dateonly 'System\.DateOnly')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel.Reference'></a>
+
+## OrtoAreaLabel\.Reference Property
+
+Gets the building reference of the footprint identity, or null for a label of a drawn object\.
+
+```csharp
+public string? Reference { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel.State'></a>
+
+## OrtoAreaLabel\.State Property
+
+Gets what the interpreter saw: 0 present, 1 absent, 2 indeterminate\.
+
+```csharp
+public short State { get; }
+```
+
+#### Property Value
+[System\.Int16](https://learn.microsoft.com/en-us/dotnet/api/system.int16 'System\.Int16')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel.UpdatedAt'></a>
+
+## OrtoAreaLabel\.UpdatedAt Property
+
+Gets when the label was last filed or revised\.
+
+```csharp
+public System.DateTimeOffset UpdatedAt { get; }
+```
+
+#### Property Value
+[System\.DateTimeOffset](https://learn.microsoft.com/en-us/dotnet/api/system.datetimeoffset 'System\.DateTimeOffset')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabelPostgreSQLConverter'></a>
+
+## OrtoAreaLabelPostgreSQLConverter Class
+
+Stores and reads the interpretation labels of full\-interpretation test areas in the [OrtoAreaLabel](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.TableName.OrtoAreaLabel 'DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.OrtoAreaLabel') table: one row per \(area, object identity, epoch, interpreter\) \(DiGi\.GIS\.PostgreSQL\#129\)\.
+
+The identity columns carry everything a label is filed under: `area_key` with the footprint pair (`county_id`, `reference`) or the drawn-object identifier (`object_id`), then `epoch_year` and `interpreter`. The unique index behind them is `NULLS NOT DISTINCT` ([TableAsync\_OrtoAreaLabel\(this NpgsqlConnection, int, CancellationToken\)](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Create.TableAsync_OrtoAreaLabel(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken) 'DiGi\.GIS\.PostgreSQL\.Create\.TableAsync\_OrtoAreaLabel\(this Npgsql\.NpgsqlConnection, int, System\.Threading\.CancellationToken\)')), so rows that agree only in the NULLs of the identity pair conflict like any others, and one interpreter's re-upsert revises her or his own row while a second interpreter keeps a parallel one. The table lives on the Main database, beside `building_2d`.
+
+```csharp
+public class OrtoAreaLabelPostgreSQLConverter : DiGi.PostgreSQL.Classes.PostgreSQLConverter<DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel>, DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLConverter, DiGi.PostgreSQL.Interfaces.IPostgreSQLConverter, DiGi.PostgreSQL.Interfaces.IPostgreSQLObject, DiGi.Core.Interfaces.IObject, DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLObject
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [DiGi\.PostgreSQL\.Classes\.PostgreSQLConverter&lt;](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.classes.postgresqlconverter-1 'DiGi\.PostgreSQL\.Classes\.PostgreSQLConverter\`1')[OrtoAreaLabel](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaLabel')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.classes.postgresqlconverter-1 'DiGi\.PostgreSQL\.Classes\.PostgreSQLConverter\`1') → OrtoAreaLabelPostgreSQLConverter
+
+Implements [IGISPostgreSQLConverter](DiGi.GIS.PostgreSQL.Interfaces.md#DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Interfaces\.IGISPostgreSQLConverter'), [DiGi\.PostgreSQL\.Interfaces\.IPostgreSQLConverter](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.interfaces.ipostgresqlconverter 'DiGi\.PostgreSQL\.Interfaces\.IPostgreSQLConverter'), [DiGi\.PostgreSQL\.Interfaces\.IPostgreSQLObject](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.interfaces.ipostgresqlobject 'DiGi\.PostgreSQL\.Interfaces\.IPostgreSQLObject'), [DiGi\.Core\.Interfaces\.IObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iobject 'DiGi\.Core\.Interfaces\.IObject'), [IGISPostgreSQLObject](DiGi.GIS.PostgreSQL.Interfaces.md#DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLObject 'DiGi\.GIS\.PostgreSQL\.Interfaces\.IGISPostgreSQLObject')
+### Constructors
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabelPostgreSQLConverter.OrtoAreaLabelPostgreSQLConverter(DiGi.PostgreSQL.Classes.ConnectionData)'></a>
+
+## OrtoAreaLabelPostgreSQLConverter\(ConnectionData\) Constructor
+
+Initializes a new instance of the [OrtoAreaLabelPostgreSQLConverter](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabelPostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaLabelPostgreSQLConverter') class\.
+
+```csharp
+public OrtoAreaLabelPostgreSQLConverter(DiGi.PostgreSQL.Classes.ConnectionData? connectionData);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabelPostgreSQLConverter.OrtoAreaLabelPostgreSQLConverter(DiGi.PostgreSQL.Classes.ConnectionData).connectionData'></a>
+
+`connectionData` [DiGi\.PostgreSQL\.Classes\.ConnectionData](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.classes.connectiondata 'DiGi\.PostgreSQL\.Classes\.ConnectionData')
+
+The [DiGi\.PostgreSQL\.Classes\.ConnectionData](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.classes.connectiondata 'DiGi\.PostgreSQL\.Classes\.ConnectionData') containing the connection settings required to establish a connection to the PostgreSQL database\. This value can be null\.
+### Properties
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabelPostgreSQLConverter.TableName'></a>
+
+## OrtoAreaLabelPostgreSQLConverter\.TableName Property
+
+Gets the name of the database table associated with test area labels\.
+
+```csharp
+public static string TableName { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+### Methods
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabelPostgreSQLConverter.GetOrtoAreaLabelsAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken)'></a>
+
+## OrtoAreaLabelPostgreSQLConverter\.GetOrtoAreaLabelsAsync\(NpgsqlConnection, string, int, CancellationToken\) Method
+
+Asynchronously reads the label rows filed for one test area, ordered by epoch and interpreter\.
+
+An area that holds no labels, and a table that does not exist yet, both answer an empty list ([OrtoAreaLabelsByAreaKeyCommandText\(\)](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Query.OrtoAreaLabelsByAreaKeyCommandText() 'DiGi\.GIS\.PostgreSQL\.Query\.OrtoAreaLabelsByAreaKeyCommandText\(\)')).
+
+```csharp
+public static System.Threading.Tasks.Task<System.Collections.Generic.List<DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel>?> GetOrtoAreaLabelsAsync(Npgsql.NpgsqlConnection? npgsqlConnection, string? areaKey, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabelPostgreSQLConverter.GetOrtoAreaLabelsAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken).npgsqlConnection'></a>
+
+`npgsqlConnection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
+
+The [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection') used to connect to the database\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabelPostgreSQLConverter.GetOrtoAreaLabelsAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken).areaKey'></a>
+
+`areaKey` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The invariant location key of the test area\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabelPostgreSQLConverter.GetOrtoAreaLabelsAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabelPostgreSQLConverter.GetOrtoAreaLabelsAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The cancellation token to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[OrtoAreaLabel](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaLabel')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result contains the labels of the area, or null when the connection or the key is null\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabelPostgreSQLConverter.GetOrtoAreaLabelsAsync(string,int,System.Threading.CancellationToken)'></a>
+
+## OrtoAreaLabelPostgreSQLConverter\.GetOrtoAreaLabelsAsync\(string, int, CancellationToken\) Method
+
+Asynchronously reads the label rows filed for one test area, automatically managing the connection\.
+
+```csharp
+public System.Threading.Tasks.Task<System.Collections.Generic.List<DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel>?> GetOrtoAreaLabelsAsync(string? areaKey, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabelPostgreSQLConverter.GetOrtoAreaLabelsAsync(string,int,System.Threading.CancellationToken).areaKey'></a>
+
+`areaKey` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The invariant location key of the test area\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabelPostgreSQLConverter.GetOrtoAreaLabelsAsync(string,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabelPostgreSQLConverter.GetOrtoAreaLabelsAsync(string,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The cancellation token to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[OrtoAreaLabel](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaLabel')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result contains the labels of the area, or null when nothing could be read\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabelPostgreSQLConverter.UpdateAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel_,int,int,System.Threading.CancellationToken)'></a>
+
+## OrtoAreaLabelPostgreSQLConverter\.UpdateAsync\(NpgsqlConnection, IEnumerable\<OrtoAreaLabel\>, int, int, CancellationToken\) Method
+
+Asynchronously stores interpretation labels, revising the row of each identity rather than appending a second one\.
+
+The conflict target is `(area_key, county_id, reference, object_id, epoch_year, interpreter)`, and the index behind it is `NULLS NOT DISTINCT`: the object identity is nullable because the footprint pair (`county_id`, `reference`) and the drawn-object identifier (`object_id`) are set in turn, never together, and NULLs that agree must conflict like values do. The same identity under the same interpreter updates `state`, `observation_date_min`, `observation_date_max`, `note` and `updated_at` in place; a different interpreter inserts a row of her or his own.
+
+Labels without an area key or without an interpreter are skipped. Rows are written [batchSize](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabelPostgreSQLConverter.UpdateAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel_,int,int,System.Threading.CancellationToken).batchSize 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaLabelPostgreSQLConverter\.UpdateAsync\(Npgsql\.NpgsqlConnection, System\.Collections\.Generic\.IEnumerable\<DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaLabel\>, int, int, System\.Threading\.CancellationToken\)\.batchSize') at a time, one statement per batch carrying one array per column, and the table with its unique index is created before any conflict is inferred, so the first upsert into a fresh database finds the index in place. Within one call the last row of a duplicated identity wins, because one statement cannot update the same row twice.
+
+```csharp
+public static System.Threading.Tasks.Task<System.Nullable<long>> UpdateAsync(Npgsql.NpgsqlConnection? npgsqlConnection, System.Collections.Generic.IEnumerable<DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel?>? ortoAreaLabels, int batchSize=1000, int commandTimeout=120, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabelPostgreSQLConverter.UpdateAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel_,int,int,System.Threading.CancellationToken).npgsqlConnection'></a>
+
+`npgsqlConnection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
+
+The [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection') used to connect to the database\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabelPostgreSQLConverter.UpdateAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel_,int,int,System.Threading.CancellationToken).ortoAreaLabels'></a>
+
+`ortoAreaLabels` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[OrtoAreaLabel](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaLabel')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The labels to store\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabelPostgreSQLConverter.UpdateAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel_,int,int,System.Threading.CancellationToken).batchSize'></a>
+
+`batchSize` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The number of rows written per statement\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabelPostgreSQLConverter.UpdateAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel_,int,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabelPostgreSQLConverter.UpdateAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel_,int,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The cancellation token to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result contains the number of rows inserted or replaced, or null when the connection or the labels are null or the table could not be created\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabelPostgreSQLConverter.UpdateAsync(System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel_,int,int,System.Threading.CancellationToken)'></a>
+
+## OrtoAreaLabelPostgreSQLConverter\.UpdateAsync\(IEnumerable\<OrtoAreaLabel\>, int, int, CancellationToken\) Method
+
+Asynchronously stores interpretation labels, automatically managing the connection\.
+
+```csharp
+public System.Threading.Tasks.Task<System.Nullable<long>> UpdateAsync(System.Collections.Generic.IEnumerable<DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel?>? ortoAreaLabels, int batchSize=1000, int commandTimeout=120, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabelPostgreSQLConverter.UpdateAsync(System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel_,int,int,System.Threading.CancellationToken).ortoAreaLabels'></a>
+
+`ortoAreaLabels` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[OrtoAreaLabel](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaLabel')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The labels to store\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabelPostgreSQLConverter.UpdateAsync(System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel_,int,int,System.Threading.CancellationToken).batchSize'></a>
+
+`batchSize` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The number of rows written per statement\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabelPostgreSQLConverter.UpdateAsync(System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel_,int,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabelPostgreSQLConverter.UpdateAsync(System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel_,int,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The cancellation token to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result contains the number of rows inserted or replaced, or null when nothing could be stored\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObject'></a>
+
+## OrtoAreaObject Class
+
+One polygon drawn in a full\-interpretation test area: a row of [OrtoAreaObject](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.TableName.OrtoAreaObject 'DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.OrtoAreaObject'), keyed by its server\-assigned identifier \(DiGi\.GIS\.PostgreSQL\#129\)\.
+
+[ObjectId](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaObject.ObjectId 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaObject\.ObjectId') is a server-assigned GUID and stays stable across updates. [CellIndex](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaObject.CellIndex 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaObject\.CellIndex') is the sampled cell holding the polygon's centroid, computed and stored by the API, or null when the centroid falls outside every sampled cell. The table's `object` column carries the whole instance, polygon included, and the table lives on the Main database, beside `building_2d`.
+
+```csharp
+public class OrtoAreaObject : DiGi.Core.Classes.SerializableObject, DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLSerializableObject, DiGi.Core.Interfaces.ISerializableObject, DiGi.Core.Interfaces.ICloneableObject<DiGi.Core.Interfaces.ISerializableObject>, DiGi.Core.Interfaces.ICloneableObject, DiGi.Core.Interfaces.IObject
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [DiGi\.Core\.Classes\.Object](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.object 'DiGi\.Core\.Classes\.Object') → [DiGi\.Core\.Classes\.SerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.serializableobject 'DiGi\.Core\.Classes\.SerializableObject') → OrtoAreaObject
+
+Implements [IGISPostgreSQLSerializableObject](DiGi.GIS.PostgreSQL.Interfaces.md#DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLSerializableObject 'DiGi\.GIS\.PostgreSQL\.Interfaces\.IGISPostgreSQLSerializableObject'), [DiGi\.Core\.Interfaces\.ISerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iserializableobject 'DiGi\.Core\.Interfaces\.ISerializableObject'), [DiGi\.Core\.Interfaces\.ICloneableObject&lt;](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject-1 'DiGi\.Core\.Interfaces\.ICloneableObject\`1')[DiGi\.Core\.Interfaces\.ISerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iserializableobject 'DiGi\.Core\.Interfaces\.ISerializableObject')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject-1 'DiGi\.Core\.Interfaces\.ICloneableObject\`1'), [DiGi\.Core\.Interfaces\.ICloneableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject 'DiGi\.Core\.Interfaces\.ICloneableObject'), [DiGi\.Core\.Interfaces\.IObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iobject 'DiGi\.Core\.Interfaces\.IObject')
+### Constructors
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObject.OrtoAreaObject(DiGi.GIS.PostgreSQL.Classes.OrtoAreaObject)'></a>
+
+## OrtoAreaObject\(OrtoAreaObject\) Constructor
+
+Initializes a new instance of the [OrtoAreaObject](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaObject 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaObject') class as a copy of another instance\.
+
+```csharp
+public OrtoAreaObject(DiGi.GIS.PostgreSQL.Classes.OrtoAreaObject? ortoAreaObject);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObject.OrtoAreaObject(DiGi.GIS.PostgreSQL.Classes.OrtoAreaObject).ortoAreaObject'></a>
+
+`ortoAreaObject` [OrtoAreaObject](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaObject 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaObject')
+
+The instance to copy\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObject.OrtoAreaObject(string,string,System.Nullable_int_,DiGi.Geometry.Planar.Classes.Polygon2D,string,System.DateTimeOffset)'></a>
+
+## OrtoAreaObject\(string, string, Nullable\<int\>, Polygon2D, string, DateTimeOffset\) Constructor
+
+Initializes a new instance of the [OrtoAreaObject](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaObject 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaObject') class\.
+
+```csharp
+public OrtoAreaObject(string? objectId, string? areaKey, System.Nullable<int> cellIndex, DiGi.Geometry.Planar.Classes.Polygon2D? polygon2D, string? createdBy, System.DateTimeOffset createdAt);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObject.OrtoAreaObject(string,string,System.Nullable_int_,DiGi.Geometry.Planar.Classes.Polygon2D,string,System.DateTimeOffset).objectId'></a>
+
+`objectId` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The server\-assigned identifier of the drawn polygon; a stable GUID\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObject.OrtoAreaObject(string,string,System.Nullable_int_,DiGi.Geometry.Planar.Classes.Polygon2D,string,System.DateTimeOffset).areaKey'></a>
+
+`areaKey` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The invariant location key of the test area the polygon was drawn in\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObject.OrtoAreaObject(string,string,System.Nullable_int_,DiGi.Geometry.Planar.Classes.Polygon2D,string,System.DateTimeOffset).cellIndex'></a>
+
+`cellIndex` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The 0\-based index of the sampled cell holding the polygon's centroid, or null when the centroid falls outside every sampled cell\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObject.OrtoAreaObject(string,string,System.Nullable_int_,DiGi.Geometry.Planar.Classes.Polygon2D,string,System.DateTimeOffset).polygon2D'></a>
+
+`polygon2D` [DiGi\.Geometry\.Planar\.Classes\.Polygon2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.polygon2d 'DiGi\.Geometry\.Planar\.Classes\.Polygon2D')
+
+The drawn polygon in EPSG:2180, easting in X\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObject.OrtoAreaObject(string,string,System.Nullable_int_,DiGi.Geometry.Planar.Classes.Polygon2D,string,System.DateTimeOffset).createdBy'></a>
+
+`createdBy` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The email of the user who drew the polygon\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObject.OrtoAreaObject(string,string,System.Nullable_int_,DiGi.Geometry.Planar.Classes.Polygon2D,string,System.DateTimeOffset).createdAt'></a>
+
+`createdAt` [System\.DateTimeOffset](https://learn.microsoft.com/en-us/dotnet/api/system.datetimeoffset 'System\.DateTimeOffset')
+
+When the polygon was drawn\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObject.OrtoAreaObject(System.Text.Json.Nodes.JsonObject)'></a>
+
+## OrtoAreaObject\(JsonObject\) Constructor
+
+Initializes a new instance of the [OrtoAreaObject](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaObject 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaObject') class from its JSON representation\.
+
+```csharp
+public OrtoAreaObject(System.Text.Json.Nodes.JsonObject? jsonObject);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObject.OrtoAreaObject(System.Text.Json.Nodes.JsonObject).jsonObject'></a>
+
+`jsonObject` [System\.Text\.Json\.Nodes\.JsonObject](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.nodes.jsonobject 'System\.Text\.Json\.Nodes\.JsonObject')
+
+The JSON object\.
+### Properties
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObject.AreaKey'></a>
+
+## OrtoAreaObject\.AreaKey Property
+
+Gets the invariant location key of the test area the polygon was drawn in\.
+
+```csharp
+public string AreaKey { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObject.CellIndex'></a>
+
+## OrtoAreaObject\.CellIndex Property
+
+Gets the 0\-based index of the sampled cell holding the polygon's centroid, or null when the centroid falls outside every sampled cell\.
+
+```csharp
+public System.Nullable<int> CellIndex { get; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObject.CreatedAt'></a>
+
+## OrtoAreaObject\.CreatedAt Property
+
+Gets when the polygon was drawn\.
+
+```csharp
+public System.DateTimeOffset CreatedAt { get; }
+```
+
+#### Property Value
+[System\.DateTimeOffset](https://learn.microsoft.com/en-us/dotnet/api/system.datetimeoffset 'System\.DateTimeOffset')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObject.CreatedBy'></a>
+
+## OrtoAreaObject\.CreatedBy Property
+
+Gets the email of the user who drew the polygon\.
+
+```csharp
+public string CreatedBy { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObject.ObjectId'></a>
+
+## OrtoAreaObject\.ObjectId Property
+
+Gets the server\-assigned identifier of the drawn polygon; a stable GUID\.
+
+```csharp
+public string ObjectId { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObject.Polygon2D'></a>
+
+## OrtoAreaObject\.Polygon2D Property
+
+Gets a clone of the drawn polygon in EPSG:2180, easting in X\.
+
+```csharp
+public DiGi.Geometry.Planar.Classes.Polygon2D? Polygon2D { get; }
+```
+
+#### Property Value
+[DiGi\.Geometry\.Planar\.Classes\.Polygon2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.polygon2d 'DiGi\.Geometry\.Planar\.Classes\.Polygon2D')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter'></a>
+
+## OrtoAreaObjectPostgreSQLConverter Class
+
+Stores and reads the polygons drawn in full\-interpretation test areas in the [OrtoAreaObject](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.TableName.OrtoAreaObject 'DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.OrtoAreaObject') table: one row per drawn polygon, keyed by its server\-assigned identifier \(DiGi\.GIS\.PostgreSQL\#129\)\.
+
+The `object` column carries the whole [OrtoAreaObject](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaObject 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaObject'), polygon and metadata included, and `area_key` carries the owning area with an index of its own, which is what the read by area runs on. `created_at` stores the drawing moment from the object itself, not the moment the row was inserted. The table lives on the Main database, beside `building_2d`.
+
+```csharp
+public class OrtoAreaObjectPostgreSQLConverter : DiGi.PostgreSQL.Classes.PostgreSQLConverter<DiGi.GIS.PostgreSQL.Classes.OrtoAreaObject>, DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLConverter, DiGi.PostgreSQL.Interfaces.IPostgreSQLConverter, DiGi.PostgreSQL.Interfaces.IPostgreSQLObject, DiGi.Core.Interfaces.IObject, DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLObject
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [DiGi\.PostgreSQL\.Classes\.PostgreSQLConverter&lt;](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.classes.postgresqlconverter-1 'DiGi\.PostgreSQL\.Classes\.PostgreSQLConverter\`1')[OrtoAreaObject](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaObject 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaObject')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.classes.postgresqlconverter-1 'DiGi\.PostgreSQL\.Classes\.PostgreSQLConverter\`1') → OrtoAreaObjectPostgreSQLConverter
+
+Implements [IGISPostgreSQLConverter](DiGi.GIS.PostgreSQL.Interfaces.md#DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Interfaces\.IGISPostgreSQLConverter'), [DiGi\.PostgreSQL\.Interfaces\.IPostgreSQLConverter](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.interfaces.ipostgresqlconverter 'DiGi\.PostgreSQL\.Interfaces\.IPostgreSQLConverter'), [DiGi\.PostgreSQL\.Interfaces\.IPostgreSQLObject](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.interfaces.ipostgresqlobject 'DiGi\.PostgreSQL\.Interfaces\.IPostgreSQLObject'), [DiGi\.Core\.Interfaces\.IObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iobject 'DiGi\.Core\.Interfaces\.IObject'), [IGISPostgreSQLObject](DiGi.GIS.PostgreSQL.Interfaces.md#DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLObject 'DiGi\.GIS\.PostgreSQL\.Interfaces\.IGISPostgreSQLObject')
+### Constructors
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter.OrtoAreaObjectPostgreSQLConverter(DiGi.PostgreSQL.Classes.ConnectionData)'></a>
+
+## OrtoAreaObjectPostgreSQLConverter\(ConnectionData\) Constructor
+
+Initializes a new instance of the [OrtoAreaObjectPostgreSQLConverter](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaObjectPostgreSQLConverter') class\.
+
+```csharp
+public OrtoAreaObjectPostgreSQLConverter(DiGi.PostgreSQL.Classes.ConnectionData? connectionData);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter.OrtoAreaObjectPostgreSQLConverter(DiGi.PostgreSQL.Classes.ConnectionData).connectionData'></a>
+
+`connectionData` [DiGi\.PostgreSQL\.Classes\.ConnectionData](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.classes.connectiondata 'DiGi\.PostgreSQL\.Classes\.ConnectionData')
+
+The [DiGi\.PostgreSQL\.Classes\.ConnectionData](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.classes.connectiondata 'DiGi\.PostgreSQL\.Classes\.ConnectionData') containing the connection settings required to establish a connection to the PostgreSQL database\. This value can be null\.
+### Properties
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter.TableName'></a>
+
+## OrtoAreaObjectPostgreSQLConverter\.TableName Property
+
+Gets the name of the database table associated with polygons drawn in test areas\.
+
+```csharp
+public static string TableName { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+### Methods
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter.GetOrtoAreaObjectsAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken)'></a>
+
+## OrtoAreaObjectPostgreSQLConverter\.GetOrtoAreaObjectsAsync\(NpgsqlConnection, string, int, CancellationToken\) Method
+
+Asynchronously reads the polygons drawn in one test area, ordered by their identifiers\.
+
+An area that holds no polygons, and a table that does not exist yet, both answer an empty list ([OrtoAreaObjectsByAreaKeyCommandText\(\)](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Query.OrtoAreaObjectsByAreaKeyCommandText() 'DiGi\.GIS\.PostgreSQL\.Query\.OrtoAreaObjectsByAreaKeyCommandText\(\)')).
+
+```csharp
+public static System.Threading.Tasks.Task<System.Collections.Generic.List<DiGi.GIS.PostgreSQL.Classes.OrtoAreaObject>?> GetOrtoAreaObjectsAsync(Npgsql.NpgsqlConnection? npgsqlConnection, string? areaKey, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter.GetOrtoAreaObjectsAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken).npgsqlConnection'></a>
+
+`npgsqlConnection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
+
+The [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection') used to connect to the database\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter.GetOrtoAreaObjectsAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken).areaKey'></a>
+
+`areaKey` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The invariant location key of the test area\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter.GetOrtoAreaObjectsAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter.GetOrtoAreaObjectsAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The cancellation token to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[OrtoAreaObject](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaObject 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaObject')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result contains the polygons of the area, or null when the connection or the key is null\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter.GetOrtoAreaObjectsAsync(string,int,System.Threading.CancellationToken)'></a>
+
+## OrtoAreaObjectPostgreSQLConverter\.GetOrtoAreaObjectsAsync\(string, int, CancellationToken\) Method
+
+Asynchronously reads the polygons drawn in one test area, automatically managing the connection\.
+
+```csharp
+public System.Threading.Tasks.Task<System.Collections.Generic.List<DiGi.GIS.PostgreSQL.Classes.OrtoAreaObject>?> GetOrtoAreaObjectsAsync(string? areaKey, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter.GetOrtoAreaObjectsAsync(string,int,System.Threading.CancellationToken).areaKey'></a>
+
+`areaKey` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The invariant location key of the test area\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter.GetOrtoAreaObjectsAsync(string,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter.GetOrtoAreaObjectsAsync(string,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The cancellation token to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[OrtoAreaObject](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaObject 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaObject')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result contains the polygons of the area, or null when nothing could be read\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter.UpdateAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OrtoAreaObject_,int,int,System.Threading.CancellationToken)'></a>
+
+## OrtoAreaObjectPostgreSQLConverter\.UpdateAsync\(NpgsqlConnection, IEnumerable\<OrtoAreaObject\>, int, int, CancellationToken\) Method
+
+Asynchronously stores polygons drawn in test areas, replacing the row of each drawn polygon\.
+
+The conflict target is `object_id`: a server-assigned identifier names one polygon for good, so a revision replaces its row and keeps the identifier stable. A polygon without an identifier or without an area key is skipped, and rows are written [batchSize](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter.UpdateAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OrtoAreaObject_,int,int,System.Threading.CancellationToken).batchSize 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaObjectPostgreSQLConverter\.UpdateAsync\(Npgsql\.NpgsqlConnection, System\.Collections\.Generic\.IEnumerable\<DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaObject\>, int, int, System\.Threading\.CancellationToken\)\.batchSize') at a time, one statement per batch carrying one array per column. Within one call the last row of a duplicated identifier wins, because one statement cannot update the same row twice. The table is created when missing.
+
+```csharp
+public static System.Threading.Tasks.Task<System.Nullable<long>> UpdateAsync(Npgsql.NpgsqlConnection? npgsqlConnection, System.Collections.Generic.IEnumerable<DiGi.GIS.PostgreSQL.Classes.OrtoAreaObject?>? ortoAreaObjects, int batchSize=1000, int commandTimeout=120, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter.UpdateAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OrtoAreaObject_,int,int,System.Threading.CancellationToken).npgsqlConnection'></a>
+
+`npgsqlConnection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
+
+The [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection') used to connect to the database\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter.UpdateAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OrtoAreaObject_,int,int,System.Threading.CancellationToken).ortoAreaObjects'></a>
+
+`ortoAreaObjects` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[OrtoAreaObject](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaObject 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaObject')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The polygons to store\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter.UpdateAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OrtoAreaObject_,int,int,System.Threading.CancellationToken).batchSize'></a>
+
+`batchSize` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The number of rows written per statement\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter.UpdateAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OrtoAreaObject_,int,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter.UpdateAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OrtoAreaObject_,int,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The cancellation token to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result contains the number of rows inserted or replaced, or null when the connection or the polygons are null or the table could not be created\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter.UpdateAsync(System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OrtoAreaObject_,int,int,System.Threading.CancellationToken)'></a>
+
+## OrtoAreaObjectPostgreSQLConverter\.UpdateAsync\(IEnumerable\<OrtoAreaObject\>, int, int, CancellationToken\) Method
+
+Asynchronously stores polygons drawn in test areas, automatically managing the connection\.
+
+```csharp
+public System.Threading.Tasks.Task<System.Nullable<long>> UpdateAsync(System.Collections.Generic.IEnumerable<DiGi.GIS.PostgreSQL.Classes.OrtoAreaObject?>? ortoAreaObjects, int batchSize=1000, int commandTimeout=120, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter.UpdateAsync(System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OrtoAreaObject_,int,int,System.Threading.CancellationToken).ortoAreaObjects'></a>
+
+`ortoAreaObjects` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[OrtoAreaObject](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaObject 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaObject')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The polygons to store\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter.UpdateAsync(System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OrtoAreaObject_,int,int,System.Threading.CancellationToken).batchSize'></a>
+
+`batchSize` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The number of rows written per statement\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter.UpdateAsync(System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OrtoAreaObject_,int,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter.UpdateAsync(System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OrtoAreaObject_,int,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The cancellation token to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result contains the number of rows inserted or replaced, or null when nothing could be stored\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter'></a>
+
+## OrtoAreaPostgreSQLConverter Class
+
+Stores and reads full\-interpretation test areas in the [OrtoArea](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.TableName.OrtoArea 'DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.OrtoArea') table: one row per test area, keyed by the invariant location key of its bounding box \(DiGi\.GIS\.PostgreSQL\#129\)\.
+
+The `object` column carries the whole [OrtoArea](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoArea 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoArea'), sampled cells included, so one read returns the area with its grid in index order; the envelope columns (`min_x` ... `max_y`) duplicate the box for keyed and ranged lookup. The table lives on the Main database, beside `building_2d`. The area's imagery is a Storage read through [OrtoAreaImagePostgreSQLConverter](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaImagePostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaImagePostgreSQLConverter'), and no statement ever reads the two databases at once.
+
+```csharp
+public class OrtoAreaPostgreSQLConverter : DiGi.PostgreSQL.Classes.PostgreSQLConverter<DiGi.GIS.PostgreSQL.Classes.OrtoArea>, DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLConverter, DiGi.PostgreSQL.Interfaces.IPostgreSQLConverter, DiGi.PostgreSQL.Interfaces.IPostgreSQLObject, DiGi.Core.Interfaces.IObject, DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLObject
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [DiGi\.PostgreSQL\.Classes\.PostgreSQLConverter&lt;](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.classes.postgresqlconverter-1 'DiGi\.PostgreSQL\.Classes\.PostgreSQLConverter\`1')[OrtoArea](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoArea 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoArea')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.classes.postgresqlconverter-1 'DiGi\.PostgreSQL\.Classes\.PostgreSQLConverter\`1') → OrtoAreaPostgreSQLConverter
+
+Implements [IGISPostgreSQLConverter](DiGi.GIS.PostgreSQL.Interfaces.md#DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Interfaces\.IGISPostgreSQLConverter'), [DiGi\.PostgreSQL\.Interfaces\.IPostgreSQLConverter](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.interfaces.ipostgresqlconverter 'DiGi\.PostgreSQL\.Interfaces\.IPostgreSQLConverter'), [DiGi\.PostgreSQL\.Interfaces\.IPostgreSQLObject](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.interfaces.ipostgresqlobject 'DiGi\.PostgreSQL\.Interfaces\.IPostgreSQLObject'), [DiGi\.Core\.Interfaces\.IObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iobject 'DiGi\.Core\.Interfaces\.IObject'), [IGISPostgreSQLObject](DiGi.GIS.PostgreSQL.Interfaces.md#DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLObject 'DiGi\.GIS\.PostgreSQL\.Interfaces\.IGISPostgreSQLObject')
+### Constructors
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter.OrtoAreaPostgreSQLConverter(DiGi.PostgreSQL.Classes.ConnectionData)'></a>
+
+## OrtoAreaPostgreSQLConverter\(ConnectionData\) Constructor
+
+Initializes a new instance of the [OrtoAreaPostgreSQLConverter](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaPostgreSQLConverter') class\.
+
+```csharp
+public OrtoAreaPostgreSQLConverter(DiGi.PostgreSQL.Classes.ConnectionData? connectionData);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter.OrtoAreaPostgreSQLConverter(DiGi.PostgreSQL.Classes.ConnectionData).connectionData'></a>
+
+`connectionData` [DiGi\.PostgreSQL\.Classes\.ConnectionData](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.classes.connectiondata 'DiGi\.PostgreSQL\.Classes\.ConnectionData')
+
+The [DiGi\.PostgreSQL\.Classes\.ConnectionData](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.classes.connectiondata 'DiGi\.PostgreSQL\.Classes\.ConnectionData') containing the connection settings required to establish a connection to the PostgreSQL database\. This value can be null\.
+### Properties
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter.TableName'></a>
+
+## OrtoAreaPostgreSQLConverter\.TableName Property
+
+Gets the name of the database table associated with full\-interpretation test areas\.
+
+```csharp
+public static string TableName { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+### Methods
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter.GetOrtoAreaAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken)'></a>
+
+## OrtoAreaPostgreSQLConverter\.GetOrtoAreaAsync\(NpgsqlConnection, string, int, CancellationToken\) Method
+
+Asynchronously reads one test area by the invariant location key of its bounding box\.
+
+A key that is not stored, and a table that does not exist yet, both answer null ([OrtoAreaByKeyCommandText\(\)](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Query.OrtoAreaByKeyCommandText() 'DiGi\.GIS\.PostgreSQL\.Query\.OrtoAreaByKeyCommandText\(\)')).
+
+```csharp
+public static System.Threading.Tasks.Task<DiGi.GIS.PostgreSQL.Classes.OrtoArea?> GetOrtoAreaAsync(Npgsql.NpgsqlConnection? npgsqlConnection, string? areaKey, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter.GetOrtoAreaAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken).npgsqlConnection'></a>
+
+`npgsqlConnection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
+
+The [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection') used to connect to the database\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter.GetOrtoAreaAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken).areaKey'></a>
+
+`areaKey` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The invariant location key of the area\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter.GetOrtoAreaAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter.GetOrtoAreaAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The cancellation token to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[OrtoArea](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoArea 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoArea')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result contains the area with its sampled cells, or null when the connection or the key is null or the area is not stored\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter.GetOrtoAreaAsync(string,int,System.Threading.CancellationToken)'></a>
+
+## OrtoAreaPostgreSQLConverter\.GetOrtoAreaAsync\(string, int, CancellationToken\) Method
+
+Asynchronously reads one test area by the invariant location key of its bounding box, automatically managing the connection\.
+
+```csharp
+public System.Threading.Tasks.Task<DiGi.GIS.PostgreSQL.Classes.OrtoArea?> GetOrtoAreaAsync(string? areaKey, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter.GetOrtoAreaAsync(string,int,System.Threading.CancellationToken).areaKey'></a>
+
+`areaKey` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The invariant location key of the area\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter.GetOrtoAreaAsync(string,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter.GetOrtoAreaAsync(string,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The cancellation token to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[OrtoArea](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoArea 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoArea')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result contains the area with its sampled cells, or null when nothing could be read\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter.UpdateAsync(DiGi.GIS.PostgreSQL.Classes.OrtoArea,int,System.Threading.CancellationToken)'></a>
+
+## OrtoAreaPostgreSQLConverter\.UpdateAsync\(OrtoArea, int, CancellationToken\) Method
+
+Asynchronously stores one test area, replacing the row with the same invariant location key, automatically managing the connection\.
+
+```csharp
+public System.Threading.Tasks.Task<System.Nullable<long>> UpdateAsync(DiGi.GIS.PostgreSQL.Classes.OrtoArea? ortoArea, int commandTimeout=120, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter.UpdateAsync(DiGi.GIS.PostgreSQL.Classes.OrtoArea,int,System.Threading.CancellationToken).ortoArea'></a>
+
+`ortoArea` [OrtoArea](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoArea 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoArea')
+
+The area to store\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter.UpdateAsync(DiGi.GIS.PostgreSQL.Classes.OrtoArea,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter.UpdateAsync(DiGi.GIS.PostgreSQL.Classes.OrtoArea,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The cancellation token to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result contains the number of rows inserted or replaced, or null when nothing could be stored\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter.UpdateAsync(Npgsql.NpgsqlConnection,DiGi.GIS.PostgreSQL.Classes.OrtoArea,int,System.Threading.CancellationToken)'></a>
+
+## OrtoAreaPostgreSQLConverter\.UpdateAsync\(NpgsqlConnection, OrtoArea, int, CancellationToken\) Method
+
+Asynchronously stores one test area, replacing the row with the same invariant location key\.
+
+The conflict target is `area_key`: an area is re-sampled as a whole, so a later write replaces the previous row, sampled cells included. The table and its box indexes are created when missing, and an area without a key or without a bounding box is not written.
+
+```csharp
+public static System.Threading.Tasks.Task<System.Nullable<long>> UpdateAsync(Npgsql.NpgsqlConnection? npgsqlConnection, DiGi.GIS.PostgreSQL.Classes.OrtoArea? ortoArea, int commandTimeout=120, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter.UpdateAsync(Npgsql.NpgsqlConnection,DiGi.GIS.PostgreSQL.Classes.OrtoArea,int,System.Threading.CancellationToken).npgsqlConnection'></a>
+
+`npgsqlConnection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
+
+The [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection') used to connect to the database\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter.UpdateAsync(Npgsql.NpgsqlConnection,DiGi.GIS.PostgreSQL.Classes.OrtoArea,int,System.Threading.CancellationToken).ortoArea'></a>
+
+`ortoArea` [OrtoArea](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoArea 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoArea')
+
+The area to store\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter.UpdateAsync(Npgsql.NpgsqlConnection,DiGi.GIS.PostgreSQL.Classes.OrtoArea,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter.UpdateAsync(Npgsql.NpgsqlConnection,DiGi.GIS.PostgreSQL.Classes.OrtoArea,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The cancellation token to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result contains the number of rows inserted or replaced, or null when the connection or the area is null or the table could not be created\.
+
 <a name='DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisition'></a>
 
 ## OrtoDataAcquisition Class

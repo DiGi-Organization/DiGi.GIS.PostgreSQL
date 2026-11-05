@@ -49,6 +49,9 @@ namespace DiGi.GIS.PostgreSQL
                     result.Add(new UnitPostgreSQLConverter(connectionData), postgreSQLConfigurationFile_Main);
                     result.Add(new StatisticalDataCollectionPostgreSQLConverter(connectionData), postgreSQLConfigurationFile_Main);
                     result.Add(new AddressPointPostgreSQLConverter(connectionData), postgreSQLConfigurationFile_Main);
+                    result.Add(new OrtoAreaPostgreSQLConverter(connectionData), postgreSQLConfigurationFile_Main);
+                    result.Add(new OrtoAreaObjectPostgreSQLConverter(connectionData), postgreSQLConfigurationFile_Main);
+                    result.Add(new OrtoAreaLabelPostgreSQLConverter(connectionData), postgreSQLConfigurationFile_Main);
                 }
             }
 
@@ -65,6 +68,7 @@ namespace DiGi.GIS.PostgreSQL
                     result.Add(new BuildingPostgreSQLConverter(connectionData), postgreSQLConfigurationFile_Storage);
                     result.Add(new TerrainPointPostgreSQLConverter(connectionData), postgreSQLConfigurationFile_Storage);
                     result.Add(new OrtoSheetPostgreSQLConverter(connectionData), postgreSQLConfigurationFile_Storage);
+                    result.Add(new OrtoAreaImagePostgreSQLConverter(connectionData), postgreSQLConfigurationFile_Storage);
                 }
             }
 

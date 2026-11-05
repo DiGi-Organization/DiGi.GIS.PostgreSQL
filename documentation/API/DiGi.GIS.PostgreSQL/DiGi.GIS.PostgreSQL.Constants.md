@@ -185,6 +185,58 @@ public const string OccupancyData_Building2D = "occupancy_data_building_2d";
 #### Field Value
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
+<a name='DiGi.GIS.PostgreSQL.Constants.TableName.OrtoArea'></a>
+
+## TableName\.OrtoArea Field
+
+The name of the full\-interpretation test area table: one row per test area, carrying its bounding box envelope, sampling grid parameters and the sampled cells inside `object` \(DiGi\.GIS\.PostgreSQL\#129\)\. On the Main database\.
+
+```csharp
+public const string OrtoArea = "orto_area";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.PostgreSQL.Constants.TableName.OrtoAreaImage'></a>
+
+## TableName\.OrtoAreaImage Field
+
+The name of the test area image table: one materialised area tile per test area and imagery epoch, negative rows of missing or failed imagery included \(DiGi\.GIS\.PostgreSQL\#129\)\. On the Storage database beside [OrtoDatas](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.TableName.OrtoDatas 'DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.OrtoDatas')\.
+
+```csharp
+public const string OrtoAreaImage = "orto_area_image";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.PostgreSQL.Constants.TableName.OrtoAreaLabel'></a>
+
+## TableName\.OrtoAreaLabel Field
+
+The name of the test area label table: one row per \(area, object identity, epoch, interpreter\), where the object identity is exactly one of the footprint pair or the drawn\-object identifier, unique under a `NULLS NOT DISTINCT` index \(DiGi\.GIS\.PostgreSQL\#129\)\. On the Main database\.
+
+```csharp
+public const string OrtoAreaLabel = "orto_area_label";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.PostgreSQL.Constants.TableName.OrtoAreaObject'></a>
+
+## TableName\.OrtoAreaObject Field
+
+The name of the test area object table: one row per polygon drawn in a test area, keyed by its server\-assigned identifier and filed under `area_key` \(DiGi\.GIS\.PostgreSQL\#129\)\. On the Main database\.
+
+```csharp
+public const string OrtoAreaObject = "orto_area_object";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
 <a name='DiGi.GIS.PostgreSQL.Constants.TableName.OrtoDataAcquisition'></a>
 
 ## TableName\.OrtoDataAcquisition Field

@@ -717,6 +717,207 @@ namespace DiGi.GIS.PostgreSQL
         }
 
         /// <summary>
+        /// Asynchronously creates the <see cref="Constants.TableName.OrtoArea"/> table, the full-interpretation test area registry, with its supporting indexes.
+        /// <para>One row per test area, unique on <c>area_key</c>, the invariant location key of the area's bounding box. The envelope columns (<c>min_x</c> ... <c>max_y</c>, EPSG:2180, easting in X) carry the box for keyed and ranged lookup, served by the single-column indexes; <c>object</c> carries the whole <see cref="OrtoArea"/>, sampled cells included, so one read returns the area with its grid (<see cref="OrtoAreaPostgreSQLConverter.GetOrtoAreaAsync(NpgsqlConnection?, string, int, CancellationToken)"/>). The table lives on the Main database, beside <c>building_2d</c> (DiGi.GIS.PostgreSQL#129). Every statement is idempotent.</para>
+        /// </summary>
+        /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> instance used to execute the command.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> to monitor for cancellation requests.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result is true if the table exists or was created; otherwise, false.</returns>
+        public static async Task<bool> TableAsync_OrtoArea(this NpgsqlConnection? npgsqlConnection, int commandTimeout = 30, CancellationToken cancellationToken = default)
+        {
+            if (npgsqlConnection is null)
+            {
+                return false;
+            }
+
+            string commandText = $@"
+                CREATE TABLE IF NOT EXISTS {Constants.TableName.OrtoArea} (
+                    area_key TEXT NOT NULL PRIMARY KEY,
+                    min_x DOUBLE PRECISION NOT NULL,
+                    min_y DOUBLE PRECISION NOT NULL,
+                    max_x DOUBLE PRECISION NOT NULL,
+                    max_y DOUBLE PRECISION NOT NULL,
+                    name TEXT,
+                    stratum TEXT,
+                    cell_size DOUBLE PRECISION NOT NULL,
+                    cell_count INTEGER NOT NULL,
+                    seed BIGINT NOT NULL,
+                    object JSONB NOT NULL
+                );
+
+                -- The box lookup of the area: one bounded range per axis, served by single-column indexes.
+                CREATE INDEX IF NOT EXISTS idx_{Constants.TableName.OrtoArea}_min_x
+                ON {Constants.TableName.OrtoArea} (min_x);
+
+                CREATE INDEX IF NOT EXISTS idx_{Constants.TableName.OrtoArea}_min_y
+                ON {Constants.TableName.OrtoArea} (min_y);
+                ";
+
+            try
+            {
+                await using NpgsqlCommand npgsqlCommand = new(commandText, npgsqlConnection);
+                npgsqlCommand.CommandTimeout = commandTimeout;
+
+                await npgsqlCommand.ExecuteNonQueryAsync(cancellationToken);
+                return true;
+            }
+            catch (NpgsqlException ex)
+            {
+                Console.WriteLine($"Postgres Error ({nameof(TableAsync_OrtoArea)}): {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Asynchronously creates the <see cref="Constants.TableName.OrtoAreaObject"/> table, the polygons drawn in test areas, with its supporting indexes.
+        /// <para>One row per drawn polygon, unique on <c>object_id</c>, the server-assigned identifier that stays stable across revisions. <c>area_key</c> carries the owning area and carries an index of its own, which is what the read by area runs on (<see cref="OrtoAreaObjectPostgreSQLConverter.GetOrtoAreaObjectsAsync(NpgsqlConnection?, string, int, CancellationToken)"/>); <c>cell_index</c> is null for a centroid outside every sampled cell; <c>created_at</c> stores the drawing moment from the object, not the moment the row was inserted; <c>object</c> carries the whole <see cref="OrtoAreaObject"/>, polygon included. The table lives on the Main database, beside <c>building_2d</c> (DiGi.GIS.PostgreSQL#129). Every statement is idempotent.</para>
+        /// </summary>
+        /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> instance used to execute the command.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> to monitor for cancellation requests.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result is true if the table exists or was created; otherwise, false.</returns>
+        public static async Task<bool> TableAsync_OrtoAreaObject(this NpgsqlConnection? npgsqlConnection, int commandTimeout = 30, CancellationToken cancellationToken = default)
+        {
+            if (npgsqlConnection is null)
+            {
+                return false;
+            }
+
+            string commandText = $@"
+                CREATE TABLE IF NOT EXISTS {Constants.TableName.OrtoAreaObject} (
+                    object_id TEXT NOT NULL PRIMARY KEY,
+                    area_key TEXT NOT NULL,
+                    cell_index INTEGER,
+                    created_by TEXT NOT NULL,
+                    created_at timestamptz NOT NULL,
+                    object JSONB NOT NULL
+                );
+
+                -- The read by area (Query.OrtoAreaObjectsByAreaKeyCommandText) filters on area_key alone.
+                CREATE INDEX IF NOT EXISTS idx_{Constants.TableName.OrtoAreaObject}_area_key
+                ON {Constants.TableName.OrtoAreaObject} (area_key);
+                ";
+
+            try
+            {
+                await using NpgsqlCommand npgsqlCommand = new(commandText, npgsqlConnection);
+                npgsqlCommand.CommandTimeout = commandTimeout;
+
+                await npgsqlCommand.ExecuteNonQueryAsync(cancellationToken);
+                return true;
+            }
+            catch (NpgsqlException ex)
+            {
+                Console.WriteLine($"Postgres Error ({nameof(TableAsync_OrtoAreaObject)}): {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Asynchronously creates the <see cref="Constants.TableName.OrtoAreaLabel"/> table, the interpretation labels of test areas, with its unique identity index.
+        /// <para>One row per (area, object identity, epoch, interpreter). The object identity is nullable - <c>county_id</c> with <c>reference</c> is the footprint identity, <c>object_id</c> the drawn-object identity, and exactly one of the two is set - so the unique index behind the label upsert is written <c>NULLS NOT DISTINCT</c>: rows that agree only in those NULLs conflict like any others, one interpreter's re-upsert revises her or his own row and a second interpreter keeps a parallel one (<see cref="OrtoAreaLabelPostgreSQLConverter.UpdateAsync(NpgsqlConnection?, System.Collections.Generic.IEnumerable{OrtoAreaLabel}, int, int, CancellationToken)"/>). <c>area_key</c> leads the index, so it also serves the read by area (<see cref="OrtoAreaLabelPostgreSQLConverter.GetOrtoAreaLabelsAsync(NpgsqlConnection?, string, int, CancellationToken)"/>). The table lives on the Main database, beside <c>building_2d</c> (DiGi.GIS.PostgreSQL#129). Every statement is idempotent.</para>
+        /// </summary>
+        /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> instance used to execute the command.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> to monitor for cancellation requests.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result is true if the table exists or was created; otherwise, false.</returns>
+        public static async Task<bool> TableAsync_OrtoAreaLabel(this NpgsqlConnection? npgsqlConnection, int commandTimeout = 30, CancellationToken cancellationToken = default)
+        {
+            if (npgsqlConnection is null)
+            {
+                return false;
+            }
+
+            string commandText = $@"
+                CREATE TABLE IF NOT EXISTS {Constants.TableName.OrtoAreaLabel} (
+                    area_key TEXT NOT NULL,
+                    county_id INTEGER,
+                    reference TEXT,
+                    object_id TEXT,
+                    epoch_year SMALLINT NOT NULL,
+                    state SMALLINT NOT NULL,
+                    observation_date_min DATE,
+                    observation_date_max DATE,
+                    interpreter TEXT NOT NULL,
+                    note TEXT,
+                    updated_at timestamptz NOT NULL
+                );
+
+                -- The conflict target of the label upsert: one row per (area, object identity, epoch, interpreter).
+                -- The identity pair is nullable - county_id and reference are the footprint identity, object_id
+                -- the drawn-object identity, exactly one of the two is set - so NULLS NOT DISTINCT makes rows that
+                -- agree only in those NULLs conflict like any others: one interpreter's re-upsert revises her or
+                -- his row in place, while a second interpreter's label inserts a row of its own (PostgreSQL 15+).
+                -- area_key leads the index, which is also what serves the read by area (Query.OrtoAreaLabelsByAreaKeyCommandText).
+                CREATE UNIQUE INDEX IF NOT EXISTS idx_{Constants.TableName.OrtoAreaLabel}_identity
+                ON {Constants.TableName.OrtoAreaLabel} (area_key, county_id, reference, object_id, epoch_year, interpreter) NULLS NOT DISTINCT;
+                ";
+
+            try
+            {
+                await using NpgsqlCommand npgsqlCommand = new(commandText, npgsqlConnection);
+                npgsqlCommand.CommandTimeout = commandTimeout;
+
+                await npgsqlCommand.ExecuteNonQueryAsync(cancellationToken);
+                return true;
+            }
+            catch (NpgsqlException ex)
+            {
+                Console.WriteLine($"Postgres Error ({nameof(TableAsync_OrtoAreaLabel)}): {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Asynchronously creates the <see cref="Constants.TableName.OrtoAreaImage"/> table, the materialised area tiles of test areas, with its unique area-and-epoch key.
+        /// <para>One row per area and imagery epoch, unique on <c>(area_key, epoch_year)</c>, which is the conflict target of the tile upsert: a re-fetch replaces the row, never appends, and the negative rows of status 1 (no imagery) and 2 (fetch error) are stored with a null <c>bytes</c> to cache their answer. The envelope columns (<c>min_x</c> ... <c>max_y</c>, EPSG:2180, easting in X) carry the area box read back with the tile (<see cref="OrtoAreaImagePostgreSQLConverter.GetOrtoAreaImageAsync(NpgsqlConnection?, string, short, int, CancellationToken)"/>). The table lives on the Storage database beside <c>orto_datas</c> (DiGi.GIS.PostgreSQL#129). Every statement is idempotent.</para>
+        /// </summary>
+        /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> instance used to execute the command.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> to monitor for cancellation requests.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result is true if the table exists or was created; otherwise, false.</returns>
+        public static async Task<bool> TableAsync_OrtoAreaImage(this NpgsqlConnection? npgsqlConnection, int commandTimeout = 30, CancellationToken cancellationToken = default)
+        {
+            if (npgsqlConnection is null)
+            {
+                return false;
+            }
+
+            string commandText = $@"
+                CREATE TABLE IF NOT EXISTS {Constants.TableName.OrtoAreaImage} (
+                    area_key TEXT NOT NULL,
+                    min_x DOUBLE PRECISION NOT NULL,
+                    min_y DOUBLE PRECISION NOT NULL,
+                    max_x DOUBLE PRECISION NOT NULL,
+                    max_y DOUBLE PRECISION NOT NULL,
+                    epoch_year SMALLINT NOT NULL,
+                    width INTEGER NOT NULL,
+                    height INTEGER NOT NULL,
+                    status SMALLINT NOT NULL,
+                    source_url TEXT,
+                    fetched_at timestamptz NOT NULL,
+                    bytes BYTEA,
+                    UNIQUE (area_key, epoch_year)
+                );
+                ";
+
+            try
+            {
+                await using NpgsqlCommand npgsqlCommand = new(commandText, npgsqlConnection);
+                npgsqlCommand.CommandTimeout = commandTimeout;
+
+                await npgsqlCommand.ExecuteNonQueryAsync(cancellationToken);
+                return true;
+            }
+            catch (NpgsqlException ex)
+            {
+                Console.WriteLine($"Postgres Error ({nameof(TableAsync_OrtoAreaImage)}): {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Asynchronously creates the <see cref="Constants.TableName.OrtoDataAcquisition"/> table, partitioned by county part like <see cref="Constants.TableName.OrtoDatas"/>.
         /// <para>One row per stored image: the key <c>(county_id, reference, year)</c> names the image by its building and its requested year (<see cref="GIS.Classes.OrtoData.DateTime"/>). <c>acquisition_date</c> is null and <c>date_precision</c> is <see cref="GIS.Enums.OrtoDatePrecision.Undefined"/> when no index sheet dates the image; a missing row means the image was not backfilled yet. The table, not the members inside <c>orto_datas.object</c>, is the source of truth for the acquisition date (DiGi.GIS.PostgreSQL#123). Every statement is idempotent.</para>
         /// </summary>

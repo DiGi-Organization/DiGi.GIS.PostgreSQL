@@ -1025,6 +1025,146 @@ The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dot
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A task that represents the asynchronous operation\. The task result is true if the table was created successfully; otherwise, false\.
 
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_OrtoArea(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken)'></a>
+
+## Create\.TableAsync\_OrtoArea\(this NpgsqlConnection, int, CancellationToken\) Method
+
+Asynchronously creates the [OrtoArea](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.TableName.OrtoArea 'DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.OrtoArea') table, the full\-interpretation test area registry, with its supporting indexes\.
+
+One row per test area, unique on `area_key`, the invariant location key of the area's bounding box. The envelope columns (`min_x` ... `max_y`, EPSG:2180, easting in X) carry the box for keyed and ranged lookup, served by the single-column indexes; `object` carries the whole [OrtoArea](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoArea 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoArea'), sampled cells included, so one read returns the area with its grid ([GetOrtoAreaAsync\(NpgsqlConnection, string, int, CancellationToken\)](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter.GetOrtoAreaAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken) 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaPostgreSQLConverter\.GetOrtoAreaAsync\(Npgsql\.NpgsqlConnection, string, int, System\.Threading\.CancellationToken\)')). The table lives on the Main database, beside `building_2d` (DiGi.GIS.PostgreSQL#129). Every statement is idempotent.
+
+```csharp
+public static System.Threading.Tasks.Task<bool> TableAsync_OrtoArea(this Npgsql.NpgsqlConnection? npgsqlConnection, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_OrtoArea(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken).npgsqlConnection'></a>
+
+`npgsqlConnection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
+
+The [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection') instance used to execute the command\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_OrtoArea(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_OrtoArea(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken') to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result is true if the table exists or was created; otherwise, false\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_OrtoAreaImage(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken)'></a>
+
+## Create\.TableAsync\_OrtoAreaImage\(this NpgsqlConnection, int, CancellationToken\) Method
+
+Asynchronously creates the [OrtoAreaImage](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.TableName.OrtoAreaImage 'DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.OrtoAreaImage') table, the materialised area tiles of test areas, with its unique area\-and\-epoch key\.
+
+One row per area and imagery epoch, unique on `(area_key, epoch_year)`, which is the conflict target of the tile upsert: a re-fetch replaces the row, never appends, and the negative rows of status 1 (no imagery) and 2 (fetch error) are stored with a null `bytes` to cache their answer. The envelope columns (`min_x` ... `max_y`, EPSG:2180, easting in X) carry the area box read back with the tile ([GetOrtoAreaImageAsync\(NpgsqlConnection, string, short, int, CancellationToken\)](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaImagePostgreSQLConverter.GetOrtoAreaImageAsync(Npgsql.NpgsqlConnection,string,short,int,System.Threading.CancellationToken) 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaImagePostgreSQLConverter\.GetOrtoAreaImageAsync\(Npgsql\.NpgsqlConnection, string, short, int, System\.Threading\.CancellationToken\)')). The table lives on the Storage database beside `orto_datas` (DiGi.GIS.PostgreSQL#129). Every statement is idempotent.
+
+```csharp
+public static System.Threading.Tasks.Task<bool> TableAsync_OrtoAreaImage(this Npgsql.NpgsqlConnection? npgsqlConnection, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_OrtoAreaImage(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken).npgsqlConnection'></a>
+
+`npgsqlConnection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
+
+The [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection') instance used to execute the command\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_OrtoAreaImage(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_OrtoAreaImage(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken') to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result is true if the table exists or was created; otherwise, false\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_OrtoAreaLabel(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken)'></a>
+
+## Create\.TableAsync\_OrtoAreaLabel\(this NpgsqlConnection, int, CancellationToken\) Method
+
+Asynchronously creates the [OrtoAreaLabel](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.TableName.OrtoAreaLabel 'DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.OrtoAreaLabel') table, the interpretation labels of test areas, with its unique identity index\.
+
+One row per (area, object identity, epoch, interpreter). The object identity is nullable - `county_id` with `reference` is the footprint identity, `object_id` the drawn-object identity, and exactly one of the two is set - so the unique index behind the label upsert is written `NULLS NOT DISTINCT`: rows that agree only in those NULLs conflict like any others, one interpreter's re-upsert revises her or his own row and a second interpreter keeps a parallel one ([UpdateAsync\(NpgsqlConnection, IEnumerable&lt;OrtoAreaLabel&gt;, int, int, CancellationToken\)](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabelPostgreSQLConverter.UpdateAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel_,int,int,System.Threading.CancellationToken) 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaLabelPostgreSQLConverter\.UpdateAsync\(Npgsql\.NpgsqlConnection, System\.Collections\.Generic\.IEnumerable\<DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaLabel\>, int, int, System\.Threading\.CancellationToken\)')). `area_key` leads the index, so it also serves the read by area ([GetOrtoAreaLabelsAsync\(NpgsqlConnection, string, int, CancellationToken\)](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabelPostgreSQLConverter.GetOrtoAreaLabelsAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken) 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaLabelPostgreSQLConverter\.GetOrtoAreaLabelsAsync\(Npgsql\.NpgsqlConnection, string, int, System\.Threading\.CancellationToken\)')). The table lives on the Main database, beside `building_2d` (DiGi.GIS.PostgreSQL#129). Every statement is idempotent.
+
+```csharp
+public static System.Threading.Tasks.Task<bool> TableAsync_OrtoAreaLabel(this Npgsql.NpgsqlConnection? npgsqlConnection, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_OrtoAreaLabel(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken).npgsqlConnection'></a>
+
+`npgsqlConnection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
+
+The [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection') instance used to execute the command\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_OrtoAreaLabel(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_OrtoAreaLabel(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken') to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result is true if the table exists or was created; otherwise, false\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_OrtoAreaObject(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken)'></a>
+
+## Create\.TableAsync\_OrtoAreaObject\(this NpgsqlConnection, int, CancellationToken\) Method
+
+Asynchronously creates the [OrtoAreaObject](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.TableName.OrtoAreaObject 'DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.OrtoAreaObject') table, the polygons drawn in test areas, with its supporting indexes\.
+
+One row per drawn polygon, unique on `object_id`, the server-assigned identifier that stays stable across revisions. `area_key` carries the owning area and carries an index of its own, which is what the read by area runs on ([GetOrtoAreaObjectsAsync\(NpgsqlConnection, string, int, CancellationToken\)](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter.GetOrtoAreaObjectsAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken) 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaObjectPostgreSQLConverter\.GetOrtoAreaObjectsAsync\(Npgsql\.NpgsqlConnection, string, int, System\.Threading\.CancellationToken\)')); `cell_index` is null for a centroid outside every sampled cell; `created_at` stores the drawing moment from the object, not the moment the row was inserted; `object` carries the whole [OrtoAreaObject](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaObject 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaObject'), polygon included. The table lives on the Main database, beside `building_2d` (DiGi.GIS.PostgreSQL#129). Every statement is idempotent.
+
+```csharp
+public static System.Threading.Tasks.Task<bool> TableAsync_OrtoAreaObject(this Npgsql.NpgsqlConnection? npgsqlConnection, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_OrtoAreaObject(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken).npgsqlConnection'></a>
+
+`npgsqlConnection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
+
+The [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection') instance used to execute the command\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_OrtoAreaObject(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_OrtoAreaObject(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken') to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result is true if the table exists or was created; otherwise, false\.
+
 <a name='DiGi.GIS.PostgreSQL.Create.TableAsync_OrtoDataAcquisition(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken)'></a>
 
 ## Create\.TableAsync\_OrtoDataAcquisition\(this NpgsqlConnection, int, CancellationToken\) Method
@@ -3090,6 +3230,78 @@ The stored figure of each subdivision, [null](https://docs.microsoft.com/en-us/d
 #### Returns
 [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')  
 The identifier of the subdivision whose figure applies, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when neither the subdivision nor any of its containers carries one\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.OrtoAreaByKeyCommandText()'></a>
+
+## Query\.OrtoAreaByKeyCommandText\(\) Method
+
+Builds the statement of [GetOrtoAreaAsync\(NpgsqlConnection, string, int, CancellationToken\)](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter.GetOrtoAreaAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken) 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaPostgreSQLConverter\.GetOrtoAreaAsync\(Npgsql\.NpgsqlConnection, string, int, System\.Threading\.CancellationToken\)'): one test area by its invariant location key\.
+
+The key is the primary key of [OrtoArea](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.TableName.OrtoArea 'DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.OrtoArea'), so the statement is a unique-index lookup; `LIMIT 1` states that at most one row can answer. The `object` column is read whole, cells included; a key that is not stored answers no row at all.
+
+Parameters: `@area_key`, text.
+
+```csharp
+public static string OrtoAreaByKeyCommandText();
+```
+
+#### Returns
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')  
+The statement\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.OrtoAreaImageByAreaKeyAndEpochYearCommandText()'></a>
+
+## Query\.OrtoAreaImageByAreaKeyAndEpochYearCommandText\(\) Method
+
+Builds the statement of [GetOrtoAreaImageAsync\(NpgsqlConnection, string, short, int, CancellationToken\)](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaImagePostgreSQLConverter.GetOrtoAreaImageAsync(Npgsql.NpgsqlConnection,string,short,int,System.Threading.CancellationToken) 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaImagePostgreSQLConverter\.GetOrtoAreaImageAsync\(Npgsql\.NpgsqlConnection, string, short, int, System\.Threading\.CancellationToken\)'): the materialised tile of one test area for one epoch\.
+
+The pair `(area_key, epoch_year)` is the unique key of [OrtoAreaImage](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.TableName.OrtoAreaImage 'DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.OrtoAreaImage'), so the statement is a unique-index lookup answering at most one row, and `LIMIT 1` states that. The row is read from its columns - the image table has no `object` column - and a pair that was never fetched answers no row at all: a missing row and a negative row (status 1 or 2) are different answers, and only the second is cached.
+
+Parameters: `@area_key`, text; `@epoch_year`, smallint.
+
+```csharp
+public static string OrtoAreaImageByAreaKeyAndEpochYearCommandText();
+```
+
+#### Returns
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')  
+The statement\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.OrtoAreaLabelsByAreaKeyCommandText()'></a>
+
+## Query\.OrtoAreaLabelsByAreaKeyCommandText\(\) Method
+
+Builds the statement of [GetOrtoAreaLabelsAsync\(NpgsqlConnection, string, int, CancellationToken\)](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabelPostgreSQLConverter.GetOrtoAreaLabelsAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken) 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaLabelPostgreSQLConverter\.GetOrtoAreaLabelsAsync\(Npgsql\.NpgsqlConnection, string, int, System\.Threading\.CancellationToken\)'): the label rows filed for one test area\.
+
+The rows are read from their columns - the label table has no `object` column - in the order the upsert writes them, ordered by epoch and then interpreter so a re-read of an unchanged area answers in the same order every time. Every identity column is selected, so the caller can tell a footprint label (`county_id` with `reference`) from a drawn-object label (`object_id`) and one interpreter's row from another's. An area that holds no labels answers no rows.
+
+Parameters: `@area_key`, text.
+
+```csharp
+public static string OrtoAreaLabelsByAreaKeyCommandText();
+```
+
+#### Returns
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')  
+The statement\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.OrtoAreaObjectsByAreaKeyCommandText()'></a>
+
+## Query\.OrtoAreaObjectsByAreaKeyCommandText\(\) Method
+
+Builds the statement of [GetOrtoAreaObjectsAsync\(NpgsqlConnection, string, int, CancellationToken\)](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter.GetOrtoAreaObjectsAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken) 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaObjectPostgreSQLConverter\.GetOrtoAreaObjectsAsync\(Npgsql\.NpgsqlConnection, string, int, System\.Threading\.CancellationToken\)'): the polygons drawn in one test area\.
+
+Filtered by `area_key`, the leading column of `idx_orto_area_object_area_key`, and ordered by `object_id` so a read of an unchanged area answers in the same order every time. The `object` column is read whole, polygon and metadata included; an area that holds no polygons answers no rows.
+
+Parameters: `@area_key`, text.
+
+```csharp
+public static string OrtoAreaObjectsByAreaKeyCommandText();
+```
+
+#### Returns
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')  
+The statement\.
 
 <a name='DiGi.GIS.PostgreSQL.Query.OrtoSheetBoundingBoxCommandText()'></a>
 
