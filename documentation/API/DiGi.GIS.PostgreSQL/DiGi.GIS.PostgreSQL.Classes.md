@@ -17182,6 +17182,104 @@ The cancellation token to monitor for cancellation requests\.
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[OrtoAreaObject](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaObject 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaObject')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A task that represents the asynchronous operation\. The task result contains the polygons of the area, or null when nothing could be read\.
 
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter.RemoveAsync(Npgsql.NpgsqlConnection,string,string,string,int,System.Threading.CancellationToken)'></a>
+
+## OrtoAreaObjectPostgreSQLConverter\.RemoveAsync\(NpgsqlConnection, string, string, string, int, CancellationToken\) Method
+
+Asynchronously removes one drawn polygon together with the remover's own labels on it, provided the remover drew it and no other interpreter has labelled it\.
+
+Drawn polygons are shared and their labels feed the agreement between interpreters, so a polygon someone else drew, or one someone else has marked, is never removed ([OrtoAreaObjectRemoval](DiGi.GIS.PostgreSQL.Enums.md#DiGi.GIS.PostgreSQL.Enums.OrtoAreaObjectRemoval 'DiGi\.GIS\.PostgreSQL\.Enums\.OrtoAreaObjectRemoval')). The interpreter is compared case-insensitively, as the label rows are. Everything runs in one transaction that locks the polygon's row: the caller's labels are deleted, then the polygon, and the transaction is rolled back if another interpreter's label exists at that point. A label another interpreter files in the moment between that check and the commit is not seen and stays as a row whose polygon is gone; the label write resolves the polygon first, so the window is one statement wide.
+
+```csharp
+public static System.Threading.Tasks.Task<System.Nullable<DiGi.GIS.PostgreSQL.Enums.OrtoAreaObjectRemoval>> RemoveAsync(Npgsql.NpgsqlConnection? npgsqlConnection, string? areaKey, string? objectId, string? interpreter, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter.RemoveAsync(Npgsql.NpgsqlConnection,string,string,string,int,System.Threading.CancellationToken).npgsqlConnection'></a>
+
+`npgsqlConnection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
+
+The [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection') used to connect to the database\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter.RemoveAsync(Npgsql.NpgsqlConnection,string,string,string,int,System.Threading.CancellationToken).areaKey'></a>
+
+`areaKey` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The invariant location key of the test area\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter.RemoveAsync(Npgsql.NpgsqlConnection,string,string,string,int,System.Threading.CancellationToken).objectId'></a>
+
+`objectId` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The server\-assigned identifier of the polygon\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter.RemoveAsync(Npgsql.NpgsqlConnection,string,string,string,int,System.Threading.CancellationToken).interpreter'></a>
+
+`interpreter` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The e\-mail of the interpreter asking for the removal, resolved from the session by the caller\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter.RemoveAsync(Npgsql.NpgsqlConnection,string,string,string,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter.RemoveAsync(Npgsql.NpgsqlConnection,string,string,string,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The cancellation token to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[OrtoAreaObjectRemoval](DiGi.GIS.PostgreSQL.Enums.md#DiGi.GIS.PostgreSQL.Enums.OrtoAreaObjectRemoval 'DiGi\.GIS\.PostgreSQL\.Enums\.OrtoAreaObjectRemoval')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result names the outcome, or null when the connection or an argument is null or blank\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter.RemoveAsync(string,string,string,int,System.Threading.CancellationToken)'></a>
+
+## OrtoAreaObjectPostgreSQLConverter\.RemoveAsync\(string, string, string, int, CancellationToken\) Method
+
+Asynchronously removes one drawn polygon, automatically managing the connection\. See [RemoveAsync\(NpgsqlConnection, string, string, string, int, CancellationToken\)](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter.RemoveAsync(Npgsql.NpgsqlConnection,string,string,string,int,System.Threading.CancellationToken) 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaObjectPostgreSQLConverter\.RemoveAsync\(Npgsql\.NpgsqlConnection, string, string, string, int, System\.Threading\.CancellationToken\)') for the rules\.
+
+```csharp
+public System.Threading.Tasks.Task<System.Nullable<DiGi.GIS.PostgreSQL.Enums.OrtoAreaObjectRemoval>> RemoveAsync(string? areaKey, string? objectId, string? interpreter, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter.RemoveAsync(string,string,string,int,System.Threading.CancellationToken).areaKey'></a>
+
+`areaKey` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The invariant location key of the test area\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter.RemoveAsync(string,string,string,int,System.Threading.CancellationToken).objectId'></a>
+
+`objectId` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The server\-assigned identifier of the polygon\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter.RemoveAsync(string,string,string,int,System.Threading.CancellationToken).interpreter'></a>
+
+`interpreter` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The e\-mail of the interpreter asking for the removal, resolved from the session by the caller\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter.RemoveAsync(string,string,string,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter.RemoveAsync(string,string,string,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The cancellation token to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[OrtoAreaObjectRemoval](DiGi.GIS.PostgreSQL.Enums.md#DiGi.GIS.PostgreSQL.Enums.OrtoAreaObjectRemoval 'DiGi\.GIS\.PostgreSQL\.Enums\.OrtoAreaObjectRemoval')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result names the outcome, or null when nothing could be attempted\.
+
 <a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter.UpdateAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OrtoAreaObject_,int,int,System.Threading.CancellationToken)'></a>
 
 ## OrtoAreaObjectPostgreSQLConverter\.UpdateAsync\(NpgsqlConnection, IEnumerable\<OrtoAreaObject\>, int, int, CancellationToken\) Method

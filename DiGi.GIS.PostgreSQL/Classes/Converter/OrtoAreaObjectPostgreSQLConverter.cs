@@ -163,6 +163,121 @@ namespace DiGi.GIS.PostgreSQL.Classes
         }
 
         /// <summary>
+        /// Asynchronously removes one drawn polygon together with the remover's own labels on it, provided the remover drew it and no other interpreter has labelled it.
+        /// <para>Drawn polygons are shared and their labels feed the agreement between interpreters, so a polygon someone else drew, or one someone else has marked, is never removed (<see cref="Enums.OrtoAreaObjectRemoval"/>). The interpreter is compared case-insensitively, as the label rows are. Everything runs in one transaction that locks the polygon's row: the caller's labels are deleted, then the polygon, and the transaction is rolled back if another interpreter's label exists at that point. A label another interpreter files in the moment between that check and the commit is not seen and stays as a row whose polygon is gone; the label write resolves the polygon first, so the window is one statement wide.</para>
+        /// </summary>
+        /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> used to connect to the database.</param>
+        /// <param name="areaKey">The invariant location key of the test area.</param>
+        /// <param name="objectId">The server-assigned identifier of the polygon.</param>
+        /// <param name="interpreter">The e-mail of the interpreter asking for the removal, resolved from the session by the caller.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The cancellation token to monitor for cancellation requests.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result names the outcome, or null when the connection or an argument is null or blank.</returns>
+        public static async Task<Enums.OrtoAreaObjectRemoval?> RemoveAsync(NpgsqlConnection? npgsqlConnection, string? areaKey, string? objectId, string? interpreter, int commandTimeout = 30, CancellationToken cancellationToken = default)
+        {
+            if (npgsqlConnection is null || string.IsNullOrWhiteSpace(areaKey) || string.IsNullOrWhiteSpace(objectId) || string.IsNullOrWhiteSpace(interpreter))
+            {
+                return null;
+            }
+
+            // The label table is read and written below; it is missing only while no label was ever filed.
+            if (!await Create.TableAsync_OrtoAreaLabel(npgsqlConnection, commandTimeout, cancellationToken))
+            {
+                return null;
+            }
+
+            await using NpgsqlTransaction npgsqlTransaction = await npgsqlConnection.BeginTransactionAsync(cancellationToken);
+            try
+            {
+                string? createdBy;
+                await using (NpgsqlCommand npgsqlCommand = new($"SELECT created_by FROM {TableName} WHERE object_id = @object_id AND area_key = @area_key FOR UPDATE;", npgsqlConnection, npgsqlTransaction))
+                {
+                    npgsqlCommand.CommandTimeout = commandTimeout;
+                    npgsqlCommand.Parameters.Add(new NpgsqlParameter("object_id", NpgsqlDbType.Text) { Value = objectId });
+                    npgsqlCommand.Parameters.Add(new NpgsqlParameter("area_key", NpgsqlDbType.Text) { Value = areaKey });
+
+                    object? value = await npgsqlCommand.ExecuteScalarAsync(cancellationToken);
+                    if (value is null || value is DBNull)
+                    {
+                        await npgsqlTransaction.RollbackAsync(cancellationToken);
+                        return Enums.OrtoAreaObjectRemoval.NotFound;
+                    }
+
+                    createdBy = value as string;
+                }
+
+                if (!string.Equals(createdBy?.Trim(), interpreter.Trim(), StringComparison.OrdinalIgnoreCase))
+                {
+                    await npgsqlTransaction.RollbackAsync(cancellationToken);
+                    return Enums.OrtoAreaObjectRemoval.NotCreator;
+                }
+
+                // The remover's own labels go first; any label left on the polygon then belongs to someone else.
+                await using (NpgsqlCommand npgsqlCommand = new($"DELETE FROM {Constants.TableName.OrtoAreaLabel} WHERE area_key = @area_key AND object_id = @object_id AND lower(btrim(interpreter)) = lower(btrim(@interpreter));", npgsqlConnection, npgsqlTransaction))
+                {
+                    npgsqlCommand.CommandTimeout = commandTimeout;
+                    npgsqlCommand.Parameters.Add(new NpgsqlParameter("area_key", NpgsqlDbType.Text) { Value = areaKey });
+                    npgsqlCommand.Parameters.Add(new NpgsqlParameter("object_id", NpgsqlDbType.Text) { Value = objectId });
+                    npgsqlCommand.Parameters.Add(new NpgsqlParameter("interpreter", NpgsqlDbType.Text) { Value = interpreter });
+                    await npgsqlCommand.ExecuteNonQueryAsync(cancellationToken);
+                }
+
+                bool labelledByOthers;
+                await using (NpgsqlCommand npgsqlCommand = new($"SELECT EXISTS (SELECT 1 FROM {Constants.TableName.OrtoAreaLabel} WHERE area_key = @area_key AND object_id = @object_id);", npgsqlConnection, npgsqlTransaction))
+                {
+                    npgsqlCommand.CommandTimeout = commandTimeout;
+                    npgsqlCommand.Parameters.Add(new NpgsqlParameter("area_key", NpgsqlDbType.Text) { Value = areaKey });
+                    npgsqlCommand.Parameters.Add(new NpgsqlParameter("object_id", NpgsqlDbType.Text) { Value = objectId });
+                    labelledByOthers = await npgsqlCommand.ExecuteScalarAsync(cancellationToken) is true;
+                }
+
+                if (labelledByOthers)
+                {
+                    await npgsqlTransaction.RollbackAsync(cancellationToken);
+                    return Enums.OrtoAreaObjectRemoval.LabelledByOthers;
+                }
+
+                await using (NpgsqlCommand npgsqlCommand = new($"DELETE FROM {TableName} WHERE object_id = @object_id AND area_key = @area_key;", npgsqlConnection, npgsqlTransaction))
+                {
+                    npgsqlCommand.CommandTimeout = commandTimeout;
+                    npgsqlCommand.Parameters.Add(new NpgsqlParameter("object_id", NpgsqlDbType.Text) { Value = objectId });
+                    npgsqlCommand.Parameters.Add(new NpgsqlParameter("area_key", NpgsqlDbType.Text) { Value = areaKey });
+                    await npgsqlCommand.ExecuteNonQueryAsync(cancellationToken);
+                }
+
+                await npgsqlTransaction.CommitAsync(cancellationToken);
+                return Enums.OrtoAreaObjectRemoval.Removed;
+            }
+            catch (PostgresException postgresException) when (postgresException.SqlState == PostgresErrorCodes.UndefinedTable)
+            {
+                // The polygon table itself does not exist: no polygon was ever drawn. Disposing the aborted
+                // transaction rolls it back.
+                return Enums.OrtoAreaObjectRemoval.NotFound;
+            }
+        }
+
+        /// <summary>
+        /// Asynchronously removes one drawn polygon, automatically managing the connection. See <see cref="RemoveAsync(NpgsqlConnection?, string?, string?, string?, int, CancellationToken)"/> for the rules.
+        /// </summary>
+        /// <param name="areaKey">The invariant location key of the test area.</param>
+        /// <param name="objectId">The server-assigned identifier of the polygon.</param>
+        /// <param name="interpreter">The e-mail of the interpreter asking for the removal, resolved from the session by the caller.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The cancellation token to monitor for cancellation requests.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result names the outcome, or null when nothing could be attempted.</returns>
+        public async Task<Enums.OrtoAreaObjectRemoval?> RemoveAsync(string? areaKey, string? objectId, string? interpreter, int commandTimeout = 30, CancellationToken cancellationToken = default)
+        {
+            await using NpgsqlConnection? npgsqlConnection = DiGi.PostgreSQL.Create.NpgsqlConnection(ConnectionData);
+            if (npgsqlConnection is null)
+            {
+                return null;
+            }
+
+            await npgsqlConnection.OpenAsync(cancellationToken);
+            return await RemoveAsync(npgsqlConnection, areaKey, objectId, interpreter, commandTimeout, cancellationToken);
+        }
+
+        /// <summary>
         /// Asynchronously reads the polygons drawn in one test area, automatically managing the connection.
         /// </summary>
         /// <param name="areaKey">The invariant location key of the test area.</param>

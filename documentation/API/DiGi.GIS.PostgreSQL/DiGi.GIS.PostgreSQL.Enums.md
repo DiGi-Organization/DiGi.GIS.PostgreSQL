@@ -101,6 +101,49 @@ Statistical demographic data update\.
 
 Year built data update: writes the predicted, user and calculated year\-built columns\.
 
+<a name='DiGi.GIS.PostgreSQL.Enums.OrtoAreaObjectRemoval'></a>
+
+## OrtoAreaObjectRemoval Enum
+
+Names the outcome of removing a polygon drawn in a full\-interpretation test area \([RemoveAsync\(NpgsqlConnection, string, string, string, int, CancellationToken\)](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter.RemoveAsync(Npgsql.NpgsqlConnection,string,string,string,int,System.Threading.CancellationToken) 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaObjectPostgreSQLConverter\.RemoveAsync\(Npgsql\.NpgsqlConnection, string, string, string, int, System\.Threading\.CancellationToken\)')\)\.
+
+Drawn polygons are shared between interpreters, and their labels feed the agreement between them, so a removal is refused unless the caller drew the polygon and no other interpreter has labelled it. The reason is reported because it decides what the caller is told: a polygon someone else drew, or one someone else has already marked, has to stay.
+
+```csharp
+public enum OrtoAreaObjectRemoval
+```
+### Fields
+
+<a name='DiGi.GIS.PostgreSQL.Enums.OrtoAreaObjectRemoval.Undefined'></a>
+
+`Undefined` 0
+
+The outcome is not known\.
+
+<a name='DiGi.GIS.PostgreSQL.Enums.OrtoAreaObjectRemoval.Removed'></a>
+
+`Removed` 1
+
+The polygon and the caller's own labels on it were removed\.
+
+<a name='DiGi.GIS.PostgreSQL.Enums.OrtoAreaObjectRemoval.NotFound'></a>
+
+`NotFound` 2
+
+The area holds no polygon under the identifier \(also when it was removed already, or the table does not exist yet\)\.
+
+<a name='DiGi.GIS.PostgreSQL.Enums.OrtoAreaObjectRemoval.NotCreator'></a>
+
+`NotCreator` 3
+
+Another interpreter drew the polygon; only the one who drew it may remove it\.
+
+<a name='DiGi.GIS.PostgreSQL.Enums.OrtoAreaObjectRemoval.LabelledByOthers'></a>
+
+`LabelledByOthers` 4
+
+Another interpreter has labelled the polygon; removing it would delete their labels, so it stays\.
+
 <a name='DiGi.GIS.PostgreSQL.Enums.UpdateRejectionReason'></a>
 
 ## UpdateRejectionReason Enum
