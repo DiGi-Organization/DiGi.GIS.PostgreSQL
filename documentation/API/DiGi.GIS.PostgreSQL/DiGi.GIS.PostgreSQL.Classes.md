@@ -24523,6 +24523,673 @@ A cancellation token that can be used to cancel the operation\.
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A task representing the asynchronous operation\. Returns true when the run could be attempted, every subdivision in scope was updated without error, every selected update type was written and every subdivision the radial ratios were asked for could be measured; otherwise, false \- including when a selected update type was counted against [UnfulfilledUpdateTypeCount](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLBuildingDataUpdateTask.UnfulfilledUpdateTypeCount 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLBuildingDataUpdateTask\.UnfulfilledUpdateTypeCount') or a subdivision against [RadialRatiosUnmeasuredSubdivisionCount](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLBuildingDataUpdateTask.RadialRatiosUnmeasuredSubdivisionCount 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLBuildingDataUpdateTask\.RadialRatiosUnmeasuredSubdivisionCount')\. A county's unassigned buildings whose radial ratios could not be measured are counted against [RadialRatiosUnmeasuredUnassignedCountyCount](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLBuildingDataUpdateTask.RadialRatiosUnmeasuredUnassignedCountyCount 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLBuildingDataUpdateTask\.RadialRatiosUnmeasuredUnassignedCountyCount') and do not affect the result; neither do [YearBuiltWrittenCount](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLBuildingDataUpdateTask.YearBuiltWrittenCount 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLBuildingDataUpdateTask\.YearBuiltWrittenCount') and [YearBuiltMissingBuildingCount](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLBuildingDataUpdateTask.YearBuiltMissingBuildingCount 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLBuildingDataUpdateTask\.YearBuiltMissingBuildingCount'), since a county without stored year built entries is not a fault of the run\.
 
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceOptions'></a>
+
+## PostgreSQLCollectOrtoAreaTableEvidenceOptions Class
+
+Options for collecting the production evidence of the four full\-interpretation test\-area tables \(DiGi\.GIS\.PostgreSQL\#130\)\.
+
+Nothing is written to the schema: the run is read-only, apart from a single scratch row that is inserted and deleted in the same connection to prove read/write access of the service account, and left at zero rows afterwards.
+
+```csharp
+public class PostgreSQLCollectOrtoAreaTableEvidenceOptions : DiGi.Core.Classes.SerializableOptions
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [DiGi\.Core\.Classes\.Object](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.object 'DiGi\.Core\.Classes\.Object') → [DiGi\.Core\.Classes\.SerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.serializableobject 'DiGi\.Core\.Classes\.SerializableObject') → [DiGi\.Core\.Classes\.SerializableOptions](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.serializableoptions 'DiGi\.Core\.Classes\.SerializableOptions') → PostgreSQLCollectOrtoAreaTableEvidenceOptions
+### Constructors
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceOptions.PostgreSQLCollectOrtoAreaTableEvidenceOptions()'></a>
+
+## PostgreSQLCollectOrtoAreaTableEvidenceOptions\(\) Constructor
+
+Initializes a new instance of the [PostgreSQLCollectOrtoAreaTableEvidenceOptions](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceOptions 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLCollectOrtoAreaTableEvidenceOptions') class\.
+
+```csharp
+public PostgreSQLCollectOrtoAreaTableEvidenceOptions();
+```
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceOptions.PostgreSQLCollectOrtoAreaTableEvidenceOptions(DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceOptions)'></a>
+
+## PostgreSQLCollectOrtoAreaTableEvidenceOptions\(PostgreSQLCollectOrtoAreaTableEvidenceOptions\) Constructor
+
+Initializes a new instance of the [PostgreSQLCollectOrtoAreaTableEvidenceOptions](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceOptions 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLCollectOrtoAreaTableEvidenceOptions') class by copying an existing options instance\.
+
+```csharp
+public PostgreSQLCollectOrtoAreaTableEvidenceOptions(DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceOptions postgreSQLCollectOrtoAreaTableEvidenceOptions);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceOptions.PostgreSQLCollectOrtoAreaTableEvidenceOptions(DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceOptions).postgreSQLCollectOrtoAreaTableEvidenceOptions'></a>
+
+`postgreSQLCollectOrtoAreaTableEvidenceOptions` [PostgreSQLCollectOrtoAreaTableEvidenceOptions](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceOptions 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLCollectOrtoAreaTableEvidenceOptions')
+
+The source options to copy from\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceOptions.PostgreSQLCollectOrtoAreaTableEvidenceOptions(System.Text.Json.Nodes.JsonObject)'></a>
+
+## PostgreSQLCollectOrtoAreaTableEvidenceOptions\(JsonObject\) Constructor
+
+Initializes a new instance of the [PostgreSQLCollectOrtoAreaTableEvidenceOptions](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceOptions 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLCollectOrtoAreaTableEvidenceOptions') class using a JSON object\.
+
+```csharp
+public PostgreSQLCollectOrtoAreaTableEvidenceOptions(System.Text.Json.Nodes.JsonObject jsonObject);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceOptions.PostgreSQLCollectOrtoAreaTableEvidenceOptions(System.Text.Json.Nodes.JsonObject).jsonObject'></a>
+
+`jsonObject` [System\.Text\.Json\.Nodes\.JsonObject](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.nodes.jsonobject 'System\.Text\.Json\.Nodes\.JsonObject')
+
+The JSON object used to initialize the options\.
+### Properties
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceOptions.CommandTimeout'></a>
+
+## PostgreSQLCollectOrtoAreaTableEvidenceOptions\.CommandTimeout Property
+
+Gets or sets the timeout in seconds for the statements the run executes\.
+
+```csharp
+public int CommandTimeout { get; set; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceOptions.ReportDirectory'></a>
+
+## PostgreSQLCollectOrtoAreaTableEvidenceOptions\.ReportDirectory Property
+
+Gets or sets the directory the evidence report is written into\. When null the directory the application was launched from is used\.
+
+```csharp
+public string? ReportDirectory { get; set; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceResult'></a>
+
+## PostgreSQLCollectOrtoAreaTableEvidenceResult Class
+
+Represents the outcome of collecting the production evidence of the four full\-interpretation test\-area tables \(DiGi\.GIS\.PostgreSQL\#130\)\.
+
+The per-table rows live in the report file, not here: this carries only the rollup - which tables were present, which round trips succeeded, and where the report was written.
+
+```csharp
+public class PostgreSQLCollectOrtoAreaTableEvidenceResult : DiGi.Core.Classes.SerializableResult, DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLSerializableObject, DiGi.Core.Interfaces.ISerializableObject, DiGi.Core.Interfaces.ICloneableObject<DiGi.Core.Interfaces.ISerializableObject>, DiGi.Core.Interfaces.ICloneableObject, DiGi.Core.Interfaces.IObject
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [DiGi\.Core\.Classes\.Object](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.object 'DiGi\.Core\.Classes\.Object') → [DiGi\.Core\.Classes\.SerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.serializableobject 'DiGi\.Core\.Classes\.SerializableObject') → [DiGi\.Core\.Classes\.SerializableResult](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.serializableresult 'DiGi\.Core\.Classes\.SerializableResult') → PostgreSQLCollectOrtoAreaTableEvidenceResult
+
+Implements [IGISPostgreSQLSerializableObject](DiGi.GIS.PostgreSQL.Interfaces.md#DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLSerializableObject 'DiGi\.GIS\.PostgreSQL\.Interfaces\.IGISPostgreSQLSerializableObject'), [DiGi\.Core\.Interfaces\.ISerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iserializableobject 'DiGi\.Core\.Interfaces\.ISerializableObject'), [DiGi\.Core\.Interfaces\.ICloneableObject&lt;](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject-1 'DiGi\.Core\.Interfaces\.ICloneableObject\`1')[DiGi\.Core\.Interfaces\.ISerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iserializableobject 'DiGi\.Core\.Interfaces\.ISerializableObject')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject-1 'DiGi\.Core\.Interfaces\.ICloneableObject\`1'), [DiGi\.Core\.Interfaces\.ICloneableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject 'DiGi\.Core\.Interfaces\.ICloneableObject'), [DiGi\.Core\.Interfaces\.IObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iobject 'DiGi\.Core\.Interfaces\.IObject')
+### Constructors
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceResult.PostgreSQLCollectOrtoAreaTableEvidenceResult(DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceResult)'></a>
+
+## PostgreSQLCollectOrtoAreaTableEvidenceResult\(PostgreSQLCollectOrtoAreaTableEvidenceResult\) Constructor
+
+Initializes a new instance of the [PostgreSQLCollectOrtoAreaTableEvidenceResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceResult 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLCollectOrtoAreaTableEvidenceResult') class by copying an existing instance\.
+
+```csharp
+public PostgreSQLCollectOrtoAreaTableEvidenceResult(DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceResult? postgreSQLCollectOrtoAreaTableEvidenceResult);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceResult.PostgreSQLCollectOrtoAreaTableEvidenceResult(DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceResult).postgreSQLCollectOrtoAreaTableEvidenceResult'></a>
+
+`postgreSQLCollectOrtoAreaTableEvidenceResult` [PostgreSQLCollectOrtoAreaTableEvidenceResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceResult 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLCollectOrtoAreaTableEvidenceResult')
+
+The [PostgreSQLCollectOrtoAreaTableEvidenceResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceResult 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLCollectOrtoAreaTableEvidenceResult') instance to copy from\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceResult.PostgreSQLCollectOrtoAreaTableEvidenceResult(long,long,long,long,string,bool)'></a>
+
+## PostgreSQLCollectOrtoAreaTableEvidenceResult\(long, long, long, long, string, bool\) Constructor
+
+Initializes a new instance of the [PostgreSQLCollectOrtoAreaTableEvidenceResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceResult 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLCollectOrtoAreaTableEvidenceResult') class\.
+
+```csharp
+public PostgreSQLCollectOrtoAreaTableEvidenceResult(long tablePresentCount, long tableExpectedCount, long roundTripOkCount, long roundTripExpectedCount, string? reportPath, bool allTablesPresent);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceResult.PostgreSQLCollectOrtoAreaTableEvidenceResult(long,long,long,long,string,bool).tablePresentCount'></a>
+
+`tablePresentCount` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+The number of the four tables found on their databases\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceResult.PostgreSQLCollectOrtoAreaTableEvidenceResult(long,long,long,long,string,bool).tableExpectedCount'></a>
+
+`tableExpectedCount` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+The number of tables the run checks \(four\)\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceResult.PostgreSQLCollectOrtoAreaTableEvidenceResult(long,long,long,long,string,bool).roundTripOkCount'></a>
+
+`roundTripOkCount` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+The number of per\-database scratch insert/delete round trips that succeeded and left zero rows\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceResult.PostgreSQLCollectOrtoAreaTableEvidenceResult(long,long,long,long,string,bool).roundTripExpectedCount'></a>
+
+`roundTripExpectedCount` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+The number of round trips attempted \(two: one per database\)\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceResult.PostgreSQLCollectOrtoAreaTableEvidenceResult(long,long,long,long,string,bool).reportPath'></a>
+
+`reportPath` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The absolute path of the written report file, or null when it could not be written\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceResult.PostgreSQLCollectOrtoAreaTableEvidenceResult(long,long,long,long,string,bool).allTablesPresent'></a>
+
+`allTablesPresent` [System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')
+
+Whether all four tables were present on their databases\.
+### Properties
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceResult.AllTablesPresent'></a>
+
+## PostgreSQLCollectOrtoAreaTableEvidenceResult\.AllTablesPresent Property
+
+Gets a value indicating whether all four tables were present on their databases\.
+
+```csharp
+public bool AllTablesPresent { get; }
+```
+
+#### Property Value
+[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceResult.ReportPath'></a>
+
+## PostgreSQLCollectOrtoAreaTableEvidenceResult\.ReportPath Property
+
+Gets the absolute path of the written report file, or null when it could not be written\.
+
+```csharp
+public string? ReportPath { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceResult.RoundTripExpectedCount'></a>
+
+## PostgreSQLCollectOrtoAreaTableEvidenceResult\.RoundTripExpectedCount Property
+
+Gets the number of round trips attempted \(two: one per database\)\.
+
+```csharp
+public long RoundTripExpectedCount { get; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceResult.RoundTripOkCount'></a>
+
+## PostgreSQLCollectOrtoAreaTableEvidenceResult\.RoundTripOkCount Property
+
+Gets the number of per\-database scratch insert/delete round trips that succeeded and left zero rows\.
+
+```csharp
+public long RoundTripOkCount { get; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceResult.TableExpectedCount'></a>
+
+## PostgreSQLCollectOrtoAreaTableEvidenceResult\.TableExpectedCount Property
+
+Gets the number of tables the run checks \(four\)\.
+
+```csharp
+public long TableExpectedCount { get; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceResult.TablePresentCount'></a>
+
+## PostgreSQLCollectOrtoAreaTableEvidenceResult\.TablePresentCount Property
+
+Gets the number of the four tables found on their databases\.
+
+```csharp
+public long TablePresentCount { get; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceTask'></a>
+
+## PostgreSQLCollectOrtoAreaTableEvidenceTask Class
+
+Collects the production evidence of the four full\-interpretation test\-area tables and writes it to a report file \(DiGi\.GIS\.PostgreSQL\#130\)\.
+
+Read-only with respect to the schema and to the estate's data: per table it reads `pg_indexes` and `information_schema.columns`, and per database it proves read/write access of the service account with a single scratch row that is inserted and deleted inside the same connection (zero rows remain). It never calls the DDL helpers, so it reports the tables as they already are - the companion task [PostgreSQLCreateOrtoAreaTablesTask](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLCreateOrtoAreaTablesTask 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLCreateOrtoAreaTablesTask') creates them.
+
+The report is the acceptance evidence itself: the `idx_orto_area_label_identity` unique index with its `NULLS NOT DISTINCT` clause (from `pg_indexes`, not the DDL text), the `UNIQUE (area_key, epoch_year)` index of `orto_area_image`, the column lists compared against the DDL, and the per-database round trip. [ReportDirectory](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceOptions.ReportDirectory 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLCollectOrtoAreaTableEvidenceOptions\.ReportDirectory') defaults to the directory the application was launched from.
+
+```csharp
+public class PostgreSQLCollectOrtoAreaTableEvidenceTask : DiGi.Core.Classes.ReportableBackgroundTask<long>, DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLObject, DiGi.Core.Interfaces.IObject
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [DiGi\.Core\.Classes\.BackgroundTask](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.backgroundtask 'DiGi\.Core\.Classes\.BackgroundTask') → [DiGi\.Core\.Classes\.CancelableBackgroundTask](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.cancelablebackgroundtask 'DiGi\.Core\.Classes\.CancelableBackgroundTask') → [DiGi\.Core\.Classes\.ReportableBackgroundTask&lt;](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.reportablebackgroundtask-1 'DiGi\.Core\.Classes\.ReportableBackgroundTask\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.reportablebackgroundtask-1 'DiGi\.Core\.Classes\.ReportableBackgroundTask\`1') → PostgreSQLCollectOrtoAreaTableEvidenceTask
+
+Implements [IGISPostgreSQLObject](DiGi.GIS.PostgreSQL.Interfaces.md#DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLObject 'DiGi\.GIS\.PostgreSQL\.Interfaces\.IGISPostgreSQLObject'), [DiGi\.Core\.Interfaces\.IObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iobject 'DiGi\.Core\.Interfaces\.IObject')
+### Constructors
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceTask.PostgreSQLCollectOrtoAreaTableEvidenceTask(DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OrtoAreaImagePostgreSQLConverter)'></a>
+
+## PostgreSQLCollectOrtoAreaTableEvidenceTask\(OrtoAreaPostgreSQLConverter, OrtoAreaImagePostgreSQLConverter\) Constructor
+
+Constructor with Dependency Injection\.
+
+```csharp
+public PostgreSQLCollectOrtoAreaTableEvidenceTask(DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter ortoAreaPostgreSQLConverter, DiGi.GIS.PostgreSQL.Classes.OrtoAreaImagePostgreSQLConverter ortoAreaImagePostgreSQLConverter);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceTask.PostgreSQLCollectOrtoAreaTableEvidenceTask(DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OrtoAreaImagePostgreSQLConverter).ortoAreaPostgreSQLConverter'></a>
+
+`ortoAreaPostgreSQLConverter` [OrtoAreaPostgreSQLConverter](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaPostgreSQLConverter')
+
+The converter for the `orto_area` table \(Main\), whose [DiGi\.PostgreSQL\.Classes\.PostgreSQLConverter&lt;&gt;\.ConnectionData](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.classes.postgresqlconverter-1.connectiondata 'DiGi\.PostgreSQL\.Classes\.PostgreSQLConverter\`1\.ConnectionData') opens the Main connection\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceTask.PostgreSQLCollectOrtoAreaTableEvidenceTask(DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OrtoAreaImagePostgreSQLConverter).ortoAreaImagePostgreSQLConverter'></a>
+
+`ortoAreaImagePostgreSQLConverter` [OrtoAreaImagePostgreSQLConverter](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaImagePostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaImagePostgreSQLConverter')
+
+The converter for the `orto_area_image` table \(Storage\), whose [DiGi\.PostgreSQL\.Classes\.PostgreSQLConverter&lt;&gt;\.ConnectionData](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.classes.postgresqlconverter-1.connectiondata 'DiGi\.PostgreSQL\.Classes\.PostgreSQLConverter\`1\.ConnectionData') opens the Storage connection\.
+### Fields
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceTask.ortoAreaImagePostgreSQLConverter'></a>
+
+## PostgreSQLCollectOrtoAreaTableEvidenceTask\.ortoAreaImagePostgreSQLConverter Field
+
+The OrtoAreaImage PostgreSQL converter \(Storage database\) used to open the connection for the `orto_area_image` evidence\.
+
+```csharp
+private readonly OrtoAreaImagePostgreSQLConverter ortoAreaImagePostgreSQLConverter;
+```
+
+#### Field Value
+[OrtoAreaImagePostgreSQLConverter](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaImagePostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaImagePostgreSQLConverter')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceTask.ortoAreaPostgreSQLConverter'></a>
+
+## PostgreSQLCollectOrtoAreaTableEvidenceTask\.ortoAreaPostgreSQLConverter Field
+
+The OrtoArea PostgreSQL converter \(Main database\) used to open the connection for the `orto_area` evidence\.
+
+```csharp
+private readonly OrtoAreaPostgreSQLConverter ortoAreaPostgreSQLConverter;
+```
+
+#### Field Value
+[OrtoAreaPostgreSQLConverter](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaPostgreSQLConverter')
+### Properties
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceTask.PostgreSQLCollectOrtoAreaTableEvidenceOptions'></a>
+
+## PostgreSQLCollectOrtoAreaTableEvidenceTask\.PostgreSQLCollectOrtoAreaTableEvidenceOptions Property
+
+Gets the configuration for the run\. These options are used when the task is started\.
+
+```csharp
+public DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceOptions PostgreSQLCollectOrtoAreaTableEvidenceOptions { get; set; }
+```
+
+#### Property Value
+[PostgreSQLCollectOrtoAreaTableEvidenceOptions](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceOptions 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLCollectOrtoAreaTableEvidenceOptions')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceTask.PostgreSQLCollectOrtoAreaTableEvidenceResult'></a>
+
+## PostgreSQLCollectOrtoAreaTableEvidenceTask\.PostgreSQLCollectOrtoAreaTableEvidenceResult Property
+
+Gets what the last run collected and where its report was written\.
+
+```csharp
+public DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceResult? PostgreSQLCollectOrtoAreaTableEvidenceResult { get; private set; }
+```
+
+#### Property Value
+[PostgreSQLCollectOrtoAreaTableEvidenceResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceResult 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLCollectOrtoAreaTableEvidenceResult')
+### Methods
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceTask.CollectTableAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken,System.Collections.Generic.List_string_)'></a>
+
+## PostgreSQLCollectOrtoAreaTableEvidenceTask\.CollectTableAsync\(NpgsqlConnection, string, int, CancellationToken, List\<string\>\) Method
+
+Collects the evidence of one table \(presence, indexes, columns\) into the report, returning 1 when present and 0 otherwise\.
+
+```csharp
+private static System.Threading.Tasks.Task<long> CollectTableAsync(Npgsql.NpgsqlConnection connection, string tableName, int commandTimeout, System.Threading.CancellationToken cancellationToken, System.Collections.Generic.List<string> lines);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceTask.CollectTableAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken,System.Collections.Generic.List_string_).connection'></a>
+
+`connection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
+
+The open [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection') to query\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceTask.CollectTableAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken,System.Collections.Generic.List_string_).tableName'></a>
+
+`tableName` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The table name to collect\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceTask.CollectTableAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken,System.Collections.Generic.List_string_).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for each statement\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceTask.CollectTableAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken,System.Collections.Generic.List_string_).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The cancellation token to monitor for cancellation requests\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceTask.CollectTableAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken,System.Collections.Generic.List_string_).lines'></a>
+
+`lines` [System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')
+
+The report lines to append into\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+1 when the table is present, otherwise 0\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceTask.ExecuteAsync(System.IProgress_long_,System.Threading.CancellationToken)'></a>
+
+## PostgreSQLCollectOrtoAreaTableEvidenceTask\.ExecuteAsync\(IProgress\<long\>, CancellationToken\) Method
+
+Executes the background task, collecting the four\-table evidence and writing the report\.
+
+```csharp
+protected override System.Threading.Tasks.Task<bool> ExecuteAsync(System.IProgress<long> progress, System.Threading.CancellationToken cancellationToken);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceTask.ExecuteAsync(System.IProgress_long_,System.Threading.CancellationToken).progress'></a>
+
+`progress` [System\.IProgress&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.iprogress-1 'System\.IProgress\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.iprogress-1 'System\.IProgress\`1')
+
+A progress reporter carrying the number of tables confirmed present\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceTask.ExecuteAsync(System.IProgress_long_,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used to cancel the operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task representing the asynchronous operation\. Returns true only if all four tables were present and both round trips succeeded; otherwise false\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceTask.RoundTripMainAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken,System.Collections.Generic.List_string_)'></a>
+
+## PostgreSQLCollectOrtoAreaTableEvidenceTask\.RoundTripMainAsync\(NpgsqlConnection, string, int, CancellationToken, List\<string\>\) Method
+
+Proves read/write access of the service account on the Main database with a single scratch `orto_area` row that is inserted, read back, and deleted inside the same connection\.
+
+```csharp
+private static System.Threading.Tasks.Task<bool> RoundTripMainAsync(Npgsql.NpgsqlConnection connection, string scratchKey, int commandTimeout, System.Threading.CancellationToken cancellationToken, System.Collections.Generic.List<string> lines);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceTask.RoundTripMainAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken,System.Collections.Generic.List_string_).connection'></a>
+
+`connection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
+
+The open [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection') to use\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceTask.RoundTripMainAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken,System.Collections.Generic.List_string_).scratchKey'></a>
+
+`scratchKey` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The scratch `area_key` to insert and delete\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceTask.RoundTripMainAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken,System.Collections.Generic.List_string_).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for each statement\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceTask.RoundTripMainAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken,System.Collections.Generic.List_string_).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The cancellation token to monitor for cancellation requests\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceTask.RoundTripMainAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken,System.Collections.Generic.List_string_).lines'></a>
+
+`lines` [System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')
+
+The report lines to append into\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+True when the row was read back and zero remained after the delete\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceTask.RoundTripStorageAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken,System.Collections.Generic.List_string_)'></a>
+
+## PostgreSQLCollectOrtoAreaTableEvidenceTask\.RoundTripStorageAsync\(NpgsqlConnection, string, int, CancellationToken, List\<string\>\) Method
+
+Proves read/write access of the service account on the Storage database with a single scratch `orto_area_image` row that is inserted, read back, and deleted inside the same connection\.
+
+```csharp
+private static System.Threading.Tasks.Task<bool> RoundTripStorageAsync(Npgsql.NpgsqlConnection connection, string scratchKey, int commandTimeout, System.Threading.CancellationToken cancellationToken, System.Collections.Generic.List<string> lines);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceTask.RoundTripStorageAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken,System.Collections.Generic.List_string_).connection'></a>
+
+`connection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
+
+The open [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection') to use\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceTask.RoundTripStorageAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken,System.Collections.Generic.List_string_).scratchKey'></a>
+
+`scratchKey` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The scratch `area_key` to insert and delete\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceTask.RoundTripStorageAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken,System.Collections.Generic.List_string_).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for each statement\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceTask.RoundTripStorageAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken,System.Collections.Generic.List_string_).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The cancellation token to monitor for cancellation requests\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceTask.RoundTripStorageAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken,System.Collections.Generic.List_string_).lines'></a>
+
+`lines` [System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')
+
+The report lines to append into\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+True when the row was read back and zero remained after the delete\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceTask.ScalarLongAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken)'></a>
+
+## PostgreSQLCollectOrtoAreaTableEvidenceTask\.ScalarLongAsync\(NpgsqlConnection, string, int, CancellationToken\) Method
+
+Runs a single\-value query returning a long and returns the first column of the first row, or \-1 when no row was returned\. No scratch key is bound\.
+
+```csharp
+private static System.Threading.Tasks.Task<long> ScalarLongAsync(Npgsql.NpgsqlConnection connection, string sql, int commandTimeout, System.Threading.CancellationToken cancellationToken);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceTask.ScalarLongAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken).connection'></a>
+
+`connection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
+
+The open [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection') to query\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceTask.ScalarLongAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken).sql'></a>
+
+`sql` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The SQL to run\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceTask.ScalarLongAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the statement\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceTask.ScalarLongAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The cancellation token to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+The first column of the first row as a long, or \-1 when no row was returned\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceTask.ScalarLongAsync(Npgsql.NpgsqlConnection,string,string,int,System.Threading.CancellationToken)'></a>
+
+## PostgreSQLCollectOrtoAreaTableEvidenceTask\.ScalarLongAsync\(NpgsqlConnection, string, string, int, CancellationToken\) Method
+
+Runs a single\-value query returning a long and returns the first column of the first row, or \-1 when no row was returned\.
+
+```csharp
+private static System.Threading.Tasks.Task<long> ScalarLongAsync(Npgsql.NpgsqlConnection connection, string sql, string? scratchKey, int commandTimeout, System.Threading.CancellationToken cancellationToken);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceTask.ScalarLongAsync(Npgsql.NpgsqlConnection,string,string,int,System.Threading.CancellationToken).connection'></a>
+
+`connection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
+
+The open [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection') to query\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceTask.ScalarLongAsync(Npgsql.NpgsqlConnection,string,string,int,System.Threading.CancellationToken).sql'></a>
+
+`sql` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The SQL to run\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceTask.ScalarLongAsync(Npgsql.NpgsqlConnection,string,string,int,System.Threading.CancellationToken).scratchKey'></a>
+
+`scratchKey` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The value bound to `@k` when the SQL references it\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceTask.ScalarLongAsync(Npgsql.NpgsqlConnection,string,string,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the statement\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceTask.ScalarLongAsync(Npgsql.NpgsqlConnection,string,string,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The cancellation token to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+The first column of the first row as a long, or \-1 when no row was returned\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceTask.ScalarStringAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken)'></a>
+
+## PostgreSQLCollectOrtoAreaTableEvidenceTask\.ScalarStringAsync\(NpgsqlConnection, string, int, CancellationToken\) Method
+
+Runs a single\-value query returning a string \(such as `version()`\) and returns the first column of the first row, or empty when no row was returned\.
+
+```csharp
+private static System.Threading.Tasks.Task<string> ScalarStringAsync(Npgsql.NpgsqlConnection connection, string sql, int commandTimeout, System.Threading.CancellationToken cancellationToken);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceTask.ScalarStringAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken).connection'></a>
+
+`connection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
+
+The open [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection') to query\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceTask.ScalarStringAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken).sql'></a>
+
+`sql` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The SQL to run\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceTask.ScalarStringAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the statement\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceTask.ScalarStringAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The cancellation token to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+The first column of the first row as a string, or empty when no row was returned\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceTask.UndefinedTableReadAsync(Npgsql.NpgsqlConnection,int,System.Threading.CancellationToken,System.Collections.Generic.List_string_)'></a>
+
+## PostgreSQLCollectOrtoAreaTableEvidenceTask\.UndefinedTableReadAsync\(NpgsqlConnection, int, CancellationToken, List\<string\>\) Method
+
+Proves the converters' `UndefinedTable` handling: reading a key from a table that does not exist must answer null \(the converter catches `PostgresException` with `SqlState == 42P01`\) rather than throwing\.
+
+```csharp
+private static System.Threading.Tasks.Task<bool> UndefinedTableReadAsync(Npgsql.NpgsqlConnection connection, int commandTimeout, System.Threading.CancellationToken cancellationToken, System.Collections.Generic.List<string> lines);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceTask.UndefinedTableReadAsync(Npgsql.NpgsqlConnection,int,System.Threading.CancellationToken,System.Collections.Generic.List_string_).connection'></a>
+
+`connection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
+
+The open [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection') to use\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceTask.UndefinedTableReadAsync(Npgsql.NpgsqlConnection,int,System.Threading.CancellationToken,System.Collections.Generic.List_string_).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the statement\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceTask.UndefinedTableReadAsync(Npgsql.NpgsqlConnection,int,System.Threading.CancellationToken,System.Collections.Generic.List_string_).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The cancellation token to monitor for cancellation requests\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceTask.UndefinedTableReadAsync(Npgsql.NpgsqlConnection,int,System.Threading.CancellationToken,System.Collections.Generic.List_string_).lines'></a>
+
+`lines` [System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')
+
+The report lines to append into\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+True when the read answered null \(the 42P01 path was handled\), otherwise false\.
+
 <a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCreateOrtoAreaTablesTask'></a>
 
 ## PostgreSQLCreateOrtoAreaTablesTask Class
