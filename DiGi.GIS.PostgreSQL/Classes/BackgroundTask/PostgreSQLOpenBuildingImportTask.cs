@@ -4,6 +4,7 @@ using DiGi.GIS.IO.Classes;
 using DiGi.GIS.IO.Enums;
 using DiGi.GIS.PostgreSQL.Interfaces;
 using DiGi.OSM.Classes;
+using Npgsql;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -158,8 +159,21 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 boundingBox2D_Scope = options.BoundingBox2D;
 
                 // The SQL prefilter of the scope: the county parts whose stored envelopes reach the pilot box
-                // (grown by the tolerance), exactly as GetAdministrativeAreal2DsByBoundingBox2DAsync does it.
-                List<AdministrativeAreal2D>? counties_Scope = await administrativeAreal2DPostgreSQLConverter.GetAdministrativeAreal2DsByBoundingBox2DAsync(boundingBox2D_Scope, Enums.AdministrativeArealType.County, commandTimeout: commandTimeout, cancellationToken: cancellationToken);
+                // (grown by the tolerance). The static flat overload is deliberate - the instance overload
+                // delegates to the hierarchical Country/Voivodeship/County search, which narrows through
+                // ancestor rows and answers empty on a database that holds no ancestors over the box, while
+                // the scope is exactly "every county whose envelope overlaps the box", the same test the
+                // import's in-memory filing reproduces.
+                await using NpgsqlConnection? npgsqlConnection_Scope = DiGi.PostgreSQL.Create.NpgsqlConnection(administrativeAreal2DPostgreSQLConverter.ConnectionData);
+                if (npgsqlConnection_Scope is null)
+                {
+                    Serilog.Modify.Log(Serilog.Enums.LogEventLevel.Error, "{Type}: no connection to resolve the bounding-box scope against - nothing was imported", nameof(PostgreSQLOpenBuildingImportTask));
+                    return false;
+                }
+
+                await npgsqlConnection_Scope.OpenAsync(cancellationToken);
+
+                List<AdministrativeAreal2D>? counties_Scope = await AdministrativeAreal2DPostgreSQLConverter.GetAdministrativeAreal2DsByBoundingBox2DAsync(npgsqlConnection_Scope, boundingBox2D_Scope, Enums.AdministrativeArealType.County, commandTimeout: commandTimeout, cancellationToken: cancellationToken);
                 countyIds_Scope = counties_Scope is null ? null : [.. counties_Scope.ConvertAll(x => x.Id)];
             }
             else
