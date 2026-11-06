@@ -49,6 +49,11 @@ namespace DiGi.GIS.PostgreSQL.Classes
         public PostgreSQLOpenBuildingImportTaskOptions PostgreSQLOpenBuildingImportTaskOptions { get; set; } = new PostgreSQLOpenBuildingImportTaskOptions();
 
         /// <summary>
+        /// Gets the identifier of the register row the run upserted in building_dataset, or null when no run completed (DiGi.GIS.PostgreSQL#131). Read after the run, like the tallies.
+        /// </summary>
+        public int? DatasetId { get; private set; }
+
+        /// <summary>
         /// Gets the number of footprints the readers refused before the load path saw them (OSM PBF objects that could not become a footprint). Read after the run, when the reader summaries are complete.
         /// </summary>
         public long ReaderRejectionCount { get; private set; }
@@ -75,6 +80,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             FilteredCount = 0;
             RejectionCount = 0;
             ReaderRejectionCount = 0;
+            DatasetId = null;
 
             PostgreSQLOpenBuildingImportTaskOptions options = PostgreSQLOpenBuildingImportTaskOptions;
             if (options is null)
@@ -253,6 +259,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             RowCount = openBuildingImportResult.RowCount;
             FilteredCount = openBuildingImportResult.FilteredCount;
             RejectionCount = openBuildingImportResult.RejectionCount;
+            DatasetId = openBuildingImportResult.DatasetId;
 
             // The OSM summary is complete only now: the reader fills it while the sequence is enumerated, and
             // the import has enumerated it to its end (or it would not have returned).
@@ -265,9 +272,9 @@ namespace DiGi.GIS.PostgreSQL.Classes
 
             Serilog.Modify.Log(
                 cancelled ? Serilog.Enums.LogEventLevel.Warning : Serilog.Enums.LogEventLevel.Information,
-                "{Type} finished{Cancelled}: {RowCount} rows stored, {FilteredCount} out of scope, {RejectionCount} rejected, {ReaderRejectionCount} refused by the readers, of {DatasetKey}/{Version}",
+                "{Type} finished{Cancelled}: {RowCount} rows stored, {FilteredCount} out of scope, {RejectionCount} rejected, {ReaderRejectionCount} refused by the readers, register row {DatasetId}, of {DatasetKey}/{Version}",
                 nameof(PostgreSQLOpenBuildingImportTask), cancelled ? " after being cancelled" : string.Empty,
-                RowCount, FilteredCount, RejectionCount, ReaderRejectionCount, datasetKey!, options.Version!);
+                RowCount, FilteredCount, RejectionCount, ReaderRejectionCount, DatasetId?.ToString() ?? "(null)", datasetKey!, options.Version!);
 
             return !cancelled;
         }

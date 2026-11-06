@@ -277,7 +277,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// <param name="tolerance">The distance a footprint may lie outside a county part and still count as intersecting it.</param>
         /// <param name="commandTimeout">The timeout in seconds for the execution of the commands. A value of 0 disables the timeout.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> to monitor for cancellation requests.</param>
-        /// <returns>A task whose result carries the rows stored, the footprints filtered and the footprints rejected, or null when the run could not start (bad arguments, unreadable schema, no counties to file against).</returns>
+        /// <returns>A task whose result carries the register row id, the rows stored, the footprints filtered and the footprints rejected, or null when the run could not start (bad arguments, unreadable schema, no counties to file against).</returns>
         public async Task<OpenBuildingImportResult?> ImportAsync(
             IAsyncEnumerable<Footprint>? footprints,
             BuildingDatasetRelease? buildingDatasetRelease,
@@ -401,15 +401,17 @@ namespace DiGi.GIS.PostgreSQL.Classes
                     countyIds_Truncate.Sort();
                 }
 
-                // The tallies survive the transaction block: they are the result the caller reads after the commit.
+                // The tallies and the register row id survive the transaction block: they are the result the
+                // caller reads after the commit.
                 long rowCount = 0;
                 long filteredCount = 0;
                 long rejectionCount = 0;
                 List<Rejection> rejections = [];
+                int? datasetId = null;
 
                 await using (NpgsqlTransaction npgsqlTransaction = await npgsqlConnection.BeginTransactionAsync(cancellationToken))
                 {
-                    int? datasetId = await UpsertReleaseAsync(npgsqlConnection, buildingDatasetRelease, commandTimeout, cancellationToken);
+                    datasetId = await UpsertReleaseAsync(npgsqlConnection, buildingDatasetRelease, commandTimeout, cancellationToken);
                     if (datasetId is null)
                     {
                         Serilog.Modify.Log(Serilog.Enums.LogEventLevel.Error, "{Type}: the release of {DatasetKey}/{Version} could not be registered - nothing was written", nameof(ImportAsync), buildingDatasetRelease.DatasetKey!, buildingDatasetRelease.Version!);
@@ -557,7 +559,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
                     "Open building import of {DatasetKey}/{Version} finished: {RowCount} rows stored, {FilteredCount} out of scope, {RejectionCount} rejected, over {CountyCount} county parts",
                     buildingDatasetRelease.DatasetKey!, buildingDatasetRelease.Version!, rowCount, filteredCount, rejectionCount, countyIds_Scope.Count);
 
-                return new OpenBuildingImportResult(rowCount, filteredCount, rejectionCount, rejections);
+                return new OpenBuildingImportResult(rowCount, filteredCount, rejectionCount, rejections, datasetId);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {

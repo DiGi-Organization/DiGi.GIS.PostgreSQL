@@ -15934,6 +15934,8 @@ The outcome of one open building dataset import: how many rows the release store
 
 The three figures are kept apart deliberately. [FilteredCount](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingImportResult.FilteredCount 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingImportResult\.FilteredCount') is the expected residue of a run scoped to pilot areas over a nationwide file - nothing was lost, the rows were never in scope. [RejectionCount](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingImportResult.RejectionCount 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingImportResult\.RejectionCount') is the account of rows that could not be placed or transformed, each one named in [Rejections](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingImportResult.Rejections 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingImportResult\.Rejections') while the list has room, and it is what figure R1 and the run report read.
 
+[DatasetId](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingImportResult.DatasetId 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingImportResult\.DatasetId') identifies the register row the run upserted in building_dataset, so a report can name it without re-querying the register (DiGi.GIS.PostgreSQL#131).
+
 ```csharp
 public class OpenBuildingImportResult : DiGi.Core.Classes.SerializableResult, DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLSerializableObject, DiGi.Core.Interfaces.ISerializableObject, DiGi.Core.Interfaces.ICloneableObject<DiGi.Core.Interfaces.ISerializableObject>, DiGi.Core.Interfaces.ICloneableObject, DiGi.Core.Interfaces.IObject
 ```
@@ -15960,40 +15962,46 @@ public OpenBuildingImportResult(DiGi.GIS.PostgreSQL.Classes.OpenBuildingImportRe
 
 The source result to copy\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingImportResult.OpenBuildingImportResult(long,long,long,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.Rejection_)'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingImportResult.OpenBuildingImportResult(long,long,long,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.Rejection_,System.Nullable_int_)'></a>
 
-## OpenBuildingImportResult\(long, long, long, IEnumerable\<Rejection\>\) Constructor
+## OpenBuildingImportResult\(long, long, long, IEnumerable\<Rejection\>, Nullable\<int\>\) Constructor
 
 Initializes a new instance of the [OpenBuildingImportResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingImportResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingImportResult') class\.
 
 ```csharp
-public OpenBuildingImportResult(long rowCount, long filteredCount, long rejectionCount, System.Collections.Generic.IEnumerable<DiGi.GIS.PostgreSQL.Classes.Rejection>? rejections);
+public OpenBuildingImportResult(long rowCount, long filteredCount, long rejectionCount, System.Collections.Generic.IEnumerable<DiGi.GIS.PostgreSQL.Classes.Rejection>? rejections, System.Nullable<int> datasetId);
 ```
 #### Parameters
 
-<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingImportResult.OpenBuildingImportResult(long,long,long,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.Rejection_).rowCount'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingImportResult.OpenBuildingImportResult(long,long,long,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.Rejection_,System.Nullable_int_).rowCount'></a>
 
 `rowCount` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
 
 The number of rows stored by the import\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingImportResult.OpenBuildingImportResult(long,long,long,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.Rejection_).filteredCount'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingImportResult.OpenBuildingImportResult(long,long,long,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.Rejection_,System.Nullable_int_).filteredCount'></a>
 
 `filteredCount` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
 
 The number of footprints skipped as out of scope\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingImportResult.OpenBuildingImportResult(long,long,long,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.Rejection_).rejectionCount'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingImportResult.OpenBuildingImportResult(long,long,long,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.Rejection_,System.Nullable_int_).rejectionCount'></a>
 
 `rejectionCount` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
 
 The number of footprints rejected before the database\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingImportResult.OpenBuildingImportResult(long,long,long,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.Rejection_).rejections'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingImportResult.OpenBuildingImportResult(long,long,long,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.Rejection_,System.Nullable_int_).rejections'></a>
 
 `rejections` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[Rejection](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.Rejection 'DiGi\.GIS\.PostgreSQL\.Classes\.Rejection')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
 
 The rejected footprints, each named with the reason, or null for none\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingImportResult.OpenBuildingImportResult(long,long,long,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.Rejection_,System.Nullable_int_).datasetId'></a>
+
+`datasetId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The identifier of the register row the import upserted in building\_dataset, or null when the result carries none \(DiGi\.GIS\.PostgreSQL\#131\)\.
 
 <a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingImportResult.OpenBuildingImportResult(System.Text.Json.Nodes.JsonObject)'></a>
 
@@ -16012,6 +16020,19 @@ public OpenBuildingImportResult(System.Text.Json.Nodes.JsonObject? jsonObject);
 
 The JSON object containing the result\.
 ### Properties
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingImportResult.DatasetId'></a>
+
+## OpenBuildingImportResult\.DatasetId Property
+
+Gets the identifier of the register row the import upserted in building\_dataset, or null when the result carries none\.
+
+```csharp
+public System.Nullable<int> DatasetId { get; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
 <a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingImportResult.FilteredCount'></a>
 
@@ -16537,7 +16558,7 @@ The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dot
 
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[OpenBuildingImportResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingImportResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingImportResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
-A task whose result carries the rows stored, the footprints filtered and the footprints rejected, or null when the run could not start \(bad arguments, unreadable schema, no counties to file against\)\.
+A task whose result carries the register row id, the rows stored, the footprints filtered and the footprints rejected, or null when the run could not start \(bad arguments, unreadable schema, no counties to file against\)\.
 
 <a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.Reproject(DiGi.Geometry.Planar.Interfaces.IGeometry2D,GeoAPI.CoordinateSystems.Transformations.ICoordinateTransformation)'></a>
 
@@ -26559,6 +26580,19 @@ private const int commandTimeout = 600;
 #### Field Value
 [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
 ### Properties
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOpenBuildingImportTask.DatasetId'></a>
+
+## PostgreSQLOpenBuildingImportTask\.DatasetId Property
+
+Gets the identifier of the register row the run upserted in building\_dataset, or null when no run completed \(DiGi\.GIS\.PostgreSQL\#131\)\. Read after the run, like the tallies\.
+
+```csharp
+public System.Nullable<int> DatasetId { get; private set; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
 <a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOpenBuildingImportTask.FilteredCount'></a>
 
