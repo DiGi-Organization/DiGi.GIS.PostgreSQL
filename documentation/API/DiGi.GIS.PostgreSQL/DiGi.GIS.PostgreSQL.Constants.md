@@ -42,6 +42,86 @@ public const string PostgreSQL_Storage = "GIS_PostgreSQL_Storage.conf";
 #### Field Value
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
+<a name='DiGi.GIS.PostgreSQL.Constants.PrimarySource'></a>
+
+## PrimarySource Class
+
+Provides the closed vocabulary of the `primary_source` column of the open building footprint tables \(DiGi\.GIS\.PostgreSQL\#125\)\.
+
+Every stored row carries exactly one of these values, normalised from the row's per-object provenance by [PrimarySource\(JsonObject\)](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Query.PrimarySource(System.Text.Json.Nodes.JsonObject) 'DiGi\.GIS\.PostgreSQL\.Query\.PrimarySource\(System\.Text\.Json\.Nodes\.JsonObject\)'). The vocabulary feeds figure R1 (the provenance diagram), so the values are part of the published output and must not drift.
+
+```csharp
+public static class PrimarySource
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → PrimarySource
+### Fields
+
+<a name='DiGi.GIS.PostgreSQL.Constants.PrimarySource.Esri'></a>
+
+## PrimarySource\.Esri Field
+
+The geometry originates in Esri \(an Esri entry of the Overture `sources` array\)\.
+
+```csharp
+public const string Esri = "esri";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.PostgreSQL.Constants.PrimarySource.Microsoft'></a>
+
+## PrimarySource\.Microsoft Field
+
+The geometry originates in Microsoft \(the Microsoft reader's quadkey, or a Microsoft entry of the Overture `sources` array\)\.
+
+```csharp
+public const string Microsoft = "microsoft";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.PostgreSQL.Constants.PrimarySource.Osm'></a>
+
+## PrimarySource\.Osm Field
+
+The geometry originates in OpenStreetMap \(the OSM reader itself, an OSM\-sourced EUBUCCO or DBSM row, or an OSM entry of the Overture `sources` array\)\.
+
+```csharp
+public const string Osm = "osm";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.PostgreSQL.Constants.PrimarySource.Other'></a>
+
+## PrimarySource\.Other Field
+
+The origin does not fall into any of the named categories \(GHS\-OBAT model output, an ESA\-only DBSM row, an unrecognised source entry\), or the row carries no provenance at all\.
+
+```csharp
+public const string Other = "other";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.PostgreSQL.Constants.PrimarySource.Register'></a>
+
+## PrimarySource\.Register Field
+
+The geometry originates in an official register or government dataset \(EUBUCCO `gov-*` sources\)\.
+
+```csharp
+public const string Register = "register";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
 <a name='DiGi.GIS.PostgreSQL.Constants.TableName'></a>
 
 ## TableName Class
@@ -120,6 +200,19 @@ public const string BuildingData = "building_data";
 #### Field Value
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
+<a name='DiGi.GIS.PostgreSQL.Constants.TableName.BuildingDataset'></a>
+
+## TableName\.BuildingDataset Field
+
+The name of the open building dataset release register: one row per release of one open building dataset, carrying its version, download date, licence and SHA\-256 \(DiGi\.GIS\.PostgreSQL\#125\)\. On the Main database, beside [Building2D](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.TableName.Building2D 'DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.Building2D')\.
+
+```csharp
+public const string BuildingDataset = "building_dataset";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
 <a name='DiGi.GIS.PostgreSQL.Constants.TableName.BuildingModel'></a>
 
 ## TableName\.BuildingModel Field
@@ -146,6 +239,19 @@ public const string BuildingSolarRadiation = "building_solar_radiation";
 #### Field Value
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
+<a name='DiGi.GIS.PostgreSQL.Constants.TableName.DBSM_Building2D'></a>
+
+## TableName\.DBSM\_Building2D Field
+
+The name of the DBSM footprint table: one row per footprint of one DBSM release, partitioned by county part \(DiGi\.GIS\.PostgreSQL\#125\)\. On the Main database, beside [Building2D](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.TableName.Building2D 'DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.Building2D')\.
+
+```csharp
+public const string DBSM_Building2D = "dbsm_building_2d";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
 <a name='DiGi.GIS.PostgreSQL.Constants.TableName.EPWFile'></a>
 
 ## TableName\.EPWFile Field
@@ -154,6 +260,45 @@ The name of the EPW file table\.
 
 ```csharp
 public const string EPWFile = "epw_file";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.PostgreSQL.Constants.TableName.EUBUCCO_Building2D'></a>
+
+## TableName\.EUBUCCO\_Building2D Field
+
+The name of the EUBUCCO footprint table: one row per footprint of one EUBUCCO release, partitioned by county part \(DiGi\.GIS\.PostgreSQL\#125\)\. On the Main database, beside [Building2D](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.TableName.Building2D 'DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.Building2D')\.
+
+```csharp
+public const string EUBUCCO_Building2D = "eubucco_building_2d";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.PostgreSQL.Constants.TableName.GHS_OBAT_Building'></a>
+
+## TableName\.GHS\_OBAT\_Building Field
+
+The name of the GHS\-OBAT centroid table: one row per centroid of one GHS\-OBAT release, keyed by the Overture identifier it links through and not partitioned \(DiGi\.GIS\.PostgreSQL\#125\)\. On the Main database, beside [Building2D](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.TableName.Building2D 'DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.Building2D')\.
+
+```csharp
+public const string GHS_OBAT_Building = "ghs_obat_building";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.PostgreSQL.Constants.TableName.Microsoft_Building2D'></a>
+
+## TableName\.Microsoft\_Building2D Field
+
+The name of the Microsoft footprint table: one row per footprint of one Microsoft release, partitioned by county part \(DiGi\.GIS\.PostgreSQL\#125\)\. On the Main database, beside [Building2D](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.TableName.Building2D 'DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.Building2D')\.
+
+```csharp
+public const string Microsoft_Building2D = "microsoft_building_2d";
 ```
 
 #### Field Value
@@ -284,6 +429,32 @@ The name of the orthophoto sheet index table: one row per sheet image of the GUG
 
 ```csharp
 public const string OrtoSheet = "orto_sheet";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.PostgreSQL.Constants.TableName.OSM_Building2D'></a>
+
+## TableName\.OSM\_Building2D Field
+
+The name of the OpenStreetMap footprint table: one row per footprint of one Geofabrik extract release, partitioned by county part \(DiGi\.GIS\.PostgreSQL\#125\)\. On the Main database, beside [Building2D](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.TableName.Building2D 'DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.Building2D')\.
+
+```csharp
+public const string OSM_Building2D = "osm_building_2d";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.PostgreSQL.Constants.TableName.Overture_Building2D'></a>
+
+## TableName\.Overture\_Building2D Field
+
+The name of the Overture footprint table: one row per footprint of one Overture release, partitioned by county part \(DiGi\.GIS\.PostgreSQL\#125\)\. On the Main database, beside [Building2D](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.TableName.Building2D 'DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.Building2D')\.
+
+```csharp
+public const string Overture_Building2D = "overture_building_2d";
 ```
 
 #### Field Value

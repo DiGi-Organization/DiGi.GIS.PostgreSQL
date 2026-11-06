@@ -877,6 +877,41 @@ The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dot
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A task that represents the asynchronous operation\. The task result is true if the Building2D partition was created successfully; otherwise, false\.
 
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_BuildingDataset(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken)'></a>
+
+## Create\.TableAsync\_BuildingDataset\(this NpgsqlConnection, int, CancellationToken\) Method
+
+Asynchronously creates the [BuildingDataset](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.TableName.BuildingDataset 'DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.BuildingDataset') release register in the PostgreSQL database\.
+
+One row is one release of one open building dataset, and `(dataset_key, version, download_date)` is unique under `NULLS NOT DISTINCT` so that a re-import of the same release revises its row rather than adding one (DiGi.GIS.PostgreSQL#125). The unique constraint already leads with `dataset_key`, so a second index on that column alone would only cost storage and write time. The table lives on the Main database, beside `building_2d`. Every statement is idempotent.
+
+```csharp
+public static System.Threading.Tasks.Task<bool> TableAsync_BuildingDataset(this Npgsql.NpgsqlConnection? npgsqlConnection, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_BuildingDataset(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken).npgsqlConnection'></a>
+
+`npgsqlConnection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
+
+The [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection') instance used to execute the command\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_BuildingDataset(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_BuildingDataset(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken') to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result is true if the table exists afterwards; otherwise, false\.
+
 <a name='DiGi.GIS.PostgreSQL.Create.TableAsync_BuildingSolarRadiation(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken)'></a>
 
 ## Create\.TableAsync\_BuildingSolarRadiation\(this NpgsqlConnection, int, CancellationToken\) Method
@@ -1024,6 +1059,131 @@ The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dot
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A task that represents the asynchronous operation\. The task result is true if the table was created successfully; otherwise, false\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_GHS_OBAT_Building(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken)'></a>
+
+## Create\.TableAsync\_GHS\_OBAT\_Building\(this NpgsqlConnection, int, CancellationToken\) Method
+
+Asynchronously creates the [GHS\_OBAT\_Building](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.TableName.GHS_OBAT_Building 'DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.GHS\_OBAT\_Building') centroid table in the PostgreSQL database\.
+
+One row is one GHS-OBAT centroid of one release, keyed by `overture_id` - the identifier the centroid links through to the Overture footprint - and filed under `county_id` (DiGi.GIS.PostgreSQL#125). Unlike the five footprint tables it is not partitioned: a centroid row is one small object, and the link key would otherwise have to carry the partition key to stay unique. `primary_source` is held here as in every other open building table because the acceptance criterion covers every stored row; the envelope columns are absent because a centroid's position lives inside `object`. The table lives on the Main database, beside `building_2d`. Every statement is idempotent.
+
+```csharp
+public static System.Threading.Tasks.Task<bool> TableAsync_GHS_OBAT_Building(this Npgsql.NpgsqlConnection? npgsqlConnection, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_GHS_OBAT_Building(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken).npgsqlConnection'></a>
+
+`npgsqlConnection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
+
+The [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection') instance used to execute the command\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_GHS_OBAT_Building(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_GHS_OBAT_Building(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken') to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result is true if the table exists afterwards; otherwise, false\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_OpenBuilding2D(thisNpgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken)'></a>
+
+## Create\.TableAsync\_OpenBuilding2D\(this NpgsqlConnection, string, int, CancellationToken\) Method
+
+Asynchronously creates one of the five partitioned open building footprint tables \(EUBUCCO, Overture, OSM, DBSM, Microsoft\) along with its supporting indexes\.
+
+The table name is an identifier, and an identifier cannot be a parameter - so it is resolved against the stored list in [IsOpenBuildingTableName\(string\)](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Query.IsOpenBuildingTableName(string) 'DiGi\.GIS\.PostgreSQL\.Query\.IsOpenBuildingTableName\(string\)') and rejected before any SQL is built, and only the names that survive are interpolated (DiGi.GIS.PostgreSQL#125; Coding - PostgreSQL.md section 5). The GHS-OBAT centroid table has its own shape and its own method.
+
+One row is one footprint of one release, filed under the county part it lies in and keyed by `(dataset_id, county_id, source_id)` under a `NULLS NOT DISTINCT` index, so a source identifier that is null still collides like any other and a re-import cannot append a duplicate. The GiST box index on the parent is inherited by every partition and serves the bounding-box prefilter. Every statement is idempotent.
+
+```csharp
+public static System.Threading.Tasks.Task<bool> TableAsync_OpenBuilding2D(this Npgsql.NpgsqlConnection? npgsqlConnection, string? tableName, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_OpenBuilding2D(thisNpgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken).npgsqlConnection'></a>
+
+`npgsqlConnection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
+
+The [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection') instance used to execute the command\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_OpenBuilding2D(thisNpgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken).tableName'></a>
+
+`tableName` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The table to create; must be one of the five footprint table names\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_OpenBuilding2D(thisNpgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_OpenBuilding2D(thisNpgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken') to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result is true if the table exists afterwards; otherwise, false\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_OpenBuilding2D_Partition(thisNpgsql.NpgsqlConnection,string,int,int,System.Threading.CancellationToken)'></a>
+
+## Create\.TableAsync\_OpenBuilding2D\_Partition\(this NpgsqlConnection, string, int, int, CancellationToken\) Method
+
+Asynchronously creates a partition of one of the five partitioned open building footprint tables based on the specified county identifier\.
+
+The statement also analyses a partition it has just created, so a fresh partition reports its row count from the first query on ([PartitionCommandText\(string, int\)](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Query.PartitionCommandText(string,int) 'DiGi\.GIS\.PostgreSQL\.Query\.PartitionCommandText\(string, int\)')). The table name is resolved against [IsOpenBuildingTableName\(string\)](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Query.IsOpenBuildingTableName(string) 'DiGi\.GIS\.PostgreSQL\.Query\.IsOpenBuildingTableName\(string\)') before any SQL is built.
+
+```csharp
+public static System.Threading.Tasks.Task<bool> TableAsync_OpenBuilding2D_Partition(this Npgsql.NpgsqlConnection? npgsqlConnection, string? tableName, int countyId, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_OpenBuilding2D_Partition(thisNpgsql.NpgsqlConnection,string,int,int,System.Threading.CancellationToken).npgsqlConnection'></a>
+
+`npgsqlConnection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
+
+The [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection') instance used to execute the command\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_OpenBuilding2D_Partition(thisNpgsql.NpgsqlConnection,string,int,int,System.Threading.CancellationToken).tableName'></a>
+
+`tableName` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The partitioned parent table; must be one of the five footprint table names\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_OpenBuilding2D_Partition(thisNpgsql.NpgsqlConnection,string,int,int,System.Threading.CancellationToken).countyId'></a>
+
+`countyId` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The identifier of the county the partition holds; it names the partition and is its single list value\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_OpenBuilding2D_Partition(thisNpgsql.NpgsqlConnection,string,int,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_OpenBuilding2D_Partition(thisNpgsql.NpgsqlConnection,string,int,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken') to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result is true if the partition exists afterwards; otherwise, false\.
 
 <a name='DiGi.GIS.PostgreSQL.Create.TableAsync_OrtoArea(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken)'></a>
 
@@ -3016,6 +3176,29 @@ The voivodeship codes in scope, or [null](https://docs.microsoft.com/en-us/dotne
 [System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')  
 [true](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/bool 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/builtin\-types/bool') when the county row is in scope, otherwise [false](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/bool 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/builtin\-types/bool')\.
 
+<a name='DiGi.GIS.PostgreSQL.Query.IsOpenBuildingTableName(string)'></a>
+
+## Query\.IsOpenBuildingTableName\(string\) Method
+
+Reports whether a name is one of the six tables of the open building datasets import \(DiGi\.GIS\.PostgreSQL\#125\)\.
+
+The list is the guard: a table name is an identifier and cannot be a parameter, so every statement that interpolates one resolves it here first and rejects anything that does not survive (Coding - PostgreSQL.md section 5). The register (`building_dataset`) is deliberately not on the list - it is read and written only through statements that name it directly.
+
+```csharp
+public static bool IsOpenBuildingTableName(string? tableName);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Query.IsOpenBuildingTableName(string).tableName'></a>
+
+`tableName` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The name to check\.
+
+#### Returns
+[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')  
+True when the name is one of the five footprint tables or the GHS\-OBAT centroid table; otherwise, false\.
+
 <a name='DiGi.GIS.PostgreSQL.Query.Match(thisDiGi.GIS.Classes.StatisticalUnit,DiGi.GIS.Classes.AdministrativeAreal2D)'></a>
 
 ## Query\.Match\(this StatisticalUnit, AdministrativeAreal2D\) Method
@@ -3230,6 +3413,116 @@ The stored figure of each subdivision, [null](https://docs.microsoft.com/en-us/d
 #### Returns
 [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')  
 The identifier of the subdivision whose figure applies, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when neither the subdivision nor any of its containers carries one\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.OpenBuildingCountyId(DiGi.Geometry.Planar.Classes.BoundingBox2D,DiGi.Geometry.Planar.Interfaces.IPolygonal2D,DiGi.Geometry.Planar.Classes.Point2D,System.Collections.Generic.IDictionary_int,DiGi.Geometry.Planar.Interfaces.IPolygonal2D_,System.Collections.Generic.IDictionary_int,DiGi.Geometry.Planar.Classes.BoundingBox2D_,System.Collections.Generic.IDictionary_int,DiGi.Geometry.Planar.Classes.PolygonalFace2D_,System.Collections.Generic.ISet_int_,DiGi.Geometry.Planar.Classes.BoundingBox2D,double,bool)'></a>
+
+## Query\.OpenBuildingCountyId\(BoundingBox2D, IPolygonal2D, Point2D, IDictionary\<int,IPolygonal2D\>, IDictionary\<int,BoundingBox2D\>, IDictionary\<int,PolygonalFace2D\>, ISet\<int\>, BoundingBox2D, double, bool\) Method
+
+Decides which county part one reprojected open building footprint is filed under, and whether a footprint that files nowhere is out of scope or a rejection \(DiGi\.GIS\.PostgreSQL\#125\)\.
+
+The decision runs entirely in memory against the county rows loaded once per run - a query per footprint would put a database round trip on every row of a multi-million-row import (Coding - PostgreSQL.md section 3). The bounding-box pass reproduces the candidate prefilter of `GetAdministrativeAreal2DsByBoundingBox2DAsync` - the same stored envelope columns grown by the same tolerance - and the containment and overlap decision then reuses [CountyId\(this IDictionary&lt;int,IPolygonal2D&gt;, IPolygonal2D, double\)](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Query.CountyId(thisSystem.Collections.Generic.IDictionary_int,DiGi.Geometry.Planar.Interfaces.IPolygonal2D_,DiGi.Geometry.Planar.Interfaces.IPolygonal2D,double) 'DiGi\.GIS\.PostgreSQL\.Query\.CountyId\(this System\.Collections\.Generic\.IDictionary\<int,DiGi\.Geometry\.Planar\.Interfaces\.IPolygonal2D\>, DiGi\.Geometry\.Planar\.Interfaces\.IPolygonal2D, double\)').
+
+The three outcomes are told apart by the second return channel, because null alone cannot separate them:
+
+- <b>Filed</b>: the result is a county part identifier, already inside the scope.
+
+- <b>Filtered</b> (`rejected` false): the footprint falls outside the scope bounding box, or resolves to a county part outside the scope list. Ordinary for a run scoped to pilot areas over a nationwide file; not counted as a rejection, because nothing was lost - the row was never in scope.
+
+- <b>Rejected</b> (`rejected` true): no county envelope reaches the footprint, or no county polygon intersects it within tolerance - a footprint outside the digitised territory, such as one carried by the Geofabrik border buffer. Counted as a rejection and never written.
+
+A polygonal footprint files through containment and, where several parts contain it, through [CountyId\(this IDictionary&lt;int,IPolygonal2D&gt;, IPolygonal2D, double\)](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Query.CountyId(thisSystem.Collections.Generic.IDictionary_int,DiGi.Geometry.Planar.Interfaces.IPolygonal2D_,DiGi.Geometry.Planar.Interfaces.IPolygonal2D,double) 'DiGi\.GIS\.PostgreSQL\.Query\.CountyId\(this System\.Collections\.Generic\.IDictionary\<int,DiGi\.Geometry\.Planar\.Interfaces\.IPolygonal2D\>, DiGi\.Geometry\.Planar\.Interfaces\.IPolygonal2D, double\)') (maximal overlap, then the smallest covering part, then the lowest identifier). A centroid files through the lowest-numbered face containing it, holes included, as [IdsByPoint2Ds\(this IDictionary&lt;int,PolygonalFace2D&gt;, IReadOnlyList&lt;Point2D&gt;, double\)](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Query.IdsByPoint2Ds(thisSystem.Collections.Generic.IDictionary_int,DiGi.Geometry.Planar.Classes.PolygonalFace2D_,System.Collections.Generic.IReadOnlyList_DiGi.Geometry.Planar.Classes.Point2D_,double) 'DiGi\.GIS\.PostgreSQL\.Query\.IdsByPoint2Ds\(this System\.Collections\.Generic\.IDictionary\<int,DiGi\.Geometry\.Planar\.Classes\.PolygonalFace2D\>, System\.Collections\.Generic\.IReadOnlyList\<DiGi\.Geometry\.Planar\.Classes\.Point2D\>, double\)') does; a centroid that no face contains within tolerance files nowhere rather than being widened to a nearest part, because a centroid carries no extent to compare distances with.
+
+```csharp
+public static System.Nullable<int> OpenBuildingCountyId(DiGi.Geometry.Planar.Classes.BoundingBox2D? boundingBox2D, DiGi.Geometry.Planar.Interfaces.IPolygonal2D? polygonal2D, DiGi.Geometry.Planar.Classes.Point2D? point2D, System.Collections.Generic.IDictionary<int,DiGi.Geometry.Planar.Interfaces.IPolygonal2D>? polygonal2Ds_ByCountyId, System.Collections.Generic.IDictionary<int,DiGi.Geometry.Planar.Classes.BoundingBox2D>? boundingBox2Ds_ByCountyId, System.Collections.Generic.IDictionary<int,DiGi.Geometry.Planar.Classes.PolygonalFace2D>? polygonalFace2Ds_ByCountyId, System.Collections.Generic.ISet<int>? countyIds_Scope, DiGi.Geometry.Planar.Classes.BoundingBox2D? boundingBox2D_Scope, double tolerance, out bool rejected);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Query.OpenBuildingCountyId(DiGi.Geometry.Planar.Classes.BoundingBox2D,DiGi.Geometry.Planar.Interfaces.IPolygonal2D,DiGi.Geometry.Planar.Classes.Point2D,System.Collections.Generic.IDictionary_int,DiGi.Geometry.Planar.Interfaces.IPolygonal2D_,System.Collections.Generic.IDictionary_int,DiGi.Geometry.Planar.Classes.BoundingBox2D_,System.Collections.Generic.IDictionary_int,DiGi.Geometry.Planar.Classes.PolygonalFace2D_,System.Collections.Generic.ISet_int_,DiGi.Geometry.Planar.Classes.BoundingBox2D,double,bool).boundingBox2D'></a>
+
+`boundingBox2D` [DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.boundingbox2d 'DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D')
+
+The envelope of the reprojected footprint, in EPSG:2180 \(easting in X\)\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.OpenBuildingCountyId(DiGi.Geometry.Planar.Classes.BoundingBox2D,DiGi.Geometry.Planar.Interfaces.IPolygonal2D,DiGi.Geometry.Planar.Classes.Point2D,System.Collections.Generic.IDictionary_int,DiGi.Geometry.Planar.Interfaces.IPolygonal2D_,System.Collections.Generic.IDictionary_int,DiGi.Geometry.Planar.Classes.BoundingBox2D_,System.Collections.Generic.IDictionary_int,DiGi.Geometry.Planar.Classes.PolygonalFace2D_,System.Collections.Generic.ISet_int_,DiGi.Geometry.Planar.Classes.BoundingBox2D,double,bool).polygonal2D'></a>
+
+`polygonal2D` [DiGi\.Geometry\.Planar\.Interfaces\.IPolygonal2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.interfaces.ipolygonal2d 'DiGi\.Geometry\.Planar\.Interfaces\.IPolygonal2D')
+
+The exterior ring a polygonal footprint files by, in EPSG:2180; null for a centroid\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.OpenBuildingCountyId(DiGi.Geometry.Planar.Classes.BoundingBox2D,DiGi.Geometry.Planar.Interfaces.IPolygonal2D,DiGi.Geometry.Planar.Classes.Point2D,System.Collections.Generic.IDictionary_int,DiGi.Geometry.Planar.Interfaces.IPolygonal2D_,System.Collections.Generic.IDictionary_int,DiGi.Geometry.Planar.Classes.BoundingBox2D_,System.Collections.Generic.IDictionary_int,DiGi.Geometry.Planar.Classes.PolygonalFace2D_,System.Collections.Generic.ISet_int_,DiGi.Geometry.Planar.Classes.BoundingBox2D,double,bool).point2D'></a>
+
+`point2D` [DiGi\.Geometry\.Planar\.Classes\.Point2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.point2d 'DiGi\.Geometry\.Planar\.Classes\.Point2D')
+
+The centroid a point footprint files by, in EPSG:2180; null for a polygon\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.OpenBuildingCountyId(DiGi.Geometry.Planar.Classes.BoundingBox2D,DiGi.Geometry.Planar.Interfaces.IPolygonal2D,DiGi.Geometry.Planar.Classes.Point2D,System.Collections.Generic.IDictionary_int,DiGi.Geometry.Planar.Interfaces.IPolygonal2D_,System.Collections.Generic.IDictionary_int,DiGi.Geometry.Planar.Classes.BoundingBox2D_,System.Collections.Generic.IDictionary_int,DiGi.Geometry.Planar.Classes.PolygonalFace2D_,System.Collections.Generic.ISet_int_,DiGi.Geometry.Planar.Classes.BoundingBox2D,double,bool).polygonal2Ds_ByCountyId'></a>
+
+`polygonal2Ds_ByCountyId` [System\.Collections\.Generic\.IDictionary&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.idictionary-2 'System\.Collections\.Generic\.IDictionary\`2')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[,](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.idictionary-2 'System\.Collections\.Generic\.IDictionary\`2')[DiGi\.Geometry\.Planar\.Interfaces\.IPolygonal2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.interfaces.ipolygonal2d 'DiGi\.Geometry\.Planar\.Interfaces\.IPolygonal2D')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.idictionary-2 'System\.Collections\.Generic\.IDictionary\`2')
+
+The exterior ring of every county part loaded for the run, keyed by part identifier\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.OpenBuildingCountyId(DiGi.Geometry.Planar.Classes.BoundingBox2D,DiGi.Geometry.Planar.Interfaces.IPolygonal2D,DiGi.Geometry.Planar.Classes.Point2D,System.Collections.Generic.IDictionary_int,DiGi.Geometry.Planar.Interfaces.IPolygonal2D_,System.Collections.Generic.IDictionary_int,DiGi.Geometry.Planar.Classes.BoundingBox2D_,System.Collections.Generic.IDictionary_int,DiGi.Geometry.Planar.Classes.PolygonalFace2D_,System.Collections.Generic.ISet_int_,DiGi.Geometry.Planar.Classes.BoundingBox2D,double,bool).boundingBox2Ds_ByCountyId'></a>
+
+`boundingBox2Ds_ByCountyId` [System\.Collections\.Generic\.IDictionary&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.idictionary-2 'System\.Collections\.Generic\.IDictionary\`2')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[,](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.idictionary-2 'System\.Collections\.Generic\.IDictionary\`2')[DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.boundingbox2d 'DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.idictionary-2 'System\.Collections\.Generic\.IDictionary\`2')
+
+The stored envelope of every county part loaded for the run, keyed by part identifier \- the same identifiers as the rings\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.OpenBuildingCountyId(DiGi.Geometry.Planar.Classes.BoundingBox2D,DiGi.Geometry.Planar.Interfaces.IPolygonal2D,DiGi.Geometry.Planar.Classes.Point2D,System.Collections.Generic.IDictionary_int,DiGi.Geometry.Planar.Interfaces.IPolygonal2D_,System.Collections.Generic.IDictionary_int,DiGi.Geometry.Planar.Classes.BoundingBox2D_,System.Collections.Generic.IDictionary_int,DiGi.Geometry.Planar.Classes.PolygonalFace2D_,System.Collections.Generic.ISet_int_,DiGi.Geometry.Planar.Classes.BoundingBox2D,double,bool).polygonalFace2Ds_ByCountyId'></a>
+
+`polygonalFace2Ds_ByCountyId` [System\.Collections\.Generic\.IDictionary&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.idictionary-2 'System\.Collections\.Generic\.IDictionary\`2')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[,](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.idictionary-2 'System\.Collections\.Generic\.IDictionary\`2')[DiGi\.Geometry\.Planar\.Classes\.PolygonalFace2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.polygonalface2d 'DiGi\.Geometry\.Planar\.Classes\.PolygonalFace2D')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.idictionary-2 'System\.Collections\.Generic\.IDictionary\`2')
+
+The face of every county part loaded for the run, holes included; required for centroid filing and ignored for polygon filing\. Null for a footprint dataset\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.OpenBuildingCountyId(DiGi.Geometry.Planar.Classes.BoundingBox2D,DiGi.Geometry.Planar.Interfaces.IPolygonal2D,DiGi.Geometry.Planar.Classes.Point2D,System.Collections.Generic.IDictionary_int,DiGi.Geometry.Planar.Interfaces.IPolygonal2D_,System.Collections.Generic.IDictionary_int,DiGi.Geometry.Planar.Classes.BoundingBox2D_,System.Collections.Generic.IDictionary_int,DiGi.Geometry.Planar.Classes.PolygonalFace2D_,System.Collections.Generic.ISet_int_,DiGi.Geometry.Planar.Classes.BoundingBox2D,double,bool).countyIds_Scope'></a>
+
+`countyIds_Scope` [System\.Collections\.Generic\.ISet&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.iset-1 'System\.Collections\.Generic\.ISet\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.iset-1 'System\.Collections\.Generic\.ISet\`1')
+
+The identifiers of the county parts this run may write to; null when every loaded county part is in scope\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.OpenBuildingCountyId(DiGi.Geometry.Planar.Classes.BoundingBox2D,DiGi.Geometry.Planar.Interfaces.IPolygonal2D,DiGi.Geometry.Planar.Classes.Point2D,System.Collections.Generic.IDictionary_int,DiGi.Geometry.Planar.Interfaces.IPolygonal2D_,System.Collections.Generic.IDictionary_int,DiGi.Geometry.Planar.Classes.BoundingBox2D_,System.Collections.Generic.IDictionary_int,DiGi.Geometry.Planar.Classes.PolygonalFace2D_,System.Collections.Generic.ISet_int_,DiGi.Geometry.Planar.Classes.BoundingBox2D,double,bool).boundingBox2D_Scope'></a>
+
+`boundingBox2D_Scope` [DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.boundingbox2d 'DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D')
+
+The scope bounding box, in EPSG:2180; null for a run scoped by county list\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.OpenBuildingCountyId(DiGi.Geometry.Planar.Classes.BoundingBox2D,DiGi.Geometry.Planar.Interfaces.IPolygonal2D,DiGi.Geometry.Planar.Classes.Point2D,System.Collections.Generic.IDictionary_int,DiGi.Geometry.Planar.Interfaces.IPolygonal2D_,System.Collections.Generic.IDictionary_int,DiGi.Geometry.Planar.Classes.BoundingBox2D_,System.Collections.Generic.IDictionary_int,DiGi.Geometry.Planar.Classes.PolygonalFace2D_,System.Collections.Generic.ISet_int_,DiGi.Geometry.Planar.Classes.BoundingBox2D,double,bool).tolerance'></a>
+
+`tolerance` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The distance a footprint may lie outside a part and still count as intersecting it, and the gap the envelope prefilter grows by\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.OpenBuildingCountyId(DiGi.Geometry.Planar.Classes.BoundingBox2D,DiGi.Geometry.Planar.Interfaces.IPolygonal2D,DiGi.Geometry.Planar.Classes.Point2D,System.Collections.Generic.IDictionary_int,DiGi.Geometry.Planar.Interfaces.IPolygonal2D_,System.Collections.Generic.IDictionary_int,DiGi.Geometry.Planar.Classes.BoundingBox2D_,System.Collections.Generic.IDictionary_int,DiGi.Geometry.Planar.Classes.PolygonalFace2D_,System.Collections.Generic.ISet_int_,DiGi.Geometry.Planar.Classes.BoundingBox2D,double,bool).rejected'></a>
+
+`rejected` [System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')
+
+Set true when the footprint files nowhere and the reason is a rejection rather than a scope filter\.
+
+#### Returns
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')  
+The identifier of the county part to file under, or null when the footprint is filtered or rejected\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.OpenBuildingTableName(string)'></a>
+
+## Query\.OpenBuildingTableName\(string\) Method
+
+Maps a dataset key of the open building datasets import to the table its footprints are stored in \(DiGi\.GIS\.PostgreSQL\#125\)\.
+
+The vocabulary is the one the issue and the readers share: `eubucco`, `overture`, `osm`, `dbsm`, `microsoft` for the five partitioned footprint tables, and `ghs_obat` for the centroid table. The comparison ignores case and surrounding whitespace, so an option written once by a human and once by a tool cannot fetch two different tables.
+
+```csharp
+public static string? OpenBuildingTableName(string? datasetKey);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Query.OpenBuildingTableName(string).datasetKey'></a>
+
+`datasetKey` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The dataset key to resolve\.
+
+#### Returns
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')  
+The table name the dataset's rows live in, or null when the key names no known dataset\.
 
 <a name='DiGi.GIS.PostgreSQL.Query.OrtoAreaByKeyCommandText()'></a>
 
@@ -3466,6 +3759,31 @@ The statistical data collection containing demographic information\.
 #### Returns
 [DiGi\.GIS\.Classes\.StatisticalYearlyDoubleData](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.statisticalyearlydoubledata 'DiGi\.GIS\.Classes\.StatisticalYearlyDoubleData')  
 A [DiGi\.GIS\.Classes\.StatisticalYearlyDoubleData](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.statisticalyearlydoubledata 'DiGi\.GIS\.Classes\.StatisticalYearlyDoubleData') containing normalized yearly population counts, or null if no population series is found\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.PrimarySource(System.Text.Json.Nodes.JsonObject)'></a>
+
+## Query\.PrimarySource\(JsonObject\) Method
+
+Normalises a footprint's per\-object provenance into the closed `primary_source` vocabulary the footprint tables store \(DiGi\.GIS\.PostgreSQL\#125\)\.
+
+Each dataset states its origin differently, so the evidence is read in a fixed order and the first match wins, making the result independent of key order: the reader's own dataset key (the OSM reader writes `dataset = "osm"`), then the Microsoft reader's `quadkey`, then the entries of an Overture `sources` array in their published order, then the source-valued columns - EUBUCCO's `*_source` columns and DBSM's `source` column, where a `gov-*` value is a register, a value containing `osm` is OpenStreetMap, a value containing `microsoft` is Microsoft and a value containing `esri` is Esri. A DBSM value of `ESA` classifies to none of them and becomes `other`, and so does a GHS-OBAT row, whose only evidence is the `overture_id` link. A row with no provenance at all becomes `other`, so the column is populated for every stored row.
+
+Among several source-valued columns the strongest evidence wins (`register` before `osm` before `microsoft` before `esri`), so an EUBUCCO row whose geometry comes from a register and whose height comes from OpenStreetMap is filed as the register that produced its geometry.
+
+```csharp
+public static string PrimarySource(System.Text.Json.Nodes.JsonObject? provenance);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Query.PrimarySource(System.Text.Json.Nodes.JsonObject).provenance'></a>
+
+`provenance` [System\.Text\.Json\.Nodes\.JsonObject](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.nodes.jsonobject 'System\.Text\.Json\.Nodes\.JsonObject')
+
+The per\-object provenance, or null when the dataset defines none for the row\.
+
+#### Returns
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')  
+One of the [PrimarySource](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.PrimarySource 'DiGi\.GIS\.PostgreSQL\.Constants\.PrimarySource') values; never null\.
 
 <a name='DiGi.GIS.PostgreSQL.Query.RandomBuilding2DReferenceWithoutUserYearBuiltAsync(thisDiGi.GIS.PostgreSQL.Classes.OrtoDatasPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.YearBuiltDataPostgreSQLConverter,System.Collections.Generic.IEnumerable_int_,int,int,int,System.Threading.CancellationToken)'></a>
 

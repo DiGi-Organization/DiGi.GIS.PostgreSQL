@@ -16,6 +16,41 @@
         public const string AddressPoint = "address_point";
 
         /// <summary>
+        /// The name of the open building dataset release register: one row per release of one open building dataset, carrying its version, download date, licence and SHA-256 (DiGi.GIS.PostgreSQL#125). On the Main database, beside <see cref="Building2D"/>.
+        /// </summary>
+        public const string BuildingDataset = "building_dataset";
+
+        /// <summary>
+        /// The name of the EUBUCCO footprint table: one row per footprint of one EUBUCCO release, partitioned by county part (DiGi.GIS.PostgreSQL#125). On the Main database, beside <see cref="Building2D"/>.
+        /// </summary>
+        public const string EUBUCCO_Building2D = "eubucco_building_2d";
+
+        /// <summary>
+        /// The name of the Overture footprint table: one row per footprint of one Overture release, partitioned by county part (DiGi.GIS.PostgreSQL#125). On the Main database, beside <see cref="Building2D"/>.
+        /// </summary>
+        public const string Overture_Building2D = "overture_building_2d";
+
+        /// <summary>
+        /// The name of the OpenStreetMap footprint table: one row per footprint of one Geofabrik extract release, partitioned by county part (DiGi.GIS.PostgreSQL#125). On the Main database, beside <see cref="Building2D"/>.
+        /// </summary>
+        public const string OSM_Building2D = "osm_building_2d";
+
+        /// <summary>
+        /// The name of the DBSM footprint table: one row per footprint of one DBSM release, partitioned by county part (DiGi.GIS.PostgreSQL#125). On the Main database, beside <see cref="Building2D"/>.
+        /// </summary>
+        public const string DBSM_Building2D = "dbsm_building_2d";
+
+        /// <summary>
+        /// The name of the Microsoft footprint table: one row per footprint of one Microsoft release, partitioned by county part (DiGi.GIS.PostgreSQL#125). On the Main database, beside <see cref="Building2D"/>.
+        /// </summary>
+        public const string Microsoft_Building2D = "microsoft_building_2d";
+
+        /// <summary>
+        /// The name of the GHS-OBAT centroid table: one row per centroid of one GHS-OBAT release, keyed by the Overture identifier it links through and not partitioned (DiGi.GIS.PostgreSQL#125). On the Main database, beside <see cref="Building2D"/>.
+        /// </summary>
+        public const string GHS_OBAT_Building = "ghs_obat_building";
+
+        /// <summary>
         /// The name of the building 2D table.
         /// </summary>
         public const string Building2D = "building_2d";

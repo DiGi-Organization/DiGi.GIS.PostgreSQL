@@ -517,6 +517,53 @@ namespace DiGi.GIS.PostgreSQL
         }
 
         /// <summary>
+        /// Asynchronously creates the <see cref="Constants.TableName.BuildingDataset"/> release register in the PostgreSQL database.
+        /// <para>One row is one release of one open building dataset, and <c>(dataset_key, version, download_date)</c> is unique under <c>NULLS NOT DISTINCT</c> so that a re-import of the same release revises its row rather than adding one (DiGi.GIS.PostgreSQL#125). The unique constraint already leads with <c>dataset_key</c>, so a second index on that column alone would only cost storage and write time. The table lives on the Main database, beside <c>building_2d</c>. Every statement is idempotent.</para>
+        /// </summary>
+        /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> instance used to execute the command.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> to monitor for cancellation requests.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result is true if the table exists afterwards; otherwise, false.</returns>
+        public static async Task<bool> TableAsync_BuildingDataset(this NpgsqlConnection? npgsqlConnection, int commandTimeout = 30, CancellationToken cancellationToken = default)
+        {
+            if (npgsqlConnection is null)
+            {
+                return false;
+            }
+
+            string commandText = $@"
+                CREATE TABLE IF NOT EXISTS {Constants.TableName.BuildingDataset} (
+                    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+                    dataset_key TEXT NOT NULL,
+                    version TEXT NOT NULL,
+                    download_date DATE NOT NULL,
+                    source_url TEXT,
+                    licence TEXT,
+                    source_observation_date TEXT,
+                    attribute_names JSONB NOT NULL,
+                    file_name TEXT,
+                    sha256 TEXT,
+                    row_count BIGINT,
+                    created_at timestamptz DEFAULT now(),
+                    UNIQUE NULLS NOT DISTINCT (dataset_key, version, download_date)
+                );";
+
+            try
+            {
+                await using NpgsqlCommand npgsqlCommand = new(commandText, npgsqlConnection);
+                npgsqlCommand.CommandTimeout = commandTimeout;
+
+                await npgsqlCommand.ExecuteNonQueryAsync(cancellationToken);
+                return true;
+            }
+            catch (NpgsqlException ex)
+            {
+                Console.WriteLine($"Postgres Error ({nameof(TableAsync_BuildingDataset)}): {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Asynchronously creates the <see cref="Constants.TableName.BuildingSolarRadiation"/> table and its indexes, partitioned by county part.
         /// <para>One row holds one building's <see cref="GIS.Classes.BuildingSolarRadiationResult"/>: the <c>object</c> column carries it with every surface's shading factors removed, and <c>shading_factors</c> carries those factors packed into one <c>bytea</c> (<see cref="Convert.ToSystem_Bytes(System.Collections.Generic.IEnumerable{byte[]})"/>), compressed with lz4. Keeping the factors out of the JSONB avoids a third more for base64 and lets lz4 collapse the night-time zeros.</para>
         /// <para>The key <c>(county_id, building_model_id, radius, solver_version)</c> is unique and every column of it is NOT NULL, so <c>NULLS NOT DISTINCT</c> is not needed. The weather columns describe the stored summary and are not part of the key. Every statement is idempotent.</para>
@@ -648,6 +695,140 @@ namespace DiGi.GIS.PostgreSQL
             catch (NpgsqlException ex)
             {
                 Console.WriteLine($"Postgres Error ({nameof(TableAsync_EPWFile)}): {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Asynchronously creates the <see cref="Constants.TableName.GHS_OBAT_Building"/> centroid table in the PostgreSQL database.
+        /// <para>One row is one GHS-OBAT centroid of one release, keyed by <c>overture_id</c> - the identifier the centroid links through to the Overture footprint - and filed under <c>county_id</c> (DiGi.GIS.PostgreSQL#125). Unlike the five footprint tables it is not partitioned: a centroid row is one small object, and the link key would otherwise have to carry the partition key to stay unique. <c>primary_source</c> is held here as in every other open building table because the acceptance criterion covers every stored row; the envelope columns are absent because a centroid's position lives inside <c>object</c>. The table lives on the Main database, beside <c>building_2d</c>. Every statement is idempotent.</para>
+        /// </summary>
+        /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> instance used to execute the command.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> to monitor for cancellation requests.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result is true if the table exists afterwards; otherwise, false.</returns>
+        public static async Task<bool> TableAsync_GHS_OBAT_Building(this NpgsqlConnection? npgsqlConnection, int commandTimeout = 30, CancellationToken cancellationToken = default)
+        {
+            if (npgsqlConnection is null)
+            {
+                return false;
+            }
+
+            string commandText = $@"
+                CREATE TABLE IF NOT EXISTS {Constants.TableName.GHS_OBAT_Building} (
+                    overture_id TEXT PRIMARY KEY,
+                    county_id INT NOT NULL,
+                    dataset_id INT NOT NULL,
+                    provenance JSONB,
+                    primary_source TEXT NOT NULL,
+                    object JSONB NOT NULL,
+                    created_at timestamptz DEFAULT now()
+                );
+
+                -- The read by county, and the scoped delete a replacement release runs before it writes.
+                CREATE INDEX IF NOT EXISTS idx_{Constants.TableName.GHS_OBAT_Building}_county_id
+                ON {Constants.TableName.GHS_OBAT_Building} (county_id);";
+
+            try
+            {
+                await using NpgsqlCommand npgsqlCommand = new(commandText, npgsqlConnection);
+                npgsqlCommand.CommandTimeout = commandTimeout;
+
+                await npgsqlCommand.ExecuteNonQueryAsync(cancellationToken);
+                return true;
+            }
+            catch (NpgsqlException ex)
+            {
+                Console.WriteLine($"Postgres Error ({nameof(TableAsync_GHS_OBAT_Building)}): {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Asynchronously creates one of the five partitioned open building footprint tables (EUBUCCO, Overture, OSM, DBSM, Microsoft) along with its supporting indexes.
+        /// <para>The table name is an identifier, and an identifier cannot be a parameter - so it is resolved against the stored list in <see cref="Query.IsOpenBuildingTableName(string?)"/> and rejected before any SQL is built, and only the names that survive are interpolated (DiGi.GIS.PostgreSQL#125; Coding - PostgreSQL.md section 5). The GHS-OBAT centroid table has its own shape and its own method.</para>
+        /// <para>One row is one footprint of one release, filed under the county part it lies in and keyed by <c>(dataset_id, county_id, source_id)</c> under a <c>NULLS NOT DISTINCT</c> index, so a source identifier that is null still collides like any other and a re-import cannot append a duplicate. The GiST box index on the parent is inherited by every partition and serves the bounding-box prefilter. Every statement is idempotent.</para>
+        /// </summary>
+        /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> instance used to execute the command.</param>
+        /// <param name="tableName">The table to create; must be one of the five footprint table names.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> to monitor for cancellation requests.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result is true if the table exists afterwards; otherwise, false.</returns>
+        public static async Task<bool> TableAsync_OpenBuilding2D(this NpgsqlConnection? npgsqlConnection, string? tableName, int commandTimeout = 30, CancellationToken cancellationToken = default)
+        {
+            if (npgsqlConnection is null || !Query.IsOpenBuildingTableName(tableName) || string.Equals(tableName, Constants.TableName.GHS_OBAT_Building, StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            string commandText = $@"
+                CREATE TABLE IF NOT EXISTS {tableName} (
+                    id BIGINT GENERATED ALWAYS AS IDENTITY,
+                    county_id INT NOT NULL,
+                    dataset_id INT NOT NULL,
+                    source_id TEXT,
+                    provenance JSONB,
+                    primary_source TEXT NOT NULL,
+                    min_x DOUBLE PRECISION NOT NULL,
+                    min_y DOUBLE PRECISION NOT NULL,
+                    max_x DOUBLE PRECISION NOT NULL,
+                    max_y DOUBLE PRECISION NOT NULL,
+                    object JSONB NOT NULL,
+                    created_at timestamptz DEFAULT now(),
+                    PRIMARY KEY (id, county_id),
+                    UNIQUE NULLS NOT DISTINCT (dataset_id, county_id, source_id)
+                ) PARTITION BY LIST (county_id);
+
+                -- The bounding-box prefilter of the spatial lookup: an R-Tree instead of a sequential scan
+                -- across every partition, exactly as on building_2d. Inherited by every partition.
+                CREATE INDEX IF NOT EXISTS idx_{tableName}_bbox
+                ON {tableName} USING gist (box(point(min_x, min_y), point(max_x, max_y)));";
+
+            try
+            {
+                await using NpgsqlCommand npgsqlCommand = new(commandText, npgsqlConnection);
+                npgsqlCommand.CommandTimeout = commandTimeout;
+
+                await npgsqlCommand.ExecuteNonQueryAsync(cancellationToken);
+                return true;
+            }
+            catch (NpgsqlException ex)
+            {
+                Console.WriteLine($"Postgres Error ({nameof(TableAsync_OpenBuilding2D)}): {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Asynchronously creates a partition of one of the five partitioned open building footprint tables based on the specified county identifier.
+        /// <para>The statement also analyses a partition it has just created, so a fresh partition reports its row count from the first query on (<see cref="Query.PartitionCommandText(string, int)"/>). The table name is resolved against <see cref="Query.IsOpenBuildingTableName(string?)"/> before any SQL is built.</para>
+        /// </summary>
+        /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> instance used to execute the command.</param>
+        /// <param name="tableName">The partitioned parent table; must be one of the five footprint table names.</param>
+        /// <param name="countyId">The identifier of the county the partition holds; it names the partition and is its single list value.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> to monitor for cancellation requests.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result is true if the partition exists afterwards; otherwise, false.</returns>
+        public static async Task<bool> TableAsync_OpenBuilding2D_Partition(this NpgsqlConnection? npgsqlConnection, string? tableName, int countyId, int commandTimeout = 30, CancellationToken cancellationToken = default)
+        {
+            if (npgsqlConnection is null || !Query.IsOpenBuildingTableName(tableName) || string.Equals(tableName, Constants.TableName.GHS_OBAT_Building, StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            string commandText = Query.PartitionCommandText(tableName, countyId);
+
+            try
+            {
+                await using NpgsqlCommand npgsqlCommand = new(commandText, npgsqlConnection);
+                npgsqlCommand.CommandTimeout = commandTimeout;
+
+                await npgsqlCommand.ExecuteNonQueryAsync(cancellationToken);
+                return true;
+            }
+            catch (NpgsqlException ex)
+            {
+                Console.WriteLine($"Postgres Error ({nameof(TableAsync_OpenBuilding2D_Partition)}): {ex.Message}");
                 return false;
             }
         }

@@ -33,5 +33,10 @@ namespace DiGi.GIS.PostgreSQL.Enums
         /// The caller did not state a county identifier, and the row carries no geometry from which one could be inferred. A defect in the posted payload.
         /// </summary>
         [Description("Missing County")] MissingCounty = 4,
+
+        /// <summary>
+        /// The row carries a coordinate reference system the reprojection does not support, or a transformation of its geometry failed (a null input, a non-finite vertex, a ring shorter than four ordinates, or a result outside the EPSG:2180 domain). The footprint is counted and never written - a partially reprojected ring is not a row (DiGi.GIS.PostgreSQL#125).
+        /// </summary>
+        [Description("Geometry Rejected")] GeometryRejected = 5,
     }
 }
