@@ -96,6 +96,7 @@ Derived
 ↳ [PostgreSQLBuildingDataExternalComponentsUpdateTask](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLBuildingDataExternalComponentsUpdateTask 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLBuildingDataExternalComponentsUpdateTask')  
 ↳ [PostgreSQLBuildingDataSolarRadiationUpdateTask](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLBuildingDataSolarRadiationUpdateTask 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLBuildingDataSolarRadiationUpdateTask')  
 ↳ [PostgreSQLBuildingDataUpdateTask](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLBuildingDataUpdateTask 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLBuildingDataUpdateTask')  
+↳ [PostgreSQLCreateOrtoAreaTablesTask](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLCreateOrtoAreaTablesTask 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLCreateOrtoAreaTablesTask')  
 ↳ [PostgreSQLOrtoDatasAcquisitionUpdateTask](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoDatasAcquisitionUpdateTask 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLOrtoDatasAcquisitionUpdateTask')  
 ↳ [PostgreSQLOrtoDatasCreateDatabaseTask](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoDatasCreateDatabaseTask 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLOrtoDatasCreateDatabaseTask')  
 ↳ [PostgreSQLOrtoDatasRefreshTask](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoDatasRefreshTask 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLOrtoDatasRefreshTask')  

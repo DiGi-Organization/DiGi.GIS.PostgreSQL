@@ -16239,6 +16239,35 @@ public static string TableName { get; }
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 ### Methods
 
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaImagePostgreSQLConverter.CreateTableAsync(int,System.Threading.CancellationToken)'></a>
+
+## OrtoAreaImagePostgreSQLConverter\.CreateTableAsync\(int, CancellationToken\) Method
+
+Asynchronously creates the OrtoAreaImage table \(and its indexes\) in the database, and analyzes it so the query\-planner statistics are populated from the first query\.
+
+This is the explicit, repeatable materialisation path for the test-area tables (DiGi.GIS.PostgreSQL#130): it runs the same [TableAsync\_OrtoAreaImage\(this NpgsqlConnection, int, CancellationToken\)](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Create.TableAsync_OrtoAreaImage(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken) 'DiGi\.GIS\.PostgreSQL\.Create\.TableAsync\_OrtoAreaImage\(this Npgsql\.NpgsqlConnection, int, System\.Threading\.CancellationToken\)') DDL the converters run at the top of every `UpdateAsync`, so nothing here diverges from the schema. Every statement is idempotent.
+
+```csharp
+public System.Threading.Tasks.Task<bool> CreateTableAsync(int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaImagePostgreSQLConverter.CreateTableAsync(int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaImagePostgreSQLConverter.CreateTableAsync(int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken') to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result is true if the table exists afterwards; otherwise, false\.
+
 <a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaImagePostgreSQLConverter.GetOrtoAreaImageAsync(Npgsql.NpgsqlConnection,string,short,int,System.Threading.CancellationToken)'></a>
 
 ## OrtoAreaImagePostgreSQLConverter\.GetOrtoAreaImageAsync\(NpgsqlConnection, string, short, int, CancellationToken\) Method
@@ -16720,6 +16749,35 @@ public static string TableName { get; }
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 ### Methods
 
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabelPostgreSQLConverter.CreateTableAsync(int,System.Threading.CancellationToken)'></a>
+
+## OrtoAreaLabelPostgreSQLConverter\.CreateTableAsync\(int, CancellationToken\) Method
+
+Asynchronously creates the OrtoAreaLabel table \(and its indexes\) in the database, and analyzes it so the query\-planner statistics are populated from the first query\.
+
+This is the explicit, repeatable materialisation path for the test-area tables (DiGi.GIS.PostgreSQL#130): it runs the same [TableAsync\_OrtoAreaLabel\(this NpgsqlConnection, int, CancellationToken\)](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Create.TableAsync_OrtoAreaLabel(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken) 'DiGi\.GIS\.PostgreSQL\.Create\.TableAsync\_OrtoAreaLabel\(this Npgsql\.NpgsqlConnection, int, System\.Threading\.CancellationToken\)') DDL the converters run at the top of every `UpdateAsync`, so nothing here diverges from the schema. Every statement is idempotent.
+
+```csharp
+public System.Threading.Tasks.Task<bool> CreateTableAsync(int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabelPostgreSQLConverter.CreateTableAsync(int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabelPostgreSQLConverter.CreateTableAsync(int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken') to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result is true if the table exists afterwards; otherwise, false\.
+
 <a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabelPostgreSQLConverter.GetOrtoAreaLabelsAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken)'></a>
 
 ## OrtoAreaLabelPostgreSQLConverter\.GetOrtoAreaLabelsAsync\(NpgsqlConnection, string, int, CancellationToken\) Method
@@ -17108,6 +17166,35 @@ public static string TableName { get; }
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 ### Methods
 
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter.CreateTableAsync(int,System.Threading.CancellationToken)'></a>
+
+## OrtoAreaObjectPostgreSQLConverter\.CreateTableAsync\(int, CancellationToken\) Method
+
+Asynchronously creates the OrtoAreaObject table \(and its indexes\) in the database, and analyzes it so the query\-planner statistics are populated from the first query\.
+
+This is the explicit, repeatable materialisation path for the test-area tables (DiGi.GIS.PostgreSQL#130): it runs the same [TableAsync\_OrtoAreaObject\(this NpgsqlConnection, int, CancellationToken\)](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Create.TableAsync_OrtoAreaObject(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken) 'DiGi\.GIS\.PostgreSQL\.Create\.TableAsync\_OrtoAreaObject\(this Npgsql\.NpgsqlConnection, int, System\.Threading\.CancellationToken\)') DDL the converters run at the top of every `UpdateAsync`, so nothing here diverges from the schema. Every statement is idempotent.
+
+```csharp
+public System.Threading.Tasks.Task<bool> CreateTableAsync(int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter.CreateTableAsync(int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter.CreateTableAsync(int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken') to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result is true if the table exists afterwards; otherwise, false\.
+
 <a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter.GetOrtoAreaObjectsAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken)'></a>
 
 ## OrtoAreaObjectPostgreSQLConverter\.GetOrtoAreaObjectsAsync\(NpgsqlConnection, string, int, CancellationToken\) Method
@@ -17414,6 +17501,35 @@ public static string TableName { get; }
 #### Property Value
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 ### Methods
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter.CreateTableAsync(int,System.Threading.CancellationToken)'></a>
+
+## OrtoAreaPostgreSQLConverter\.CreateTableAsync\(int, CancellationToken\) Method
+
+Asynchronously creates the OrtoArea table \(and its indexes\) in the database, and analyzes it so the query\-planner statistics are populated from the first query\.
+
+This is the explicit, repeatable materialisation path for the test-area tables (DiGi.GIS.PostgreSQL#130): it runs the same [TableAsync\_OrtoArea\(this NpgsqlConnection, int, CancellationToken\)](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Create.TableAsync_OrtoArea(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken) 'DiGi\.GIS\.PostgreSQL\.Create\.TableAsync\_OrtoArea\(this Npgsql\.NpgsqlConnection, int, System\.Threading\.CancellationToken\)') DDL the converters run at the top of every `UpdateAsync`, so nothing here diverges from the schema. Every statement is idempotent.
+
+```csharp
+public System.Threading.Tasks.Task<bool> CreateTableAsync(int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter.CreateTableAsync(int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter.CreateTableAsync(int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken') to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result is true if the table exists afterwards; otherwise, false\.
 
 <a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter.GetOrtoAreaAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken)'></a>
 
@@ -24406,6 +24522,126 @@ A cancellation token that can be used to cancel the operation\.
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A task representing the asynchronous operation\. Returns true when the run could be attempted, every subdivision in scope was updated without error, every selected update type was written and every subdivision the radial ratios were asked for could be measured; otherwise, false \- including when a selected update type was counted against [UnfulfilledUpdateTypeCount](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLBuildingDataUpdateTask.UnfulfilledUpdateTypeCount 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLBuildingDataUpdateTask\.UnfulfilledUpdateTypeCount') or a subdivision against [RadialRatiosUnmeasuredSubdivisionCount](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLBuildingDataUpdateTask.RadialRatiosUnmeasuredSubdivisionCount 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLBuildingDataUpdateTask\.RadialRatiosUnmeasuredSubdivisionCount')\. A county's unassigned buildings whose radial ratios could not be measured are counted against [RadialRatiosUnmeasuredUnassignedCountyCount](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLBuildingDataUpdateTask.RadialRatiosUnmeasuredUnassignedCountyCount 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLBuildingDataUpdateTask\.RadialRatiosUnmeasuredUnassignedCountyCount') and do not affect the result; neither do [YearBuiltWrittenCount](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLBuildingDataUpdateTask.YearBuiltWrittenCount 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLBuildingDataUpdateTask\.YearBuiltWrittenCount') and [YearBuiltMissingBuildingCount](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLBuildingDataUpdateTask.YearBuiltMissingBuildingCount 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLBuildingDataUpdateTask\.YearBuiltMissingBuildingCount'), since a county without stored year built entries is not a fault of the run\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCreateOrtoAreaTablesTask'></a>
+
+## PostgreSQLCreateOrtoAreaTablesTask Class
+
+Represents a background task that creates the four full\-interpretation test\-area tables in PostgreSQL\.
+
+Runs the exact DDL the converters run at the top of every `UpdateAsync` (`TableAsync_OrtoArea` and its siblings), so nothing here diverges from the schema. `orto_area`, `orto_area_object` and `orto_area_label` are created on the Main database and `orto_area_image` on the Storage database, each followed by an `ANALYZE`. Every statement is idempotent, so re-running the task is a no-op. This is the explicit, repeatable materialisation path for the test-area tables (DiGi.GIS.PostgreSQL#130).
+
+```csharp
+public class PostgreSQLCreateOrtoAreaTablesTask : DiGi.Core.Classes.BackgroundTask, DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLObject, DiGi.Core.Interfaces.IObject
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [DiGi\.Core\.Classes\.BackgroundTask](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.backgroundtask 'DiGi\.Core\.Classes\.BackgroundTask') → PostgreSQLCreateOrtoAreaTablesTask
+
+Implements [IGISPostgreSQLObject](DiGi.GIS.PostgreSQL.Interfaces.md#DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLObject 'DiGi\.GIS\.PostgreSQL\.Interfaces\.IGISPostgreSQLObject'), [DiGi\.Core\.Interfaces\.IObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iobject 'DiGi\.Core\.Interfaces\.IObject')
+### Constructors
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCreateOrtoAreaTablesTask.PostgreSQLCreateOrtoAreaTablesTask(DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabelPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OrtoAreaImagePostgreSQLConverter)'></a>
+
+## PostgreSQLCreateOrtoAreaTablesTask\(OrtoAreaPostgreSQLConverter, OrtoAreaObjectPostgreSQLConverter, OrtoAreaLabelPostgreSQLConverter, OrtoAreaImagePostgreSQLConverter\) Constructor
+
+Constructor with Dependency Injection\.
+
+```csharp
+public PostgreSQLCreateOrtoAreaTablesTask(DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter ortoAreaPostgreSQLConverter, DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter ortoAreaObjectPostgreSQLConverter, DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabelPostgreSQLConverter ortoAreaLabelPostgreSQLConverter, DiGi.GIS.PostgreSQL.Classes.OrtoAreaImagePostgreSQLConverter ortoAreaImagePostgreSQLConverter);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCreateOrtoAreaTablesTask.PostgreSQLCreateOrtoAreaTablesTask(DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabelPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OrtoAreaImagePostgreSQLConverter).ortoAreaPostgreSQLConverter'></a>
+
+`ortoAreaPostgreSQLConverter` [OrtoAreaPostgreSQLConverter](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaPostgreSQLConverter')
+
+The converter for the `orto_area` table \(Main\)\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCreateOrtoAreaTablesTask.PostgreSQLCreateOrtoAreaTablesTask(DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabelPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OrtoAreaImagePostgreSQLConverter).ortoAreaObjectPostgreSQLConverter'></a>
+
+`ortoAreaObjectPostgreSQLConverter` [OrtoAreaObjectPostgreSQLConverter](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaObjectPostgreSQLConverter')
+
+The converter for the `orto_area_object` table \(Main\)\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCreateOrtoAreaTablesTask.PostgreSQLCreateOrtoAreaTablesTask(DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabelPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OrtoAreaImagePostgreSQLConverter).ortoAreaLabelPostgreSQLConverter'></a>
+
+`ortoAreaLabelPostgreSQLConverter` [OrtoAreaLabelPostgreSQLConverter](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabelPostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaLabelPostgreSQLConverter')
+
+The converter for the `orto_area_label` table \(Main\)\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCreateOrtoAreaTablesTask.PostgreSQLCreateOrtoAreaTablesTask(DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabelPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OrtoAreaImagePostgreSQLConverter).ortoAreaImagePostgreSQLConverter'></a>
+
+`ortoAreaImagePostgreSQLConverter` [OrtoAreaImagePostgreSQLConverter](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaImagePostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaImagePostgreSQLConverter')
+
+The converter for the `orto_area_image` table \(Storage\)\.
+### Fields
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCreateOrtoAreaTablesTask.ortoAreaImagePostgreSQLConverter'></a>
+
+## PostgreSQLCreateOrtoAreaTablesTask\.ortoAreaImagePostgreSQLConverter Field
+
+Gets the OrtoAreaImage PostgreSQL converter used to create the `orto_area_image` table\.
+
+```csharp
+private readonly OrtoAreaImagePostgreSQLConverter ortoAreaImagePostgreSQLConverter;
+```
+
+#### Field Value
+[OrtoAreaImagePostgreSQLConverter](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaImagePostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaImagePostgreSQLConverter')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCreateOrtoAreaTablesTask.ortoAreaLabelPostgreSQLConverter'></a>
+
+## PostgreSQLCreateOrtoAreaTablesTask\.ortoAreaLabelPostgreSQLConverter Field
+
+Gets the OrtoAreaLabel PostgreSQL converter used to create the `orto_area_label` table\.
+
+```csharp
+private readonly OrtoAreaLabelPostgreSQLConverter ortoAreaLabelPostgreSQLConverter;
+```
+
+#### Field Value
+[OrtoAreaLabelPostgreSQLConverter](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabelPostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaLabelPostgreSQLConverter')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCreateOrtoAreaTablesTask.ortoAreaObjectPostgreSQLConverter'></a>
+
+## PostgreSQLCreateOrtoAreaTablesTask\.ortoAreaObjectPostgreSQLConverter Field
+
+Gets the OrtoAreaObject PostgreSQL converter used to create the `orto_area_object` table\.
+
+```csharp
+private readonly OrtoAreaObjectPostgreSQLConverter ortoAreaObjectPostgreSQLConverter;
+```
+
+#### Field Value
+[OrtoAreaObjectPostgreSQLConverter](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaObjectPostgreSQLConverter')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCreateOrtoAreaTablesTask.ortoAreaPostgreSQLConverter'></a>
+
+## PostgreSQLCreateOrtoAreaTablesTask\.ortoAreaPostgreSQLConverter Field
+
+Gets the OrtoArea PostgreSQL converter used to create the `orto_area` table\.
+
+```csharp
+private readonly OrtoAreaPostgreSQLConverter ortoAreaPostgreSQLConverter;
+```
+
+#### Field Value
+[OrtoAreaPostgreSQLConverter](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaPostgreSQLConverter')
+### Methods
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLCreateOrtoAreaTablesTask.ExecuteAsync()'></a>
+
+## PostgreSQLCreateOrtoAreaTablesTask\.ExecuteAsync\(\) Method
+
+Executes the background task that creates the four test\-area tables \(and their indexes\), then analyzes each\.
+
+```csharp
+protected override System.Threading.Tasks.Task<bool> ExecuteAsync();
+```
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task representing the asynchronous operation\. Returns true only if all four tables were created successfully; otherwise, false\.
 
 <a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoDatasAcquisitionUpdateOptions'></a>
 

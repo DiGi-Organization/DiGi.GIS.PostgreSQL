@@ -163,5 +163,31 @@ namespace DiGi.GIS.PostgreSQL.Classes
             await npgsqlConnection.OpenAsync(cancellationToken);
             return await UpdateAsync(npgsqlConnection, ortoArea, commandTimeout, cancellationToken);
         }
+
+        /// <summary>
+        /// Asynchronously creates the OrtoArea table (and its indexes) in the database, and analyzes it so the query-planner statistics are populated from the first query.
+        /// <para>This is the explicit, repeatable materialisation path for the test-area tables (DiGi.GIS.PostgreSQL#130): it runs the same <see cref="Create.TableAsync_OrtoArea(NpgsqlConnection, int, CancellationToken)"/> DDL the converters run at the top of every <c>UpdateAsync</c>, so nothing here diverges from the schema. Every statement is idempotent.</para>
+        /// </summary>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> to monitor for cancellation requests.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result is true if the table exists afterwards; otherwise, false.</returns>
+        public async Task<bool> CreateTableAsync(int commandTimeout = 30, CancellationToken cancellationToken = default)
+        {
+            await using NpgsqlConnection? npgsqlConnection = DiGi.PostgreSQL.Create.NpgsqlConnection(ConnectionData);
+            if (npgsqlConnection is null)
+            {
+                return false;
+            }
+
+            await npgsqlConnection.OpenAsync(cancellationToken);
+
+            bool result = await Create.TableAsync_OrtoArea(npgsqlConnection, commandTimeout, cancellationToken);
+            if (result)
+            {
+                await DiGi.PostgreSQL.Modify.Analyze(npgsqlConnection, Constants.TableName.OrtoArea, commandTimeout, cancellationToken);
+            }
+
+            return result;
+        }
     }
 }
