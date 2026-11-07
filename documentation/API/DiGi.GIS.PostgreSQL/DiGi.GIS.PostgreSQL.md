@@ -4225,6 +4225,49 @@ The county part the buildings are filed under\.
 [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')  
 The number of [building2Ds](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Query.SubjectCount(System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.Building2D_,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.Building2D_,int).building2Ds 'DiGi\.GIS\.PostgreSQL\.Query\.SubjectCount\(System\.Collections\.Generic\.IEnumerable\<DiGi\.GIS\.PostgreSQL\.Classes\.Building2D\>, System\.Collections\.Generic\.IEnumerable\<DiGi\.GIS\.PostgreSQL\.Classes\.Building2D\>, int\)\.building2Ds') present in [building2Ds\_Neighbour](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Query.SubjectCount(System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.Building2D_,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.Building2D_,int).building2Ds_Neighbour 'DiGi\.GIS\.PostgreSQL\.Query\.SubjectCount\(System\.Collections\.Generic\.IEnumerable\<DiGi\.GIS\.PostgreSQL\.Classes\.Building2D\>, System\.Collections\.Generic\.IEnumerable\<DiGi\.GIS\.PostgreSQL\.Classes\.Building2D\>, int\)\.building2Ds\_Neighbour')\.
 
+<a name='DiGi.GIS.PostgreSQL.Query.TryMicrosoftQuadkeys(System.Collections.Generic.IEnumerable_string_,string,System.Collections.Generic.Dictionary_string,string_,string)'></a>
+
+## Query\.TryMicrosoftQuadkeys\(IEnumerable\<string\>, string, Dictionary\<string,string\>, string\) Method
+
+Resolves the quadkey of every Microsoft source file of one run, so a county scope covered by several published chunks imports in a single run \(DiGi\-Organization/DiGi\.GIS\.PostgreSQL\#132\)\.
+
+Each path's own `quadkey=<digits>` directory segment comes first ([DiGi\.GIS\.IO\.Query\.Quadkey\(System\.String\)](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.io.query.quadkey#digi-gis-io-query-quadkey(system-string) 'DiGi\.GIS\.IO\.Query\.Quadkey\(System\.String\)')), and [quadkey](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Query.TryMicrosoftQuadkeys(System.Collections.Generic.IEnumerable_string_,string,System.Collections.Generic.Dictionary_string,string_,string).quadkey 'DiGi\.GIS\.PostgreSQL\.Query\.TryMicrosoftQuadkeys\(System\.Collections\.Generic\.IEnumerable\<string\>, string, System\.Collections\.Generic\.Dictionary\<string,string\>, string\)\.quadkey') stands in only for a path that has none. The reader synthesizes source identifiers as `quadkey:index` with the index restarting in every file, so the resolution is refused - before the run truncates anything - when a path resolves to no quadkey, when a path's segment disagrees with an explicit [quadkey](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Query.TryMicrosoftQuadkeys(System.Collections.Generic.IEnumerable_string_,string,System.Collections.Generic.Dictionary_string,string_,string).quadkey 'DiGi\.GIS\.PostgreSQL\.Query\.TryMicrosoftQuadkeys\(System\.Collections\.Generic\.IEnumerable\<string\>, string, System\.Collections\.Generic\.Dictionary\<string,string\>, string\)\.quadkey'), or when two files resolve to the same quadkey and their identifiers would collide.
+
+Both the core task and the tray's options check ask this one rule, so the dialog refuses what the run would refuse.
+
+```csharp
+public static bool TryMicrosoftQuadkeys(System.Collections.Generic.IEnumerable<string>? paths, string? quadkey, out System.Collections.Generic.Dictionary<string,string>? quadkeys, out string? message);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Query.TryMicrosoftQuadkeys(System.Collections.Generic.IEnumerable_string_,string,System.Collections.Generic.Dictionary_string,string_,string).paths'></a>
+
+`paths` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The run's source paths, or null\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.TryMicrosoftQuadkeys(System.Collections.Generic.IEnumerable_string_,string,System.Collections.Generic.Dictionary_string,string_,string).quadkey'></a>
+
+`quadkey` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The quadkey typed for the run, used only for a path without a segment, or null\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.TryMicrosoftQuadkeys(System.Collections.Generic.IEnumerable_string_,string,System.Collections.Generic.Dictionary_string,string_,string).quadkeys'></a>
+
+`quadkeys` [System\.Collections\.Generic\.Dictionary&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.dictionary-2 'System\.Collections\.Generic\.Dictionary\`2')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[,](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.dictionary-2 'System\.Collections\.Generic\.Dictionary\`2')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.dictionary-2 'System\.Collections\.Generic\.Dictionary\`2')
+
+The quadkey of every path, keyed by the path, or null when the resolution was refused\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.TryMicrosoftQuadkeys(System.Collections.Generic.IEnumerable_string_,string,System.Collections.Generic.Dictionary_string,string_,string).message'></a>
+
+`message` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+Why the resolution was refused, or null when it succeeded\.
+
+#### Returns
+[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')  
+True when every path resolved to its own quadkey\.
+
 <a name='DiGi.GIS.PostgreSQL.Query.TryParse(thisstring,string,System.Nullable_int_,DiGi.Core.Classes.GuidReference)'></a>
 
 ## Query\.TryParse\(this string, string, Nullable\<int\>, GuidReference\) Method

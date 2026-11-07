@@ -26762,36 +26762,42 @@ A cancellation token that can be used to cancel the operation\.
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A task representing the asynchronous operation\. Returns true unless the run was cancelled\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOpenBuildingImportTask.Footprints(string,DiGi.GIS.PostgreSQL.Classes.PostgreSQLOpenBuildingImportTaskOptions,System.Collections.Generic.List_DiGi.OSM.Classes.BuildingReadResult_,System.Threading.CancellationToken)'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOpenBuildingImportTask.Footprints(string,DiGi.GIS.PostgreSQL.Classes.PostgreSQLOpenBuildingImportTaskOptions,System.Collections.Generic.Dictionary_string,string_,System.Collections.Generic.List_DiGi.OSM.Classes.BuildingReadResult_,System.Threading.CancellationToken)'></a>
 
-## PostgreSQLOpenBuildingImportTask\.Footprints\(string, PostgreSQLOpenBuildingImportTaskOptions, List\<BuildingReadResult\>, CancellationToken\) Method
+## PostgreSQLOpenBuildingImportTask\.Footprints\(string, PostgreSQLOpenBuildingImportTaskOptions, Dictionary\<string,string\>, List\<BuildingReadResult\>, CancellationToken\) Method
 
 Opens the readers of the dataset's file format for every source path and concatenates them into one stream; the OSM branch reads the PBF synchronously and keeps its read results so their summaries can be read after the run\.
 
 ```csharp
-private static System.Collections.Generic.IAsyncEnumerable<DiGi.GIS.IO.Classes.Footprint>? Footprints(string tableName, DiGi.GIS.PostgreSQL.Classes.PostgreSQLOpenBuildingImportTaskOptions options, System.Collections.Generic.List<DiGi.OSM.Classes.BuildingReadResult> buildingReadResults, System.Threading.CancellationToken cancellationToken);
+private static System.Collections.Generic.IAsyncEnumerable<DiGi.GIS.IO.Classes.Footprint>? Footprints(string tableName, DiGi.GIS.PostgreSQL.Classes.PostgreSQLOpenBuildingImportTaskOptions options, System.Collections.Generic.Dictionary<string,string>? quadkeys, System.Collections.Generic.List<DiGi.OSM.Classes.BuildingReadResult> buildingReadResults, System.Threading.CancellationToken cancellationToken);
 ```
 #### Parameters
 
-<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOpenBuildingImportTask.Footprints(string,DiGi.GIS.PostgreSQL.Classes.PostgreSQLOpenBuildingImportTaskOptions,System.Collections.Generic.List_DiGi.OSM.Classes.BuildingReadResult_,System.Threading.CancellationToken).tableName'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOpenBuildingImportTask.Footprints(string,DiGi.GIS.PostgreSQL.Classes.PostgreSQLOpenBuildingImportTaskOptions,System.Collections.Generic.Dictionary_string,string_,System.Collections.Generic.List_DiGi.OSM.Classes.BuildingReadResult_,System.Threading.CancellationToken).tableName'></a>
 
 `tableName` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The table the run writes, already resolved through [OpenBuildingTableName\(string\)](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Query.OpenBuildingTableName(string) 'DiGi\.GIS\.PostgreSQL\.Query\.OpenBuildingTableName\(string\)'); it selects the reader\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOpenBuildingImportTask.Footprints(string,DiGi.GIS.PostgreSQL.Classes.PostgreSQLOpenBuildingImportTaskOptions,System.Collections.Generic.List_DiGi.OSM.Classes.BuildingReadResult_,System.Threading.CancellationToken).options'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOpenBuildingImportTask.Footprints(string,DiGi.GIS.PostgreSQL.Classes.PostgreSQLOpenBuildingImportTaskOptions,System.Collections.Generic.Dictionary_string,string_,System.Collections.Generic.List_DiGi.OSM.Classes.BuildingReadResult_,System.Threading.CancellationToken).options'></a>
 
 `options` [PostgreSQLOpenBuildingImportTaskOptions](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLOpenBuildingImportTaskOptions 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLOpenBuildingImportTaskOptions')
 
 The validated run options\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOpenBuildingImportTask.Footprints(string,DiGi.GIS.PostgreSQL.Classes.PostgreSQLOpenBuildingImportTaskOptions,System.Collections.Generic.List_DiGi.OSM.Classes.BuildingReadResult_,System.Threading.CancellationToken).buildingReadResults'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOpenBuildingImportTask.Footprints(string,DiGi.GIS.PostgreSQL.Classes.PostgreSQLOpenBuildingImportTaskOptions,System.Collections.Generic.Dictionary_string,string_,System.Collections.Generic.List_DiGi.OSM.Classes.BuildingReadResult_,System.Threading.CancellationToken).quadkeys'></a>
+
+`quadkeys` [System\.Collections\.Generic\.Dictionary&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.dictionary-2 'System\.Collections\.Generic\.Dictionary\`2')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[,](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.dictionary-2 'System\.Collections\.Generic\.Dictionary\`2')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.dictionary-2 'System\.Collections\.Generic\.Dictionary\`2')
+
+The quadkey of every Microsoft source path from [TryMicrosoftQuadkeys\(IEnumerable&lt;string&gt;, string, Dictionary&lt;string,string&gt;, string\)](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Query.TryMicrosoftQuadkeys(System.Collections.Generic.IEnumerable_string_,string,System.Collections.Generic.Dictionary_string,string_,string) 'DiGi\.GIS\.PostgreSQL\.Query\.TryMicrosoftQuadkeys\(System\.Collections\.Generic\.IEnumerable\<string\>, string, System\.Collections\.Generic\.Dictionary\<string,string\>, string\)'), or null for every other dataset\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOpenBuildingImportTask.Footprints(string,DiGi.GIS.PostgreSQL.Classes.PostgreSQLOpenBuildingImportTaskOptions,System.Collections.Generic.Dictionary_string,string_,System.Collections.Generic.List_DiGi.OSM.Classes.BuildingReadResult_,System.Threading.CancellationToken).buildingReadResults'></a>
 
 `buildingReadResults` [System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[DiGi\.OSM\.Classes\.BuildingReadResult](https://learn.microsoft.com/en-us/dotnet/api/digi.osm.classes.buildingreadresult 'DiGi\.OSM\.Classes\.BuildingReadResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')
 
 Collects the OSM read results for the post\-run summary\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOpenBuildingImportTask.Footprints(string,DiGi.GIS.PostgreSQL.Classes.PostgreSQLOpenBuildingImportTaskOptions,System.Collections.Generic.List_DiGi.OSM.Classes.BuildingReadResult_,System.Threading.CancellationToken).cancellationToken'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOpenBuildingImportTask.Footprints(string,DiGi.GIS.PostgreSQL.Classes.PostgreSQLOpenBuildingImportTaskOptions,System.Collections.Generic.Dictionary_string,string_,System.Collections.Generic.List_DiGi.OSM.Classes.BuildingReadResult_,System.Threading.CancellationToken).cancellationToken'></a>
 
 `cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
 

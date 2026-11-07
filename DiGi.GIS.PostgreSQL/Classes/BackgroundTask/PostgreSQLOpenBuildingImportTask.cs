@@ -133,9 +133,13 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 }
             }
 
-            if (string.Equals(tableName, Constants.TableName.Microsoft_Building2D, StringComparison.Ordinal) && string.IsNullOrWhiteSpace(options.Quadkey))
+            // Every Microsoft file needs its own quadkey - it is the source identity, and the reader restarts the
+            // feature index per file - so the resolution is checked here, before anything is truncated
+            // (DiGi.GIS.PostgreSQL#132).
+            Dictionary<string, string>? quadkeys = null;
+            if (string.Equals(tableName, Constants.TableName.Microsoft_Building2D, StringComparison.Ordinal) && !Query.TryMicrosoftQuadkeys(sourcePaths, options.Quadkey, out quadkeys, out string? quadkeyMessage))
             {
-                Serilog.Modify.Log(Serilog.Enums.LogEventLevel.Error, "{Type}: a Microsoft import needs the quadkey the file was fetched under - it is the source identity", nameof(PostgreSQLOpenBuildingImportTask));
+                Serilog.Modify.Log(Serilog.Enums.LogEventLevel.Error, "{Type}: {Message}", nameof(PostgreSQLOpenBuildingImportTask), quadkeyMessage ?? "the Microsoft quadkeys could not be resolved");
                 return false;
             }
 
@@ -206,7 +210,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             IAsyncEnumerable<Footprint>? footprints;
             try
             {
-                footprints = Footprints(tableName, options, buildingReadResults, cancellationToken);
+                footprints = Footprints(tableName, options, quadkeys, buildingReadResults, cancellationToken);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
@@ -284,11 +288,12 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// </summary>
         /// <param name="tableName">The table the run writes, already resolved through <see cref="Query.OpenBuildingTableName(string?)"/>; it selects the reader.</param>
         /// <param name="options">The validated run options.</param>
+        /// <param name="quadkeys">The quadkey of every Microsoft source path from <see cref="Query.TryMicrosoftQuadkeys(IEnumerable{string}?, string?, out Dictionary{string, string}?, out string?)"/>, or null for every other dataset.</param>
         /// <param name="buildingReadResults">Collects the OSM read results for the post-run summary.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> to monitor for cancellation requests.</param>
         /// <returns>The concatenated footprint stream, or null when a reader rejects its input.</returns>
         /// <exception cref="ArgumentException">Thrown when the dataset does not match the reader the file requires.</exception>
-        private static IAsyncEnumerable<Footprint>? Footprints(string tableName, PostgreSQLOpenBuildingImportTaskOptions options, List<BuildingReadResult> buildingReadResults, CancellationToken cancellationToken)
+        private static IAsyncEnumerable<Footprint>? Footprints(string tableName, PostgreSQLOpenBuildingImportTaskOptions options, Dictionary<string, string>? quadkeys, List<BuildingReadResult> buildingReadResults, CancellationToken cancellationToken)
         {
             List<IAsyncEnumerable<Footprint>> streams = [];
 
@@ -321,7 +326,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
                     BuildingDataset.Eubucco => DiGi.GIS.IO.Query.Footprints_GeoPackageAsync(path, buildingDataset.Value, cancellationToken: cancellationToken),
                     BuildingDataset.Dbsm => DiGi.GIS.IO.Query.Footprints_GeoPackageAsync(path, buildingDataset.Value, cancellationToken: cancellationToken),
                     BuildingDataset.Overture => DiGi.GIS.IO.Query.Footprints_GeoParquetAsync(path, buildingDataset.Value, cancellationToken: cancellationToken),
-                    BuildingDataset.Microsoft => DiGi.GIS.IO.Query.Footprints_GeoJsonSequenceAsync(path, buildingDataset.Value, options.Quadkey!, cancellationToken: cancellationToken),
+                    BuildingDataset.Microsoft when quadkeys is not null && quadkeys.TryGetValue(path, out string? quadkey) => DiGi.GIS.IO.Query.Footprints_GeoJsonSequenceAsync(path, buildingDataset.Value, quadkey, cancellationToken: cancellationToken),
                     _ => null,
                 };
 
