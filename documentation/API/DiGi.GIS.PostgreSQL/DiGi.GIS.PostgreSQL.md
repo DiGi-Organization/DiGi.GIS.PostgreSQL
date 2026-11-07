@@ -3768,7 +3768,9 @@ Normalises a footprint's per\-object provenance into the closed `primary_source`
 
 Each dataset states its origin differently, so the evidence is read in a fixed order and the first match wins, making the result independent of key order: the reader's own dataset key (the OSM reader writes `dataset = "osm"`), then the Microsoft reader's `quadkey`, then the entries of an Overture `sources` array in their published order, then the source-valued columns - EUBUCCO's `*_source` columns and DBSM's `source` column, where a `gov-*` value is a register, a value containing `osm` is OpenStreetMap, a value containing `microsoft` is Microsoft and a value containing `esri` is Esri. A DBSM value of `ESA` classifies to none of them and becomes `other`, and so does a GHS-OBAT row, whose only evidence is the `overture_id` link. A row with no provenance at all becomes `other`, so the column is populated for every stored row.
 
-Among several source-valued columns the strongest evidence wins (`register` before `osm` before `microsoft` before `esri`), so an EUBUCCO row whose geometry comes from a register and whose height comes from OpenStreetMap is filed as the register that produced its geometry.
+Real releases use short codes as well (DiGi.GIS.PostgreSQL#133): Overture names OpenStreetMap in full (`OpenStreetMap` classifies as `osm`), EUBUCCO v0.2 names Microsoft `msft`, and DBSM R2025 uses `eub` (the authoritative part of EUBUCCO v0.1, a register), `msb` (Microsoft Buildings) and `osm`; the short codes are matched exactly. An EUBUCCO `geometry_source` that classifies decides alone, because it names the origin of the footprint itself.
+
+Among several other source-valued columns the strongest evidence wins (`register` before `osm` before `microsoft` before `esri`), so an EUBUCCO row whose geometry comes from a register and whose height comes from OpenStreetMap is filed as the register that produced its geometry.
 
 ```csharp
 public static string PrimarySource(System.Text.Json.Nodes.JsonObject? provenance);
