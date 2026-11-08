@@ -19093,6 +19093,310 @@ public int Year { get; }
 #### Property Value
 [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
 
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisitionCoverageResult'></a>
+
+## OrtoDataAcquisitionCoverageResult Class
+
+How far the acquisition\-date backfill \([UpdateOrtoDatasAcquisitionAsync\(this OrtoDatasPostgreSQLConverter, OrtoSheetPostgreSQLConverter, IEnumerable&lt;int&gt;, int, int, int, CancellationToken\)](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Modify.UpdateOrtoDatasAcquisitionAsync(thisDiGi.GIS.PostgreSQL.Classes.OrtoDatasPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OrtoSheetPostgreSQLConverter,System.Collections.Generic.IEnumerable_int_,int,int,int,System.Threading.CancellationToken) 'DiGi\.GIS\.PostgreSQL\.Modify\.UpdateOrtoDatasAcquisitionAsync\(this DiGi\.GIS\.PostgreSQL\.Classes\.OrtoDatasPostgreSQLConverter, DiGi\.GIS\.PostgreSQL\.Classes\.OrtoSheetPostgreSQLConverter, System\.Collections\.Generic\.IEnumerable\<int\>, int, int, int, System\.Threading\.CancellationToken\)')\) has reached in one county part: the stored series of `orto_datas` against their rows in `orto_data_acquisition`\.
+
+Completeness is measured per series, not per image: counting the images of `orto_datas` would detoast every stored photo, while a series either has acquisition rows or does not. [WithoutAcquisitionSeriesCount](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisitionCoverageResult.WithoutAcquisitionSeriesCount 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoDataAcquisitionCoverageResult\.WithoutAcquisitionSeriesCount') is the backlog - series never backfilled, or re-fetched since (a re-fetch drops a series' acquisition rows) - and a re-run of the backfill over the part brings it to zero.
+
+Quality is measured per image, over the acquisition rows: [DayCount](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisitionCoverageResult.DayCount 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoDataAcquisitionCoverageResult\.DayCount'), [MonthCount](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisitionCoverageResult.MonthCount 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoDataAcquisitionCoverageResult\.MonthCount') and [YearCount](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisitionCoverageResult.YearCount 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoDataAcquisitionCoverageResult\.YearCount') are dated by an index sheet at that precision, [UndefinedCount](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisitionCoverageResult.UndefinedCount 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoDataAcquisitionCoverageResult\.UndefinedCount') matched no sheet. An undated share that stays high after a re-run means the sheet index (`orto_sheet`) does not cover the part or its years, not that the backfill is behind.
+
+```csharp
+public class OrtoDataAcquisitionCoverageResult : DiGi.Core.Classes.SerializableResult, DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLSerializableObject, DiGi.Core.Interfaces.ISerializableObject, DiGi.Core.Interfaces.ICloneableObject<DiGi.Core.Interfaces.ISerializableObject>, DiGi.Core.Interfaces.ICloneableObject, DiGi.Core.Interfaces.IObject
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [DiGi\.Core\.Classes\.Object](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.object 'DiGi\.Core\.Classes\.Object') → [DiGi\.Core\.Classes\.SerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.serializableobject 'DiGi\.Core\.Classes\.SerializableObject') → [DiGi\.Core\.Classes\.SerializableResult](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.serializableresult 'DiGi\.Core\.Classes\.SerializableResult') → OrtoDataAcquisitionCoverageResult
+
+Implements [IGISPostgreSQLSerializableObject](DiGi.GIS.PostgreSQL.Interfaces.md#DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLSerializableObject 'DiGi\.GIS\.PostgreSQL\.Interfaces\.IGISPostgreSQLSerializableObject'), [DiGi\.Core\.Interfaces\.ISerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iserializableobject 'DiGi\.Core\.Interfaces\.ISerializableObject'), [DiGi\.Core\.Interfaces\.ICloneableObject&lt;](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject-1 'DiGi\.Core\.Interfaces\.ICloneableObject\`1')[DiGi\.Core\.Interfaces\.ISerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iserializableobject 'DiGi\.Core\.Interfaces\.ISerializableObject')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject-1 'DiGi\.Core\.Interfaces\.ICloneableObject\`1'), [DiGi\.Core\.Interfaces\.ICloneableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject 'DiGi\.Core\.Interfaces\.ICloneableObject'), [DiGi\.Core\.Interfaces\.IObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iobject 'DiGi\.Core\.Interfaces\.IObject')
+### Constructors
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisitionCoverageResult.OrtoDataAcquisitionCoverageResult(DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisitionCoverageResult)'></a>
+
+## OrtoDataAcquisitionCoverageResult\(OrtoDataAcquisitionCoverageResult\) Constructor
+
+Initializes a new instance of the [OrtoDataAcquisitionCoverageResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisitionCoverageResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoDataAcquisitionCoverageResult') class by copying an existing one\.
+
+```csharp
+public OrtoDataAcquisitionCoverageResult(DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisitionCoverageResult? ortoDataAcquisitionCoverageResult);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisitionCoverageResult.OrtoDataAcquisitionCoverageResult(DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisitionCoverageResult).ortoDataAcquisitionCoverageResult'></a>
+
+`ortoDataAcquisitionCoverageResult` [OrtoDataAcquisitionCoverageResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisitionCoverageResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoDataAcquisitionCoverageResult')
+
+The [OrtoDataAcquisitionCoverageResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisitionCoverageResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoDataAcquisitionCoverageResult') to copy from\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisitionCoverageResult.OrtoDataAcquisitionCoverageResult(int,long,long,long,long,long,long,long,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_)'></a>
+
+## OrtoDataAcquisitionCoverageResult\(int, long, long, long, long, long, long, long, Nullable\<DateTimeOffset\>, Nullable\<DateTimeOffset\>, Nullable\<DateTimeOffset\>\) Constructor
+
+Initializes a new instance of the [OrtoDataAcquisitionCoverageResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisitionCoverageResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoDataAcquisitionCoverageResult') class\.
+
+```csharp
+public OrtoDataAcquisitionCoverageResult(int countyId, long seriesCount, long withAcquisitionSeriesCount, long datedSeriesCount, long dayCount, long monthCount, long yearCount, long undefinedCount, System.Nullable<System.DateTimeOffset> acquisitionDate_First, System.Nullable<System.DateTimeOffset> acquisitionDate_Last, System.Nullable<System.DateTimeOffset> createdAt_Last);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisitionCoverageResult.OrtoDataAcquisitionCoverageResult(int,long,long,long,long,long,long,long,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_).countyId'></a>
+
+`countyId` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The identifier of the county part measured\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisitionCoverageResult.OrtoDataAcquisitionCoverageResult(int,long,long,long,long,long,long,long,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_).seriesCount'></a>
+
+`seriesCount` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+The series \(rows\) `orto_datas` holds in the part\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisitionCoverageResult.OrtoDataAcquisitionCoverageResult(int,long,long,long,long,long,long,long,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_).withAcquisitionSeriesCount'></a>
+
+`withAcquisitionSeriesCount` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+How many of those series have at least one acquisition row\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisitionCoverageResult.OrtoDataAcquisitionCoverageResult(int,long,long,long,long,long,long,long,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_).datedSeriesCount'></a>
+
+`datedSeriesCount` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+How many of those series have at least one image an index sheet dated\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisitionCoverageResult.OrtoDataAcquisitionCoverageResult(int,long,long,long,long,long,long,long,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_).dayCount'></a>
+
+`dayCount` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+The images of those series dated to the day\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisitionCoverageResult.OrtoDataAcquisitionCoverageResult(int,long,long,long,long,long,long,long,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_).monthCount'></a>
+
+`monthCount` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+The images of those series dated to the month\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisitionCoverageResult.OrtoDataAcquisitionCoverageResult(int,long,long,long,long,long,long,long,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_).yearCount'></a>
+
+`yearCount` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+The images of those series dated to the year\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisitionCoverageResult.OrtoDataAcquisitionCoverageResult(int,long,long,long,long,long,long,long,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_).undefinedCount'></a>
+
+`undefinedCount` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+The images of those series no index sheet dated\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisitionCoverageResult.OrtoDataAcquisitionCoverageResult(int,long,long,long,long,long,long,long,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_).acquisitionDate_First'></a>
+
+`acquisitionDate_First` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.DateTimeOffset](https://learn.microsoft.com/en-us/dotnet/api/system.datetimeoffset 'System\.DateTimeOffset')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The earliest acquisition date, or null when no image is dated\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisitionCoverageResult.OrtoDataAcquisitionCoverageResult(int,long,long,long,long,long,long,long,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_).acquisitionDate_Last'></a>
+
+`acquisitionDate_Last` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.DateTimeOffset](https://learn.microsoft.com/en-us/dotnet/api/system.datetimeoffset 'System\.DateTimeOffset')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The latest acquisition date, or null when no image is dated\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisitionCoverageResult.OrtoDataAcquisitionCoverageResult(int,long,long,long,long,long,long,long,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_).createdAt_Last'></a>
+
+`createdAt_Last` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.DateTimeOffset](https://learn.microsoft.com/en-us/dotnet/api/system.datetimeoffset 'System\.DateTimeOffset')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+When an acquisition row of the part was last inserted or changed, or null when it has none\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisitionCoverageResult.OrtoDataAcquisitionCoverageResult(System.Text.Json.Nodes.JsonObject)'></a>
+
+## OrtoDataAcquisitionCoverageResult\(JsonObject\) Constructor
+
+Initializes a new instance of the [OrtoDataAcquisitionCoverageResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisitionCoverageResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoDataAcquisitionCoverageResult') class from a [System\.Text\.Json\.Nodes\.JsonObject](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.nodes.jsonobject 'System\.Text\.Json\.Nodes\.JsonObject')\.
+
+```csharp
+public OrtoDataAcquisitionCoverageResult(System.Text.Json.Nodes.JsonObject? jsonObject);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisitionCoverageResult.OrtoDataAcquisitionCoverageResult(System.Text.Json.Nodes.JsonObject).jsonObject'></a>
+
+`jsonObject` [System\.Text\.Json\.Nodes\.JsonObject](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.nodes.jsonobject 'System\.Text\.Json\.Nodes\.JsonObject')
+
+The [System\.Text\.Json\.Nodes\.JsonObject](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.nodes.jsonobject 'System\.Text\.Json\.Nodes\.JsonObject') containing the serialized data\.
+### Properties
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisitionCoverageResult.AcquisitionDate_First'></a>
+
+## OrtoDataAcquisitionCoverageResult\.AcquisitionDate\_First Property
+
+Gets the earliest acquisition date of the part's images, or null when no image is dated\.
+
+```csharp
+public System.Nullable<System.DateTimeOffset> AcquisitionDate_First { get; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.DateTimeOffset](https://learn.microsoft.com/en-us/dotnet/api/system.datetimeoffset 'System\.DateTimeOffset')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisitionCoverageResult.AcquisitionDate_Last'></a>
+
+## OrtoDataAcquisitionCoverageResult\.AcquisitionDate\_Last Property
+
+Gets the latest acquisition date of the part's images, or null when no image is dated\.
+
+```csharp
+public System.Nullable<System.DateTimeOffset> AcquisitionDate_Last { get; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.DateTimeOffset](https://learn.microsoft.com/en-us/dotnet/api/system.datetimeoffset 'System\.DateTimeOffset')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisitionCoverageResult.CountyId'></a>
+
+## OrtoDataAcquisitionCoverageResult\.CountyId Property
+
+Gets the identifier of the county part measured\.
+
+```csharp
+public int CountyId { get; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisitionCoverageResult.CreatedAt_Last'></a>
+
+## OrtoDataAcquisitionCoverageResult\.CreatedAt\_Last Property
+
+Gets when an acquisition row of the part was last inserted or changed, or null when it has none: the last backfill that changed something, not the last one that ran\.
+
+```csharp
+public System.Nullable<System.DateTimeOffset> CreatedAt_Last { get; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.DateTimeOffset](https://learn.microsoft.com/en-us/dotnet/api/system.datetimeoffset 'System\.DateTimeOffset')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisitionCoverageResult.DatedSeriesCount'></a>
+
+## OrtoDataAcquisitionCoverageResult\.DatedSeriesCount Property
+
+Gets how many series have at least one image an index sheet dated\.
+
+```csharp
+public long DatedSeriesCount { get; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisitionCoverageResult.DayCount'></a>
+
+## OrtoDataAcquisitionCoverageResult\.DayCount Property
+
+Gets the images dated to the day\.
+
+```csharp
+public long DayCount { get; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisitionCoverageResult.ImageCount'></a>
+
+## OrtoDataAcquisitionCoverageResult\.ImageCount Property
+
+Gets the images the acquisition rows describe, dated or not\.
+
+Derived from the four precision counts rather than counted separately, so it cannot disagree with them.
+
+```csharp
+public long ImageCount { get; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisitionCoverageResult.MonthCount'></a>
+
+## OrtoDataAcquisitionCoverageResult\.MonthCount Property
+
+Gets the images dated to the month\.
+
+```csharp
+public long MonthCount { get; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisitionCoverageResult.SeriesCount'></a>
+
+## OrtoDataAcquisitionCoverageResult\.SeriesCount Property
+
+Gets the series \(rows\) `orto_datas` holds in the part\.
+
+```csharp
+public long SeriesCount { get; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisitionCoverageResult.UndefinedCount'></a>
+
+## OrtoDataAcquisitionCoverageResult\.UndefinedCount Property
+
+Gets the images no index sheet dated\.
+
+```csharp
+public long UndefinedCount { get; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisitionCoverageResult.WithAcquisitionSeriesCount'></a>
+
+## OrtoDataAcquisitionCoverageResult\.WithAcquisitionSeriesCount Property
+
+Gets how many series have at least one acquisition row\.
+
+```csharp
+public long WithAcquisitionSeriesCount { get; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisitionCoverageResult.WithoutAcquisitionSeriesCount'></a>
+
+## OrtoDataAcquisitionCoverageResult\.WithoutAcquisitionSeriesCount Property
+
+Gets how many series have no acquisition row: the backfill backlog of the part\.
+
+Derived from the two stored counts rather than counted separately, so it cannot disagree with them.
+
+```csharp
+public long WithoutAcquisitionSeriesCount { get; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisitionCoverageResult.YearCount'></a>
+
+## OrtoDataAcquisitionCoverageResult\.YearCount Property
+
+Gets the images dated to the year only\.
+
+```csharp
+public long YearCount { get; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
 <a name='DiGi.GIS.PostgreSQL.Classes.OrtoDatas'></a>
 
 ## OrtoDatas Class
@@ -19879,6 +20183,82 @@ The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dot
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.HashSet&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.hashset-1 'System\.Collections\.Generic\.HashSet\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.hashset-1 'System\.Collections\.Generic\.HashSet\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A task that represents the asynchronous operation\. The task result contains a [System\.Collections\.Generic\.HashSet&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.hashset-1 'System\.Collections\.Generic\.HashSet\`1') of strings containing the filtered references, or null if the operation fails or no results are found\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoDatasPostgreSQLConverter.GetAcquisitionCoveragesByCountyIdsAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken)'></a>
+
+## OrtoDatasPostgreSQLConverter\.GetAcquisitionCoveragesByCountyIdsAsync\(NpgsqlConnection, IEnumerable\<int\>, int, CancellationToken\) Method
+
+Asynchronously measures, per county part, how far the acquisition\-date backfill \([UpdateOrtoDatasAcquisitionAsync\(this OrtoDatasPostgreSQLConverter, OrtoSheetPostgreSQLConverter, IEnumerable&lt;int&gt;, int, int, int, CancellationToken\)](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Modify.UpdateOrtoDatasAcquisitionAsync(thisDiGi.GIS.PostgreSQL.Classes.OrtoDatasPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OrtoSheetPostgreSQLConverter,System.Collections.Generic.IEnumerable_int_,int,int,int,System.Threading.CancellationToken) 'DiGi\.GIS\.PostgreSQL\.Modify\.UpdateOrtoDatasAcquisitionAsync\(this DiGi\.GIS\.PostgreSQL\.Classes\.OrtoDatasPostgreSQLConverter, DiGi\.GIS\.PostgreSQL\.Classes\.OrtoSheetPostgreSQLConverter, System\.Collections\.Generic\.IEnumerable\<int\>, int, int, int, System\.Threading\.CancellationToken\)')\) has reached: the stored series against their [OrtoDataAcquisition](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.TableName.OrtoDataAcquisition 'DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.OrtoDataAcquisition') rows, and the precision those rows were dated at\.
+
+Projects `county_id` and `reference` of `orto_datas` and never `object`, so no photo is detoasted; the acquisition rows are aggregated per series first and joined once. Both tables live in the Storage database. Acquisition rows of a reference the part no longer stores are not counted.
+
+Naming no county part measures every partition. A part holding no series is absent from the result rather than present with a zero. When the acquisition table does not exist yet every series is reported without acquisition rows.
+
+```csharp
+public static System.Threading.Tasks.Task<System.Collections.Generic.List<DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisitionCoverageResult>?> GetAcquisitionCoveragesByCountyIdsAsync(Npgsql.NpgsqlConnection? npgsqlConnection, System.Collections.Generic.IEnumerable<int>? countyIds, int commandTimeout=600, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoDatasPostgreSQLConverter.GetAcquisitionCoveragesByCountyIdsAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken).npgsqlConnection'></a>
+
+`npgsqlConnection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
+
+The [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection') used to execute the command\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoDatasPostgreSQLConverter.GetAcquisitionCoveragesByCountyIdsAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken).countyIds'></a>
+
+`countyIds` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The county part identifiers to measure\. Null measures every one\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoDatasPostgreSQLConverter.GetAcquisitionCoveragesByCountyIdsAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoDatasPostgreSQLConverter.GetAcquisitionCoveragesByCountyIdsAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken') to observe while waiting for the task to complete\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[OrtoDataAcquisitionCoverageResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisitionCoverageResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoDataAcquisitionCoverageResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result contains one [OrtoDataAcquisitionCoverageResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisitionCoverageResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoDataAcquisitionCoverageResult') per county part holding series, or null when the connection is null or nothing has ever been stored\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoDatasPostgreSQLConverter.GetAcquisitionCoveragesByCountyIdsAsync(System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken)'></a>
+
+## OrtoDatasPostgreSQLConverter\.GetAcquisitionCoveragesByCountyIdsAsync\(IEnumerable\<int\>, int, CancellationToken\) Method
+
+Asynchronously measures, per county part, how far the acquisition\-date backfill has reached\.
+
+```csharp
+public System.Threading.Tasks.Task<System.Collections.Generic.List<DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisitionCoverageResult>?> GetAcquisitionCoveragesByCountyIdsAsync(System.Collections.Generic.IEnumerable<int>? countyIds, int commandTimeout=600, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoDatasPostgreSQLConverter.GetAcquisitionCoveragesByCountyIdsAsync(System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken).countyIds'></a>
+
+`countyIds` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The county part identifiers to measure\. Null measures every one\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoDatasPostgreSQLConverter.GetAcquisitionCoveragesByCountyIdsAsync(System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoDatasPostgreSQLConverter.GetAcquisitionCoveragesByCountyIdsAsync(System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken') to observe while waiting for the task to complete\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[OrtoDataAcquisitionCoverageResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisitionCoverageResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoDataAcquisitionCoverageResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result contains one [OrtoDataAcquisitionCoverageResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisitionCoverageResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoDataAcquisitionCoverageResult') per county part holding series, or null when no connection could be built or nothing has ever been stored\.
 
 <a name='DiGi.GIS.PostgreSQL.Classes.OrtoDatasPostgreSQLConverter.GetBoundingBox2DAsync(Npgsql.NpgsqlConnection,int,int,System.Threading.CancellationToken)'></a>
 

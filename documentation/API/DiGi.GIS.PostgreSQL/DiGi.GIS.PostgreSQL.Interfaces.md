@@ -159,6 +159,7 @@ Derived
 ↳ [OrtoAreaLabel](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabel 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaLabel')  
 ↳ [OrtoAreaObject](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaObject 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaObject')  
 ↳ [OrtoDataAcquisition](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisition 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoDataAcquisition')  
+↳ [OrtoDataAcquisitionCoverageResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisitionCoverageResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoDataAcquisitionCoverageResult')  
 ↳ [OrtoDatasAcquisitionUpdateResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoDatasAcquisitionUpdateResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoDatasAcquisitionUpdateResult')  
 ↳ [OrtoDatasCountyResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoDatasCountyResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoDatasCountyResult')  
 ↳ [OrtoDatasCoverageResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoDatasCoverageResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoDatasCoverageResult')  

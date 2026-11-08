@@ -2012,6 +2012,117 @@ namespace DiGi.GIS.PostgreSQL.Classes
         }
 
         /// <summary>
+        /// Asynchronously measures, per county part, how far the acquisition-date backfill (<see cref="Modify.UpdateOrtoDatasAcquisitionAsync"/>) has reached: the stored series against their <see cref="TableName.OrtoDataAcquisition"/> rows, and the precision those rows were dated at.
+        /// <para>Projects <c>county_id</c> and <c>reference</c> of <c>orto_datas</c> and never <c>object</c>, so no photo is detoasted; the acquisition rows are aggregated per series first and joined once. Both tables live in the Storage database. Acquisition rows of a reference the part no longer stores are not counted.</para>
+        /// <para>Naming no county part measures every partition. A part holding no series is absent from the result rather than present with a zero. When the acquisition table does not exist yet every series is reported without acquisition rows.</para>
+        /// </summary>
+        /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> used to execute the command.</param>
+        /// <param name="countyIds">The county part identifiers to measure. Null measures every one.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains one <see cref="OrtoDataAcquisitionCoverageResult"/> per county part holding series, or null when the connection is null or nothing has ever been stored.</returns>
+        public static async Task<List<OrtoDataAcquisitionCoverageResult>?> GetAcquisitionCoveragesByCountyIdsAsync(NpgsqlConnection? npgsqlConnection, IEnumerable<int>? countyIds, int commandTimeout = 600, CancellationToken cancellationToken = default)
+        {
+            if (npgsqlConnection is null)
+            {
+                return null;
+            }
+
+            if (!await DiGi.PostgreSQL.Query.TableExistsAsync(npgsqlConnection, TableName.OrtoDatas))
+            {
+                return null;
+            }
+
+            int[]? countyIds_Array = countyIds is null ? null : [.. countyIds];
+
+            // A store the backfill never ran on has no acquisition table; an empty typed set keeps one statement.
+            string commandText_Acquisition = await DiGi.PostgreSQL.Query.TableExistsAsync(npgsqlConnection, TableName.OrtoDataAcquisition)
+                ? $@"
+                    SELECT
+                        county_id,
+                        reference,
+                        COUNT(*) FILTER (WHERE date_precision = {(short)GIS.Enums.OrtoDatePrecision.Day}) AS day_count,
+                        COUNT(*) FILTER (WHERE date_precision = {(short)GIS.Enums.OrtoDatePrecision.Month}) AS month_count,
+                        COUNT(*) FILTER (WHERE date_precision = {(short)GIS.Enums.OrtoDatePrecision.Year}) AS year_count,
+                        COUNT(*) FILTER (WHERE date_precision = {(short)GIS.Enums.OrtoDatePrecision.Undefined}) AS undefined_count,
+                        MIN(acquisition_date) AS acquisition_date_first,
+                        MAX(acquisition_date) AS acquisition_date_last,
+                        MAX(created_at) AS created_at_last
+                    FROM {TableName.OrtoDataAcquisition}
+                    {WhereCountyIds(countyIds_Array)}
+                    GROUP BY county_id, reference"
+                : @"
+                    SELECT NULL::int AS county_id, NULL::text AS reference, 0::bigint AS day_count, 0::bigint AS month_count, 0::bigint AS year_count, 0::bigint AS undefined_count,
+                           NULL::timestamptz AS acquisition_date_first, NULL::timestamptz AS acquisition_date_last, NULL::timestamptz AS created_at_last
+                    WHERE false";
+
+            string commandText = $@"
+                WITH a AS ({commandText_Acquisition})
+                SELECT
+                    d.county_id,
+                    COUNT(*),
+                    COUNT(a.reference),
+                    COUNT(*) FILTER (WHERE a.day_count + a.month_count + a.year_count > 0),
+                    COALESCE(SUM(a.day_count), 0)::bigint,
+                    COALESCE(SUM(a.month_count), 0)::bigint,
+                    COALESCE(SUM(a.year_count), 0)::bigint,
+                    COALESCE(SUM(a.undefined_count), 0)::bigint,
+                    MIN(a.acquisition_date_first),
+                    MAX(a.acquisition_date_last),
+                    MAX(a.created_at_last)
+                FROM {TableName.OrtoDatas} d
+                LEFT JOIN a ON a.county_id = d.county_id AND a.reference = d.reference
+                {(countyIds_Array is null ? string.Empty : "WHERE d.county_id = ANY(@countyIds)")}
+                GROUP BY d.county_id
+                ORDER BY d.county_id;";
+
+            await using NpgsqlCommand npgsqlCommand = new(commandText, npgsqlConnection);
+            npgsqlCommand.CommandTimeout = commandTimeout;
+            AddCountyIdsParameter(npgsqlCommand, countyIds_Array);
+
+            List<OrtoDataAcquisitionCoverageResult> result = [];
+
+            await using NpgsqlDataReader npgsqlDataReader = await npgsqlCommand.ExecuteReaderAsync(cancellationToken);
+            while (await npgsqlDataReader.ReadAsync(cancellationToken))
+            {
+                result.Add(new OrtoDataAcquisitionCoverageResult(
+                    npgsqlDataReader.GetInt32(0),
+                    npgsqlDataReader.GetInt64(1),
+                    npgsqlDataReader.GetInt64(2),
+                    npgsqlDataReader.GetInt64(3),
+                    npgsqlDataReader.GetInt64(4),
+                    npgsqlDataReader.GetInt64(5),
+                    npgsqlDataReader.GetInt64(6),
+                    npgsqlDataReader.GetInt64(7),
+                    npgsqlDataReader.IsDBNull(8) ? null : npgsqlDataReader.GetFieldValue<DateTimeOffset>(8),
+                    npgsqlDataReader.IsDBNull(9) ? null : npgsqlDataReader.GetFieldValue<DateTimeOffset>(9),
+                    npgsqlDataReader.IsDBNull(10) ? null : npgsqlDataReader.GetFieldValue<DateTimeOffset>(10)));
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Asynchronously measures, per county part, how far the acquisition-date backfill has reached.
+        /// </summary>
+        /// <param name="countyIds">The county part identifiers to measure. Null measures every one.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains one <see cref="OrtoDataAcquisitionCoverageResult"/> per county part holding series, or null when no connection could be built or nothing has ever been stored.</returns>
+        public async Task<List<OrtoDataAcquisitionCoverageResult>?> GetAcquisitionCoveragesByCountyIdsAsync(IEnumerable<int>? countyIds, int commandTimeout = 600, CancellationToken cancellationToken = default)
+        {
+            await using NpgsqlConnection? npgsqlConnection = DiGi.PostgreSQL.Create.NpgsqlConnection(ConnectionData);
+            if (npgsqlConnection is null)
+            {
+                return null;
+            }
+
+            await npgsqlConnection.OpenAsync(cancellationToken);
+
+            return await GetAcquisitionCoveragesByCountyIdsAsync(npgsqlConnection, countyIds, commandTimeout, cancellationToken);
+        }
+
+        /// <summary>
         /// Asynchronously reads the subdivision each of a county's stored rows is filed under, keyed by reference.
         /// <para>Deliberately projects two columns and never <c>object</c>: that column holds the orthophoto imagery for every year the row carries, so the ordinary reads cost megabytes a row. This is what makes a whole-county comparison affordable at all.</para>
         /// </summary>
