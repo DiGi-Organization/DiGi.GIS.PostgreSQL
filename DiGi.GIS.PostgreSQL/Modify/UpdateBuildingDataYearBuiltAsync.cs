@@ -178,7 +178,7 @@ namespace DiGi.GIS.PostgreSQL
                 await npgsqlConnection.OpenAsync(cancellationToken);
 
                 Dictionary<string, int> result = [];
-                if (!await DiGi.PostgreSQL.Query.TableExistsAsync(npgsqlConnection, buildingDataPostgreSQLConverter.TableName))
+                if (!await DiGi.PostgreSQL.Query.TableExistsAsync(npgsqlConnection, buildingDataPostgreSQLConverter.TableName, cancellationToken: cancellationToken))
                 {
                     return result;
                 }

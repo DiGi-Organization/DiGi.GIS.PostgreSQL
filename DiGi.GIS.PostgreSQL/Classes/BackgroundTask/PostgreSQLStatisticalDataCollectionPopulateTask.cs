@@ -33,10 +33,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// <param name="gISPostgreSQLConverterManager">The GIS converter manager containing the statistical data collection converter.</param>
         public PostgreSQLStatisticalDataCollectionPopulateTask(GISPostgreSQLConverterManager gISPostgreSQLConverterManager)
         {
-            if (gISPostgreSQLConverterManager is null)
-            {
-                throw new ArgumentNullException(nameof(gISPostgreSQLConverterManager));
-            }
+            ArgumentNullException.ThrowIfNull(gISPostgreSQLConverterManager);
 
             statisticalDataCollectionPostgreSQLConverter = gISPostgreSQLConverterManager.GetPostgreSQLConverter<StatisticalDataCollectionPostgreSQLConverter>() ?? throw new InvalidOperationException($"{nameof(StatisticalDataCollectionPostgreSQLConverter)} not registered in converter manager.");
         }

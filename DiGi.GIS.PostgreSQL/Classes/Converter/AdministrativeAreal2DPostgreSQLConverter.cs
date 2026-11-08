@@ -1362,7 +1362,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             bool result = await Create.TableAsync_AdministrativeArea2D(npgsqlConnection, commandTimeout, cancellationToken);
             if (result)
             {
-                await DiGi.PostgreSQL.Modify.Analyze(npgsqlConnection, TableName.AdministrativeAreal2D, commandTimeout);
+                await DiGi.PostgreSQL.Modify.Analyze(npgsqlConnection, TableName.AdministrativeAreal2D, commandTimeout, cancellationToken);
             }
 
             return result;

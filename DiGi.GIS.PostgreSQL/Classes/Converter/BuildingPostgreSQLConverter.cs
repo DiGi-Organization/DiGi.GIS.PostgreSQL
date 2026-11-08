@@ -7,6 +7,7 @@ using Npgsql;
 using NpgsqlTypes;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text.Json.Nodes;
 using System.Threading;
@@ -199,7 +200,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             string tableName = TableName.Building;
             if (countyId != null && countyId.HasValue)
             {
-                tableName = string.Format("{0}_{1}", tableName, countyId.Value);
+                tableName = string.Format(CultureInfo.CurrentCulture, "{0}_{1}", tableName, countyId.Value);
             }
 
             return await DiGi.PostgreSQL.Query.CountAsync(npgsqlConnection, tableName, commandTimeout: commandTimeout, cancellationToken: cancellationToken);
@@ -224,7 +225,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             string tableName = TableName.Building;
             if (countyId != null && countyId.HasValue)
             {
-                tableName = string.Format("{0}_{1}", tableName, countyId.Value);
+                tableName = string.Format(CultureInfo.CurrentCulture, "{0}_{1}", tableName, countyId.Value);
             }
 
             return await DiGi.PostgreSQL.Query.EstimatedCountAsync(npgsqlConnection, tableName, analyze, commandTimeout, cancellationToken);
@@ -252,7 +253,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             Dictionary<string, int> countyIds_ByTableName = [];
             foreach (int countyId in countyIds)
             {
-                countyIds_ByTableName[string.Format("{0}_{1}", TableName.Building, countyId)] = countyId;
+                countyIds_ByTableName[string.Format(CultureInfo.CurrentCulture, "{0}_{1}", TableName.Building, countyId)] = countyId;
             }
 
             Dictionary<string, long>? counts_ByTableName = await DiGi.PostgreSQL.Query.EstimatedCountsAsync(npgsqlConnection, countyIds_ByTableName.Keys, analyze, batchSize, commandTimeout, cancellationToken);
@@ -636,7 +637,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             string tableName = TableName.Building;
             if (countyId != null && countyId.HasValue)
             {
-                tableName = string.Format("{0}_{1}", tableName, countyId.Value);
+                tableName = string.Format(CultureInfo.CurrentCulture, "{0}_{1}", tableName, countyId.Value);
             }
 
             return await DiGi.PostgreSQL.Query.CountAsync(npgsqlConnection, tableName, commandTimeout: commandTimeout, cancellationToken: cancellationToken);

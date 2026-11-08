@@ -15,12 +15,12 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// Gets or sets the identifier the source dataset gives the footprint, or null when the source gives none.
         /// <para>This is the <c>source_id</c> column, and the third element of the table's uniqueness key.</para>
         /// </summary>
-        public string? SourceId { get; set; } = null;
+        public string? SourceId { get; set; }
 
         /// <summary>
         /// Gets or sets the per-object provenance serialized to JSON, or null when the dataset defines none for the row.
         /// </summary>
-        public string? Provenance { get; set; } = null;
+        public string? Provenance { get; set; }
 
         /// <summary>
         /// Gets or sets the normalised origin of the geometry, one of the <see cref="Constants.PrimarySource"/> values. Never null.

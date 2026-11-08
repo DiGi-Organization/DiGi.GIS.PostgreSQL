@@ -7,6 +7,7 @@ using Npgsql;
 using NpgsqlTypes;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text.Json.Nodes;
 using System.Threading;
@@ -46,7 +47,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             string tableName = TableName.OrtoDatas;
             if (countyId != null && countyId.HasValue)
             {
-                tableName = string.Format("{0}_{1}", tableName, countyId.Value);
+                tableName = string.Format(CultureInfo.CurrentCulture, "{0}_{1}", tableName, countyId.Value);
             }
 
             return await DiGi.PostgreSQL.Query.CountAsync(npgsqlConnection, tableName, commandTimeout: commandTimeout, cancellationToken: cancellationToken);
@@ -71,7 +72,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             string tableName = TableName.OrtoDatas;
             if (countyId != null && countyId.HasValue)
             {
-                tableName = string.Format("{0}_{1}", tableName, countyId.Value);
+                tableName = string.Format(CultureInfo.CurrentCulture, "{0}_{1}", tableName, countyId.Value);
             }
 
             return await DiGi.PostgreSQL.Query.EstimatedCountAsync(npgsqlConnection, tableName, analyze, commandTimeout, cancellationToken);
@@ -99,7 +100,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             Dictionary<string, int> countyIds_ByTableName = [];
             foreach (int countyId in countyIds)
             {
-                countyIds_ByTableName[string.Format("{0}_{1}", TableName.OrtoDatas, countyId)] = countyId;
+                countyIds_ByTableName[string.Format(CultureInfo.CurrentCulture, "{0}_{1}", TableName.OrtoDatas, countyId)] = countyId;
             }
 
             Dictionary<string, long>? counts_ByTableName = await DiGi.PostgreSQL.Query.EstimatedCountsAsync(npgsqlConnection, countyIds_ByTableName.Keys, analyze, batchSize, commandTimeout, cancellationToken);
@@ -571,7 +572,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             string tableName = TableName.OrtoDatas;
             if (countyId != null && countyId.HasValue)
             {
-                tableName = string.Format("{0}_{1}", tableName, countyId.Value);
+                tableName = string.Format(CultureInfo.CurrentCulture, "{0}_{1}", tableName, countyId.Value);
             }
 
             return await DiGi.PostgreSQL.Query.CountAsync(npgsqlConnection, tableName, commandTimeout: commandTimeout, cancellationToken: cancellationToken);
@@ -650,7 +651,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// <param name="fallbackByReference">A boolean value indicating whether to perform a fallback search by reference alone across all partitions for references not matched by county.</param>
         /// <param name="countyId">The county the lookup is confined to. The table is partitioned on that column, so naming it lets the query reach a single partition instead of every one of them. Null searches the whole table, which is what a collection spanning several counties needs.</param>
         /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
-        /// <param name="cancellationToken">The <see cref="T:System.Threading.CancellationToken"/> to observe while waiting for the task to complete.</param>
+        /// <param name="cancellationToken">The <see cref="System.Threading.CancellationToken"/> to observe while waiting for the task to complete.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains a <see cref="List{Building2DReference}"/> of matching references, or null if the input collection is null.</returns>
         public async Task<List<Building2DReference>?> GetExistingBuilding2DReferencesAsync(IEnumerable<Building2DReference>? building2DReferences, bool inverted = false, bool fallbackByReference = false, int? countyId = null, int commandTimeout = 600, CancellationToken cancellationToken = default)
         {
@@ -732,7 +733,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
                         Serilog.Enums.LogEventLevel.Error,
                         "Retired poison queue entry {Id} (County: {CountyId}, Reference: {Reference}) after reaching {MaxAttempts} attempts",
                         retiredId,
-                        retiredCountyId?.ToString() ?? "Unknown",
+                        retiredCountyId?.ToString(CultureInfo.CurrentCulture) ?? "Unknown",
                         retiredReference ?? "Unknown",
                         maxAttempts);
                 }
@@ -1951,7 +1952,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             // Answered before the aggregate is sent. A store nothing has ever been written to has no table at
             // all, and running the query against it raises an undefined relation - which reaches a caller as a
             // server fault rather than as the plain fact that there is nothing stored yet.
-            if (!await DiGi.PostgreSQL.Query.TableExistsAsync(npgsqlConnection, TableName.OrtoDatas))
+            if (!await DiGi.PostgreSQL.Query.TableExistsAsync(npgsqlConnection, TableName.OrtoDatas, cancellationToken: cancellationToken))
             {
                 return null;
             }
@@ -2028,7 +2029,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 return null;
             }
 
-            if (!await DiGi.PostgreSQL.Query.TableExistsAsync(npgsqlConnection, TableName.OrtoDatas))
+            if (!await DiGi.PostgreSQL.Query.TableExistsAsync(npgsqlConnection, TableName.OrtoDatas, cancellationToken: cancellationToken))
             {
                 return null;
             }
@@ -2036,7 +2037,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             int[]? countyIds_Array = countyIds is null ? null : [.. countyIds];
 
             // A store the backfill never ran on has no acquisition table; an empty typed set keeps one statement.
-            string commandText_Acquisition = await DiGi.PostgreSQL.Query.TableExistsAsync(npgsqlConnection, TableName.OrtoDataAcquisition)
+            string commandText_Acquisition = await DiGi.PostgreSQL.Query.TableExistsAsync(npgsqlConnection, TableName.OrtoDataAcquisition, cancellationToken: cancellationToken)
                 ? $@"
                     SELECT
                         county_id,
@@ -2138,7 +2139,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 return null;
             }
 
-            if (!await DiGi.PostgreSQL.Query.TableExistsAsync(npgsqlConnection, TableName.OrtoDatas))
+            if (!await DiGi.PostgreSQL.Query.TableExistsAsync(npgsqlConnection, TableName.OrtoDatas, cancellationToken: cancellationToken))
             {
                 return null;
             }
@@ -2214,7 +2215,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 return null;
             }
 
-            if (!await DiGi.PostgreSQL.Query.TableExistsAsync(npgsqlConnection, TableName.OrtoDatas))
+            if (!await DiGi.PostgreSQL.Query.TableExistsAsync(npgsqlConnection, TableName.OrtoDatas, cancellationToken: cancellationToken))
             {
                 return null;
             }
@@ -2462,7 +2463,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
 
             // The queue table is created by the first write rather than up front, so its absence means no
             // refresh has ever run - a fact, not a fault.
-            if (!await DiGi.PostgreSQL.Query.TableExistsAsync(npgsqlConnection, TableName.OrtoDatas_Building2DReference_Update))
+            if (!await DiGi.PostgreSQL.Query.TableExistsAsync(npgsqlConnection, TableName.OrtoDatas_Building2DReference_Update, cancellationToken: cancellationToken))
             {
                 return null;
             }
@@ -2740,7 +2741,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 npgsqlCommand_Count.CommandTimeout = commandTimeout;
                 npgsqlCommand_Count.Parameters.Add(new NpgsqlParameter("county_id", NpgsqlDbType.Integer) { Value = countyId });
 
-                long count = System.Convert.ToInt64(await npgsqlCommand_Count.ExecuteScalarAsync(cancellationToken));
+                long count = System.Convert.ToInt64(await npgsqlCommand_Count.ExecuteScalarAsync(cancellationToken), CultureInfo.CurrentCulture);
                 if (count == 0)
                 {
                     return ([], string.Empty);

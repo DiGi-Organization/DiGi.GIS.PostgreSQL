@@ -190,8 +190,8 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 return null;
             }
 
-            if (!await DiGi.PostgreSQL.Query.TableExistsAsync(npgsqlConnection, Constants.TableName.Building2D)
-             || !await DiGi.PostgreSQL.Query.TableExistsAsync(npgsqlConnection, Constants.TableName.YearBuiltData))
+            if (!await DiGi.PostgreSQL.Query.TableExistsAsync(npgsqlConnection, Constants.TableName.Building2D, cancellationToken: cancellationToken)
+             || !await DiGi.PostgreSQL.Query.TableExistsAsync(npgsqlConnection, Constants.TableName.YearBuiltData, cancellationToken: cancellationToken))
             {
                 return null;
             }
@@ -293,7 +293,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 return new YearBuiltDataRemoveResult(dryRun, limit, 0, 0, null);
             }
 
-            if (!await DiGi.PostgreSQL.Query.TableExistsAsync(npgsqlConnection, TableName))
+            if (!await DiGi.PostgreSQL.Query.TableExistsAsync(npgsqlConnection, TableName, cancellationToken: cancellationToken))
             {
                 return new YearBuiltDataRemoveResult(dryRun, limit, 0, 0, references_Array);
             }
@@ -413,7 +413,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             }
 
             string[]? references_Array = references is null ? null : [.. references.Where(x => !string.IsNullOrWhiteSpace(x)).Distinct()];
-            if ((references_Array is not null && references_Array.Length == 0) || !await DiGi.PostgreSQL.Query.TableExistsAsync(npgsqlConnection, TableName))
+            if ((references_Array is not null && references_Array.Length == 0) || !await DiGi.PostgreSQL.Query.TableExistsAsync(npgsqlConnection, TableName, cancellationToken: cancellationToken))
             {
                 return new PredictedYearBuiltRemoveResult(dryRun, limit, dateTime.Ticks, 0, 0, null, null);
             }
@@ -588,7 +588,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             }
 
             string[] references_Array = [.. references.Where(x => !string.IsNullOrWhiteSpace(x)).Distinct()];
-            if (references_Array.Length == 0 || !await DiGi.PostgreSQL.Query.TableExistsAsync(npgsqlConnection, TableName))
+            if (references_Array.Length == 0 || !await DiGi.PostgreSQL.Query.TableExistsAsync(npgsqlConnection, TableName, cancellationToken: cancellationToken))
             {
                 return new UserYearBuiltRemoveResult(dryRun, null, null, references_Array);
             }
@@ -730,7 +730,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             }
 
             int[]? countyIds_Array = countyIds is null ? null : [.. countyIds.Distinct()];
-            if ((countyIds_Array is not null && countyIds_Array.Length == 0) || !await DiGi.PostgreSQL.Query.TableExistsAsync(npgsqlConnection, TableName))
+            if ((countyIds_Array is not null && countyIds_Array.Length == 0) || !await DiGi.PostgreSQL.Query.TableExistsAsync(npgsqlConnection, TableName, cancellationToken: cancellationToken))
             {
                 return [];
             }

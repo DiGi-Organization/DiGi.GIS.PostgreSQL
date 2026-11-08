@@ -17,8 +17,8 @@ namespace DiGi.GIS.PostgreSQL.Classes
         private readonly double tolerance;
         private readonly List<(int Id, BoundingBox2D BoundingBox2D, PolygonalFace2D PolygonalFace2D, double Area, PolygonalFace2DPointRelationSolver PolygonalFace2DPointRelationSolver)> subdivisions = [];
 
-        private GIS.Classes.Building2D? building2D_Input = null;
-        private int? output = null;
+        private GIS.Classes.Building2D? building2D_Input;
+        private int? output;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SubdivisionIdSolver"/> class over the given administrative rows.

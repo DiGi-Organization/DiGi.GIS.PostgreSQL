@@ -8,6 +8,7 @@ using Npgsql;
 using NpgsqlTypes;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text.Json.Nodes;
 using System.Threading;
@@ -80,7 +81,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
 
             if (executeResult != null && executeResult != DBNull.Value)
             {
-                return System.Convert.ToInt64(executeResult);
+                return System.Convert.ToInt64(executeResult, CultureInfo.CurrentCulture);
             }
 
             return 0;
@@ -407,7 +408,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             string tableName = Constants.TableName.Building2D;
             if (countyId != null && countyId.HasValue)
             {
-                tableName = string.Format("{0}_{1}", tableName, countyId.Value);
+                tableName = string.Format(CultureInfo.CurrentCulture, "{0}_{1}", tableName, countyId.Value);
             }
 
             return await DiGi.PostgreSQL.Query.CountAsync(npgsqlConnection, tableName, commandTimeout: commandTimeout, cancellationToken: cancellationToken);
@@ -432,7 +433,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             string tableName = Constants.TableName.Building2D;
             if (countyId != null && countyId.HasValue)
             {
-                tableName = string.Format("{0}_{1}", tableName, countyId.Value);
+                tableName = string.Format(CultureInfo.CurrentCulture, "{0}_{1}", tableName, countyId.Value);
             }
 
             return await DiGi.PostgreSQL.Query.EstimatedCountAsync(npgsqlConnection, tableName, analyze, commandTimeout, cancellationToken);
@@ -460,7 +461,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             Dictionary<string, int> countyIds_ByTableName = [];
             foreach (int countyId in countyIds)
             {
-                countyIds_ByTableName[string.Format("{0}_{1}", Constants.TableName.Building2D, countyId)] = countyId;
+                countyIds_ByTableName[string.Format(CultureInfo.CurrentCulture, "{0}_{1}", Constants.TableName.Building2D, countyId)] = countyId;
             }
 
             Dictionary<string, long>? counts_ByTableName = await DiGi.PostgreSQL.Query.EstimatedCountsAsync(npgsqlConnection, countyIds_ByTableName.Keys, analyze, batchSize, commandTimeout, cancellationToken);
@@ -928,7 +929,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             bool result = await Create.TableAsync_Building2D(npgsqlConnection, commandTimeout, cancellationToken);
             if (result)
             {
-                await DiGi.PostgreSQL.Modify.Analyze(npgsqlConnection, Constants.TableName.Building2D, commandTimeout);
+                await DiGi.PostgreSQL.Modify.Analyze(npgsqlConnection, Constants.TableName.Building2D, commandTimeout, cancellationToken);
             }
 
             return result;
@@ -1198,8 +1199,8 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// <param name="countyId">The optional integer identifier of the county used to filter the search.</param>
         /// <param name="fallbackByReference">A boolean value indicating whether to perform a fallback search by reference alone if the reference is not found in the specified county.</param>
         /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
-        /// <param name="cancellationToken">The <see cref="T:System.Threading.CancellationToken" /> to monitor for cancellation requests.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains the <see cref="T:Building2DReference" /> if a match is found; otherwise, null.</returns>
+        /// <param name="cancellationToken">The <see cref="System.Threading.CancellationToken" /> to monitor for cancellation requests.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the <see cref="Building2DReference" /> if a match is found; otherwise, null.</returns>
         public async Task<Building2DReference?> GetBuilding2DReferenceByReferenceAsync(string reference, int? countyId, bool fallbackByReference = false, int commandTimeout = 30, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(reference))
@@ -2117,7 +2118,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// </summary>
         /// <param name="countyId">The optional integer identifier of the county to filter the results; if null, the total count is retrieved.</param>
         /// <param name="commandTimeout">The timeout in seconds applied to the count command. A value of 0 disables the timeout.</param>
-        /// <param name="cancellationToken">The <see cref="T:System.Threading.CancellationToken" /> to observe while waiting for the task to complete.</param>
+        /// <param name="cancellationToken">The <see cref="System.Threading.CancellationToken" /> to observe while waiting for the task to complete.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the total row count as a long.</returns>
         public async Task<long> GetCountAsync(int? countyId, int commandTimeout = 30, CancellationToken cancellationToken = default)
         {
@@ -2132,7 +2133,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             string tableName = Constants.TableName.Building2D;
             if (countyId != null && countyId.HasValue)
             {
-                tableName = string.Format("{0}_{1}", tableName, countyId.Value);
+                tableName = string.Format(CultureInfo.CurrentCulture, "{0}_{1}", tableName, countyId.Value);
             }
 
             return await DiGi.PostgreSQL.Query.CountAsync(npgsqlConnection, tableName, commandTimeout: commandTimeout, cancellationToken: cancellationToken);
@@ -3358,7 +3359,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 return result;
             }
 
-            bool exists = await DiGi.PostgreSQL.Query.TableExistsAsync(npgsqlConnection, Constants.TableName.Building2D);
+            bool exists = await DiGi.PostgreSQL.Query.TableExistsAsync(npgsqlConnection, Constants.TableName.Building2D, cancellationToken: cancellationToken);
             if (!exists)
             {
                 return result;

@@ -7,6 +7,7 @@ using DiGi.OSM.Classes;
 using Npgsql;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -278,7 +279,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 cancelled ? Serilog.Enums.LogEventLevel.Warning : Serilog.Enums.LogEventLevel.Information,
                 "{Type} finished{Cancelled}: {RowCount} rows stored, {FilteredCount} out of scope, {RejectionCount} rejected, {ReaderRejectionCount} refused by the readers, register row {DatasetId}, of {DatasetKey}/{Version}",
                 nameof(PostgreSQLOpenBuildingImportTask), cancelled ? " after being cancelled" : string.Empty,
-                RowCount, FilteredCount, RejectionCount, ReaderRejectionCount, DatasetId?.ToString() ?? "(null)", datasetKey!, options.Version!);
+                RowCount, FilteredCount, RejectionCount, ReaderRejectionCount, DatasetId?.ToString(CultureInfo.CurrentCulture) ?? "(null)", datasetKey!, options.Version!);
 
             return !cancelled;
         }

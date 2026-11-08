@@ -3,6 +3,7 @@ using DiGi.Core.Classes;
 using DiGi.Core.Interfaces;
 using DiGi.GIS.Classes;
 using System.Collections.Generic;
+using System.Globalization;
 
 namespace DiGi.GIS.PostgreSQL
 {
@@ -29,7 +30,7 @@ namespace DiGi.GIS.PostgreSQL
             // building element - so a ComplexReference reads AdministrativeArea -> Building -> element.
             if (countyId is not null)
             {
-                serializableRefrences.Add(new UniqueIdReference(new TypeReference(typeof(AdministrativeDivision)), countyId.Value.ToString()));
+                serializableRefrences.Add(new UniqueIdReference(new TypeReference(typeof(AdministrativeDivision)), countyId.Value.ToString(CultureInfo.CurrentCulture)));
             }
 
             string? reference = buildingModel.GetValue<string>(Analytical.Enums.BuildingModelParameter.Reference);

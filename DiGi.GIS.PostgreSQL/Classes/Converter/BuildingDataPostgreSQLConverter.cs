@@ -6,6 +6,7 @@ using DiGi.PostgreSQL.Table.Classes;
 using DiGi.PostgreSQL.Table.Enums;
 using Npgsql;
 using NpgsqlTypes;
+using System.Globalization;
 using System.Threading;
 using System.Collections.Generic;
 using System.Linq;
@@ -627,7 +628,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             string tableName = Constants.TableName.BuildingData;
             if (countyId is not null && countyId.HasValue)
             {
-                tableName = string.Format("{0}_{1}", tableName, countyId.Value);
+                tableName = string.Format(CultureInfo.CurrentCulture, "{0}_{1}", tableName, countyId.Value);
             }
 
             return await DiGi.PostgreSQL.Query.CountAsync(npgsqlConnection, tableName, commandTimeout: commandTimeout, cancellationToken: cancellationToken);
@@ -678,7 +679,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             string tableName = Constants.TableName.BuildingData;
             if (countyId is not null && countyId.HasValue)
             {
-                tableName = string.Format("{0}_{1}", tableName, countyId.Value);
+                tableName = string.Format(CultureInfo.CurrentCulture, "{0}_{1}", tableName, countyId.Value);
             }
 
             return await DiGi.PostgreSQL.Query.EstimatedCountAsync(npgsqlConnection, tableName, analyze, commandTimeout, cancellationToken);
@@ -713,6 +714,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the set of references, an empty set when the county holds none, or null when the connection is null.</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Public instance API of the converter; making it static breaks every caller.")]
         public async Task<HashSet<string>?> GetReferencesByCountyIdAsync(NpgsqlConnection? npgsqlConnection, int countyId, int commandTimeout = 30, CancellationToken cancellationToken = default)
         {
             if (npgsqlConnection is null)

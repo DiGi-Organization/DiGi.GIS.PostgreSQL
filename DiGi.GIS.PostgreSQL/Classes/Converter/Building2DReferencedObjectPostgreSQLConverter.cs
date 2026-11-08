@@ -5,6 +5,7 @@ using Npgsql;
 using NpgsqlTypes;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text.Json.Nodes;
 using System.Threading;
@@ -47,7 +48,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             string tableName = TableName;
             if (countyId != null && countyId.HasValue)
             {
-                tableName = string.Format("{0}_{1}", tableName, countyId.Value);
+                tableName = string.Format(CultureInfo.CurrentCulture, "{0}_{1}", tableName, countyId.Value);
             }
 
             return await DiGi.PostgreSQL.Query.CountAsync(npgsqlConnection, tableName, commandTimeout: commandTimeout, cancellationToken: cancellationToken);
@@ -92,7 +93,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             string tableName = TableName;
             if (countyId != null && countyId.HasValue)
             {
-                tableName = string.Format("{0}_{1}", tableName, countyId.Value);
+                tableName = string.Format(CultureInfo.CurrentCulture, "{0}_{1}", tableName, countyId.Value);
             }
 
             bool exists = await DiGi.PostgreSQL.Query.TableExistsAsync(npgsqlConnection, tableName, cancellationToken: cancellationToken);
@@ -153,7 +154,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             string tableName = TableName;
             if (countyId != null && countyId.HasValue)
             {
-                tableName = string.Format("{0}_{1}", tableName, countyId.Value);
+                tableName = string.Format(CultureInfo.CurrentCulture, "{0}_{1}", tableName, countyId.Value);
             }
 
             return await DiGi.PostgreSQL.Query.EstimatedCountAsync(npgsqlConnection, tableName, analyze, commandTimeout, cancellationToken);
@@ -181,7 +182,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             Dictionary<string, int> countyIds_ByTableName = [];
             foreach (int countyId in countyIds)
             {
-                countyIds_ByTableName[string.Format("{0}_{1}", TableName, countyId)] = countyId;
+                countyIds_ByTableName[string.Format(CultureInfo.CurrentCulture, "{0}_{1}", TableName, countyId)] = countyId;
             }
 
             Dictionary<string, long>? counts_ByTableName = await DiGi.PostgreSQL.Query.EstimatedCountsAsync(npgsqlConnection, countyIds_ByTableName.Keys, analyze, batchSize, commandTimeout, cancellationToken);
@@ -933,7 +934,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             // table here instead would be worse than useless: TableAsync_Building2DReferencedObject
             // carries the [ReferencedObjectIndexes] migration and can spend minutes building an index
             // across every partition, which a refresh has no business triggering.
-            bool exists = await DiGi.PostgreSQL.Query.TableExistsAsync(npgsqlConnection, TableName);
+            bool exists = await DiGi.PostgreSQL.Query.TableExistsAsync(npgsqlConnection, TableName, cancellationToken: cancellationToken);
             if (!exists)
             {
                 return result;
@@ -942,7 +943,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             // A row cannot move into a partition that does not exist - without this the update fails
             // with 'no partition of relation found for row'. It is an idempotent catalog check once
             // the partition is there.
-            await npgsqlConnection.TableAsync_Building2DReferencedObject_Partition(TableName, countyId);
+            await npgsqlConnection.TableAsync_Building2DReferencedObject_Partition(TableName, countyId, cancellationToken: cancellationToken);
 
             // One statement for the whole batch, which makes it one transaction as well: an
             // interrupted run leaves every row either under the county it came from or under
@@ -1112,7 +1113,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             // Nothing of this type has ever been stored, so there is nothing to report. The probe does
             // not create the table - a read must not trigger the migration - and it does not create the
             // destination partition either, which the move creates and the probe only reads.
-            bool exists = await DiGi.PostgreSQL.Query.TableExistsAsync(npgsqlConnection, TableName);
+            bool exists = await DiGi.PostgreSQL.Query.TableExistsAsync(npgsqlConnection, TableName, cancellationToken: cancellationToken);
             if (!exists)
             {
                 return new Building2DReferencedObjectStrayResult(countyId, null, null);
@@ -1508,7 +1509,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
 
             await npgsqlConnection.OpenAsync(cancellationToken);
 
-            bool succeeded = await npgsqlConnection.TableAsync_Building2DReferencedObject(TableName);
+            bool succeeded = await npgsqlConnection.TableAsync_Building2DReferencedObject(TableName, cancellationToken: cancellationToken);
             if (!succeeded)
             {
                 return null;
@@ -1542,7 +1543,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 }
 
                 int countyId = grouping.Key.Value;
-                await npgsqlConnection.TableAsync_Building2DReferencedObject_Partition(TableName, countyId);
+                await npgsqlConnection.TableAsync_Building2DReferencedObject_Partition(TableName, countyId, cancellationToken: cancellationToken);
 
                 List<TBuilding2DReferencedObject> objectsInGroup = [.. grouping];
 

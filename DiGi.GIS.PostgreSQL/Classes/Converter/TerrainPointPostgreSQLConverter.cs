@@ -9,6 +9,7 @@ using Npgsql;
 using NpgsqlTypes;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -297,7 +298,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             // all, and running the query against it raises an undefined relation - which reaches a caller as a
             // server fault rather than as the plain fact that there is nothing stored yet. GetCountAsync has
             // always answered that case with -1 for the same reason.
-            if (!await DiGi.PostgreSQL.Query.TableExistsAsync(npgsqlConnection, Constants.TableName.TerrainPoint))
+            if (!await DiGi.PostgreSQL.Query.TableExistsAsync(npgsqlConnection, Constants.TableName.TerrainPoint, cancellationToken: cancellationToken))
             {
                 return null;
             }
@@ -366,7 +367,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             // all, and running the query against it raises an undefined relation - which reaches a caller as a
             // server fault rather than as the plain fact that there is nothing stored yet. GetCountAsync has
             // always answered that case with -1 for the same reason.
-            if (!await DiGi.PostgreSQL.Query.TableExistsAsync(npgsqlConnection, Constants.TableName.TerrainPoint))
+            if (!await DiGi.PostgreSQL.Query.TableExistsAsync(npgsqlConnection, Constants.TableName.TerrainPoint, cancellationToken: cancellationToken))
             {
                 return null;
             }
@@ -467,7 +468,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
 
             if (!await Create.TableAsync_TerrainPoint_Partition(npgsqlConnection, countyId, commandTimeout: commandTimeout, cancellationToken: cancellationToken))
             {
-                return new TerrainPointUpdateResult(0, [new Rejection(countyId.ToString(), UpdateRejectionReason.PartitionUnavailable)]);
+                return new TerrainPointUpdateResult(0, [new Rejection(countyId.ToString(CultureInfo.CurrentCulture), UpdateRejectionReason.PartitionUnavailable)]);
             }
 
             long count;
@@ -591,7 +592,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
 
                 if (terrainPoint.Point3D is null)
                 {
-                    rejections.Add(new Rejection(terrainPoint.CountyId.Value.ToString(), UpdateRejectionReason.MissingGeometry));
+                    rejections.Add(new Rejection(terrainPoint.CountyId.Value.ToString(CultureInfo.CurrentCulture), UpdateRejectionReason.MissingGeometry));
                     continue;
                 }
 
@@ -608,7 +609,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 if (!await Create.TableAsync_TerrainPoint_Partition(npgsqlConnection, countyId, commandTimeout: commandTimeout, cancellationToken: cancellationToken))
                 {
                     countyIds_Unavailable.Add(countyId);
-                    rejections.Add(new Rejection(countyId.ToString(), UpdateRejectionReason.PartitionUnavailable));
+                    rejections.Add(new Rejection(countyId.ToString(CultureInfo.CurrentCulture), UpdateRejectionReason.PartitionUnavailable));
                 }
             }
 
@@ -718,7 +719,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 return null;
             }
 
-            if (!await DiGi.PostgreSQL.Query.TableExistsAsync(npgsqlConnection, Constants.TableName.TerrainPoint))
+            if (!await DiGi.PostgreSQL.Query.TableExistsAsync(npgsqlConnection, Constants.TableName.TerrainPoint, cancellationToken: cancellationToken))
             {
                 return null;
             }

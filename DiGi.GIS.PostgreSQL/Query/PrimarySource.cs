@@ -34,17 +34,17 @@ namespace DiGi.GIS.PostgreSQL
                     return Constants.PrimarySource.Register;
                 }
 
-                if (value_Trimmed.IndexOf("osm", StringComparison.OrdinalIgnoreCase) >= 0 || value_Trimmed.IndexOf("openstreetmap", StringComparison.OrdinalIgnoreCase) >= 0)
+                if (value_Trimmed.Contains("osm", StringComparison.OrdinalIgnoreCase) || value_Trimmed.Contains("openstreetmap", StringComparison.OrdinalIgnoreCase))
                 {
                     return Constants.PrimarySource.Osm;
                 }
 
-                if (value_Trimmed.IndexOf("microsoft", StringComparison.OrdinalIgnoreCase) >= 0 || string.Equals(value_Trimmed, "msft", StringComparison.OrdinalIgnoreCase) || string.Equals(value_Trimmed, "msb", StringComparison.OrdinalIgnoreCase))
+                if (value_Trimmed.Contains("microsoft", StringComparison.OrdinalIgnoreCase) || string.Equals(value_Trimmed, "msft", StringComparison.OrdinalIgnoreCase) || string.Equals(value_Trimmed, "msb", StringComparison.OrdinalIgnoreCase))
                 {
                     return Constants.PrimarySource.Microsoft;
                 }
 
-                if (value_Trimmed.IndexOf("esri", StringComparison.OrdinalIgnoreCase) >= 0)
+                if (value_Trimmed.Contains("esri", StringComparison.OrdinalIgnoreCase))
                 {
                     return Constants.PrimarySource.Esri;
                 }
@@ -124,7 +124,7 @@ namespace DiGi.GIS.PostgreSQL
             string? best = null;
             foreach (KeyValuePair<string, JsonNode?> pair in provenance)
             {
-                bool sourceColumn = pair.Key.IndexOf("_source", StringComparison.OrdinalIgnoreCase) >= 0
+                bool sourceColumn = pair.Key.Contains("_source", StringComparison.OrdinalIgnoreCase)
                     || string.Equals(pair.Key, "source", StringComparison.OrdinalIgnoreCase);
 
                 if (!sourceColumn || pair.Value is not JsonValue value || !value.TryGetValue<string>(out string? text_Value))

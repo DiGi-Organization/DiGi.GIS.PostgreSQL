@@ -33,10 +33,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// <param name="gISPostgreSQLConverterManager">The GIS converter manager containing the unit converter.</param>
         public PostgreSQLUnitPopulateTask(GISPostgreSQLConverterManager gISPostgreSQLConverterManager)
         {
-            if (gISPostgreSQLConverterManager is null)
-            {
-                throw new ArgumentNullException(nameof(gISPostgreSQLConverterManager));
-            }
+            ArgumentNullException.ThrowIfNull(gISPostgreSQLConverterManager);
 
             unitPostgreSQLConverter = gISPostgreSQLConverterManager.GetPostgreSQLConverter<UnitPostgreSQLConverter>() ?? throw new InvalidOperationException($"{nameof(UnitPostgreSQLConverter)} not registered in converter manager.");
         }

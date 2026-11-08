@@ -6,6 +6,7 @@ using Npgsql;
 using NpgsqlTypes;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text.Json.Nodes;
 using System.Threading;
@@ -60,7 +61,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
                     npgsqlCommand.Parameters.Add(new NpgsqlParameter("year", NpgsqlDbType.Integer) { Value = year.Value });
                 }
 
-                return System.Convert.ToInt64(await npgsqlCommand.ExecuteScalarAsync(cancellationToken));
+                return System.Convert.ToInt64(await npgsqlCommand.ExecuteScalarAsync(cancellationToken), CultureInfo.CurrentCulture);
             }
             catch (PostgresException postgresException) when (postgresException.SqlState == PostgresErrorCodes.UndefinedTable)
             {

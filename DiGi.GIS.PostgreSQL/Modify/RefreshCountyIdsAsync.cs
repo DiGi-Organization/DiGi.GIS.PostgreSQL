@@ -2,6 +2,7 @@ using Npgsql;
 using NpgsqlTypes;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -90,7 +91,7 @@ namespace DiGi.GIS.PostgreSQL
                 return result;
             }
 
-            bool exists = await DiGi.PostgreSQL.Query.TableExistsAsync(npgsqlConnection, tableName);
+            bool exists = await DiGi.PostgreSQL.Query.TableExistsAsync(npgsqlConnection, tableName, cancellationToken: cancellationToken);
             if (!exists)
             {
                 return result;
@@ -128,7 +129,7 @@ namespace DiGi.GIS.PostgreSQL
 
             // A row cannot move into a partition that does not exist, and the part a whole county belongs to
             // may never have held one of these rows either. Idempotent once the partition is there.
-            await DiGi.PostgreSQL.Create.TableAsync_Partition(npgsqlConnection, tableName, countyId.ToString(), [countyId]);
+            await DiGi.PostgreSQL.Create.TableAsync_Partition(npgsqlConnection, tableName, countyId.ToString(CultureInfo.CurrentCulture), [countyId], cancellationToken: cancellationToken);
 
             NpgsqlCommandBuilder npgsqlCommandBuilder = new();
 

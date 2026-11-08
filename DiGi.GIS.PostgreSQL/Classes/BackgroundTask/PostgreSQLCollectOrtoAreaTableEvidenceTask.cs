@@ -4,6 +4,7 @@ using DiGi.PostgreSQL.Classes;
 using Npgsql;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -112,18 +113,18 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 lines.Add($"- {await ScalarStringAsync(mainConnection, "SELECT version()", commandTimeout, cancellationToken)}");
                 lines.Add("");
 
-                tablePresentCount += await CollectTableAsync(mainConnection, "orto_area", commandTimeout, cancellationToken, lines);
-                tablePresentCount += await CollectTableAsync(mainConnection, "orto_area_object", commandTimeout, cancellationToken, lines);
-                tablePresentCount += await CollectTableAsync(mainConnection, "orto_area_label", commandTimeout, cancellationToken, lines);
+                tablePresentCount += await CollectTableAsync(mainConnection, "orto_area", commandTimeout, lines, cancellationToken);
+                tablePresentCount += await CollectTableAsync(mainConnection, "orto_area_object", commandTimeout, lines, cancellationToken);
+                tablePresentCount += await CollectTableAsync(mainConnection, "orto_area_label", commandTimeout, lines, cancellationToken);
 
-                bool mainRoundTrip = await RoundTripMainAsync(mainConnection, scratchKey, commandTimeout, cancellationToken, lines);
+                bool mainRoundTrip = await RoundTripMainAsync(mainConnection, scratchKey, commandTimeout, lines, cancellationToken);
                 if (mainRoundTrip)
                 {
                     roundTripOkCount++;
                 }
 
                 // Prove the converters' UndefinedTable handling: a read of a table that does not exist must answer null (SqlState 42P01), not throw.
-                undefinedTableObserved = await UndefinedTableReadAsync(mainConnection, commandTimeout, cancellationToken, lines);
+                undefinedTableObserved = await UndefinedTableReadAsync(mainConnection, commandTimeout, lines, cancellationToken);
             }
 
             if (tablePresentCount < 3)
@@ -148,9 +149,9 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 lines.Add($"- {await ScalarStringAsync(storageConnection, "SELECT version()", commandTimeout, cancellationToken)}");
                 lines.Add("");
 
-                tablePresentCount += await CollectTableAsync(storageConnection, "orto_area_image", commandTimeout, cancellationToken, lines);
+                tablePresentCount += await CollectTableAsync(storageConnection, "orto_area_image", commandTimeout, lines, cancellationToken);
 
-                bool storageRoundTrip = await RoundTripStorageAsync(storageConnection, scratchKey, commandTimeout, cancellationToken, lines);
+                bool storageRoundTrip = await RoundTripStorageAsync(storageConnection, scratchKey, commandTimeout, lines, cancellationToken);
                 if (storageRoundTrip)
                 {
                     roundTripOkCount++;
@@ -166,7 +167,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 lines.Add($"- round trips ok: {roundTripOkCount} / {roundTripExpectedCount}");
                 lines.Add($"- undefined-table read answered null (42P01 handled): {(undefinedTableObserved ? "yes" : "NO")}");
                 lines.Add($"- all tables present: {(allTablesPresent ? "yes" : "NO")}");
-                await File.WriteAllTextAsync(reportPath, string.Join(Environment.NewLine, lines) + Environment.NewLine, new UTF8Encoding(false));
+                await File.WriteAllTextAsync(reportPath, string.Join(Environment.NewLine, lines) + Environment.NewLine, new UTF8Encoding(false), cancellationToken);
                 writtenReportPath = reportPath;
                 Serilog.Modify.Log("{Type} wrote {Path}", nameof(PostgreSQLCollectOrtoAreaTableEvidenceTask), reportPath);
             }
@@ -187,10 +188,10 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// <param name="connection">The open <see cref="NpgsqlConnection"/> to query.</param>
         /// <param name="tableName">The table name to collect.</param>
         /// <param name="commandTimeout">The timeout in seconds for each statement.</param>
-        /// <param name="cancellationToken">The cancellation token to monitor for cancellation requests.</param>
         /// <param name="lines">The report lines to append into.</param>
+        /// <param name="cancellationToken">The cancellation token to monitor for cancellation requests.</param>
         /// <returns>1 when the table is present, otherwise 0.</returns>
-        private static async Task<long> CollectTableAsync(NpgsqlConnection connection, string tableName, int commandTimeout, CancellationToken cancellationToken, List<string> lines)
+        private static async Task<long> CollectTableAsync(NpgsqlConnection connection, string tableName, int commandTimeout, List<string> lines, CancellationToken cancellationToken)
         {
             lines.Add($"## {tableName}");
             lines.Add("```sql");
@@ -261,10 +262,10 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// <param name="connection">The open <see cref="NpgsqlConnection"/> to use.</param>
         /// <param name="scratchKey">The scratch <c>area_key</c> to insert and delete.</param>
         /// <param name="commandTimeout">The timeout in seconds for each statement.</param>
-        /// <param name="cancellationToken">The cancellation token to monitor for cancellation requests.</param>
         /// <param name="lines">The report lines to append into.</param>
+        /// <param name="cancellationToken">The cancellation token to monitor for cancellation requests.</param>
         /// <returns>True when the row was read back and zero remained after the delete.</returns>
-        private static async Task<bool> RoundTripMainAsync(NpgsqlConnection connection, string scratchKey, int commandTimeout, CancellationToken cancellationToken, List<string> lines)
+        private static async Task<bool> RoundTripMainAsync(NpgsqlConnection connection, string scratchKey, int commandTimeout, List<string> lines, CancellationToken cancellationToken)
         {
             lines.Add("## Round trip (Main)");
             try
@@ -302,10 +303,10 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// <param name="connection">The open <see cref="NpgsqlConnection"/> to use.</param>
         /// <param name="scratchKey">The scratch <c>area_key</c> to insert and delete.</param>
         /// <param name="commandTimeout">The timeout in seconds for each statement.</param>
-        /// <param name="cancellationToken">The cancellation token to monitor for cancellation requests.</param>
         /// <param name="lines">The report lines to append into.</param>
+        /// <param name="cancellationToken">The cancellation token to monitor for cancellation requests.</param>
         /// <returns>True when the row was read back and zero remained after the delete.</returns>
-        private static async Task<bool> RoundTripStorageAsync(NpgsqlConnection connection, string scratchKey, int commandTimeout, CancellationToken cancellationToken, List<string> lines)
+        private static async Task<bool> RoundTripStorageAsync(NpgsqlConnection connection, string scratchKey, int commandTimeout, List<string> lines, CancellationToken cancellationToken)
         {
             lines.Add("## Round trip (Storage)");
             try
@@ -342,10 +343,10 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// </summary>
         /// <param name="connection">The open <see cref="NpgsqlConnection"/> to use.</param>
         /// <param name="commandTimeout">The timeout in seconds for the statement.</param>
-        /// <param name="cancellationToken">The cancellation token to monitor for cancellation requests.</param>
         /// <param name="lines">The report lines to append into.</param>
+        /// <param name="cancellationToken">The cancellation token to monitor for cancellation requests.</param>
         /// <returns>True when the read answered null (the 42P01 path was handled), otherwise false.</returns>
-        private static async Task<bool> UndefinedTableReadAsync(NpgsqlConnection connection, int commandTimeout, CancellationToken cancellationToken, List<string> lines)
+        private static async Task<bool> UndefinedTableReadAsync(NpgsqlConnection connection, int commandTimeout, List<string> lines, CancellationToken cancellationToken)
         {
             lines.Add("## UndefinedTable read (42P01)");
             try
@@ -403,7 +404,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             }
 
             object? value = await command.ExecuteScalarAsync(cancellationToken);
-            return value is null ? -1 : System.Convert.ToInt64(value);
+            return value is null ? -1 : System.Convert.ToInt64(value, CultureInfo.CurrentCulture);
         }
 
         /// <summary>

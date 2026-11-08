@@ -10,6 +10,7 @@ using Npgsql;
 using NpgsqlTypes;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -157,7 +158,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 npgsqlCommand.Parameters.Add(new NpgsqlParameter("row_count", NpgsqlDbType.Bigint) { Value = buildingDatasetRelease.RowCount is long rowCount ? rowCount : (object?)DBNull.Value });
 
                 object? result = await npgsqlCommand.ExecuteScalarAsync(cancellationToken);
-                return result is null || result is DBNull ? null : System.Convert.ToInt32(result);
+                return result is null || result is DBNull ? null : System.Convert.ToInt32(result, CultureInfo.CurrentCulture);
             }
             catch (Exception exception)
             {
@@ -199,7 +200,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 }
 
                 object? result = await npgsqlCommand.ExecuteScalarAsync(cancellationToken);
-                return result is null || result is DBNull ? null : System.Convert.ToInt64(result);
+                return result is null || result is DBNull ? null : System.Convert.ToInt64(result, CultureInfo.CurrentCulture);
             }
             catch (PostgresException postgresException) when (postgresException.SqlState == PostgresErrorCodes.UndefinedTable)
             {
@@ -256,7 +257,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 }
 
                 object? result = await npgsqlCommand.ExecuteScalarAsync(cancellationToken);
-                return result is null || result is DBNull ? null : System.Convert.ToInt64(result);
+                return result is null || result is DBNull ? null : System.Convert.ToInt64(result, CultureInfo.CurrentCulture);
             }
             catch (PostgresException postgresException) when (postgresException.SqlState == PostgresErrorCodes.UndefinedTable)
             {

@@ -34,6 +34,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// <param name="commandTimeout">The timeout in seconds applied to the count command. A value of 0 disables the timeout.</param>
         /// <param name="cancellationToken">The cancellation token used to cancel the asynchronous operation.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the total count as a long integer.</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1000:Do not declare static members on generic types", Justification = "Public member called on the closed converter type across the workspace; moving it is a breaking change.")]
         public static async Task<long> GetCountAsync(NpgsqlConnection? npgsqlConnection, int commandTimeout = 30, CancellationToken cancellationToken = default)
         {
             if (npgsqlConnection is null)
@@ -106,7 +107,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// </summary>
         /// <param name="id">The integer identifier of the item to retrieve.</param>
         /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
-        /// <param name="cancellationToken">The <see cref="T:System.Threading.CancellationToken"/> to observe for cancellation requests.</param>
+        /// <param name="cancellationToken">The <see cref="System.Threading.CancellationToken"/> to observe for cancellation requests.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the <seeref name="TAdministrativeAreal2DReferencedObject"/> if found; otherwise, null.</returns>
         public async Task<TAdministrativeAreal2DReferencedObject?> GetItemByIdAsync(int id, int commandTimeout = 30, CancellationToken cancellationToken = default)
         {

@@ -158,7 +158,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             TimeSpan retryDelay = TimeSpan.FromMilliseconds(PostgreSQLTerrainPointFillGapsOptions.RetryDelayMilliseconds);
             Point2D origin = new(PostgreSQLTerrainPointFillGapsOptions.OriginX, PostgreSQLTerrainPointFillGapsOptions.OriginY);
 
-            if (!await DiGi.PostgreSQL.Query.TableExistsAsync(terrainPointPostgreSQLConverter.ConnectionData, Constants.TableName.TerrainPoint))
+            if (!await DiGi.PostgreSQL.Query.TableExistsAsync(terrainPointPostgreSQLConverter.ConnectionData, Constants.TableName.TerrainPoint, cancellationToken: cancellationToken))
             {
                 Serilog.Modify.Log(Serilog.Enums.LogEventLevel.Error, "{Type}: no terrain point table exists, so nothing has ever been sampled and there is nothing to repair", nameof(PostgreSQLTerrainPointFillGapsTask));
                 return false;

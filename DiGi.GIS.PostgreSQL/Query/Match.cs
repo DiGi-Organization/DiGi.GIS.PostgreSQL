@@ -156,7 +156,7 @@ namespace DiGi.GIS.PostgreSQL
 
                     if (!string.IsNullOrWhiteSpace(cleanCode))
                     {
-                        if (vPrefix is not null && (cleanCode.StartsWith(vPrefix) || vPrefix.StartsWith(cleanCode) || vPrefix.EndsWith(cleanCode)))
+                        if (vPrefix is not null && (cleanCode.StartsWith(vPrefix, StringComparison.CurrentCulture) || vPrefix.StartsWith(cleanCode, StringComparison.CurrentCulture) || vPrefix.EndsWith(cleanCode, StringComparison.CurrentCulture)))
                         {
                             return voivodeship;
                         }
@@ -167,7 +167,7 @@ namespace DiGi.GIS.PostgreSQL
                         }
                     }
 
-                    if (!string.IsNullOrWhiteSpace(cleanName) && (vName == cleanName || vName == "WOJEWÓDZTWO " + cleanName || cleanName.EndsWith(vName) || vName.EndsWith(cleanName)))
+                    if (!string.IsNullOrWhiteSpace(cleanName) && (vName == cleanName || vName == "WOJEWÓDZTWO " + cleanName || cleanName.EndsWith(vName, StringComparison.CurrentCulture) || vName.EndsWith(cleanName, StringComparison.CurrentCulture)))
                     {
                         return voivodeship;
                     }
@@ -207,7 +207,7 @@ namespace DiGi.GIS.PostgreSQL
                     string? cFullCode = county.UnitCode?.Code;
                     if (!string.IsNullOrWhiteSpace(cleanCode))
                     {
-                        if (county.UnitCode?.GetPrefix() is string cPrefix && (cleanCode.StartsWith(cPrefix) || cPrefix.StartsWith(cleanCode)))
+                        if (county.UnitCode?.GetPrefix() is string cPrefix && (cleanCode.StartsWith(cPrefix, StringComparison.CurrentCulture) || cPrefix.StartsWith(cleanCode, StringComparison.CurrentCulture)))
                         {
                             return county;
                         }
@@ -215,7 +215,7 @@ namespace DiGi.GIS.PostgreSQL
                         // Map TERYT 4-digit code (Voivodeship 2 digits + County 2 digits) to BDL 9-digit unit code
                         if (cFullCode is not null && cFullCode.Length >= 9 && cleanCode.Length == 4)
                         {
-                            string terytSlice = cFullCode.Substring(2, 2) + cFullCode.Substring(7, 2);
+                            string terytSlice = string.Concat(cFullCode.AsSpan(2, 2), cFullCode.AsSpan(7, 2));
                             if (terytSlice == cleanCode)
                             {
                                 return county;
@@ -236,7 +236,7 @@ namespace DiGi.GIS.PostgreSQL
                         cName = cName.Substring(0, Math.Min(indexOD, indexDO)).Trim();
                     }
 
-                    if (!string.IsNullOrWhiteSpace(cleanName) && (cName.EndsWith(cleanName) || cleanName.EndsWith(cName.Replace("POWIAT ", "").Trim())))
+                    if (!string.IsNullOrWhiteSpace(cleanName) && (cName.EndsWith(cleanName, StringComparison.CurrentCulture) || cleanName.EndsWith(cName.Replace("POWIAT ", "").Trim(), StringComparison.CurrentCulture)))
                     {
                         return county;
                     }
@@ -254,11 +254,11 @@ namespace DiGi.GIS.PostgreSQL
                 }
 
                 string normalizedAdminName = cleanName;
-                if (normalizedAdminName.StartsWith("M. ST."))
+                if (normalizedAdminName.StartsWith("M. ST.", StringComparison.CurrentCulture))
                 {
                     normalizedAdminName = normalizedAdminName.Replace(" ", string.Empty) + " OD 2002";
                 }
-                else if (normalizedAdminName.StartsWith("M."))
+                else if (normalizedAdminName.StartsWith("M.", StringComparison.CurrentCulture))
                 {
                     normalizedAdminName = normalizedAdminName.Substring(2).Trim();
                 }
@@ -270,11 +270,11 @@ namespace DiGi.GIS.PostgreSQL
 
                     if (municipalityType.HasValue)
                     {
-                        if (normalizedAdminName.EndsWith("(GM. MIEJSKA)") && GIS.Query.IsUrban(municipalityType.Value))
+                        if (normalizedAdminName.EndsWith("(GM. MIEJSKA)", StringComparison.CurrentCulture) && GIS.Query.IsUrban(municipalityType.Value))
                         {
                             mName = $"{mName} (GM. MIEJSKA)";
                         }
-                        else if (normalizedAdminName.EndsWith("(GM. WIEJSKA)") && !GIS.Query.IsUrban(municipalityType.Value))
+                        else if (normalizedAdminName.EndsWith("(GM. WIEJSKA)", StringComparison.CurrentCulture) && !GIS.Query.IsUrban(municipalityType.Value))
                         {
                             mName = $"{mName} (GM. WIEJSKA)";
                         }
@@ -288,7 +288,7 @@ namespace DiGi.GIS.PostgreSQL
                     string? mFullCode = municipality.UnitCode?.Code;
                     if (!string.IsNullOrWhiteSpace(cleanCode))
                     {
-                        if (municipality.UnitCode?.GetPrefix() is string mPrefix && (cleanCode.StartsWith(mPrefix) || mPrefix.StartsWith(cleanCode)))
+                        if (municipality.UnitCode?.GetPrefix() is string mPrefix && (cleanCode.StartsWith(mPrefix, StringComparison.CurrentCulture) || mPrefix.StartsWith(cleanCode, StringComparison.CurrentCulture)))
                         {
                             return municipality;
                         }
@@ -296,7 +296,7 @@ namespace DiGi.GIS.PostgreSQL
                         // Map TERYT 7-digit code (Voivodeship 2 + County 2 + Municipality 3) to BDL 12-digit unit code
                         if (mFullCode is not null && mFullCode.Length == 12 && cleanCode.Length == 7)
                         {
-                            string terytSlice = mFullCode.Substring(2, 2) + mFullCode.Substring(7, 2) + mFullCode.Substring(9, 3);
+                            string terytSlice = string.Concat(mFullCode.AsSpan(2, 2), mFullCode.AsSpan(7, 2), mFullCode.AsSpan(9, 3));
                             if (terytSlice == cleanCode)
                             {
                                 return municipality;
@@ -327,7 +327,7 @@ namespace DiGi.GIS.PostgreSQL
                 IEnumerable<StatisticalUnit>? candidates = rootStatisticalUnit.GetStatisticalUnits(includeNested: true, x =>
                 {
                     string cName = x?.Name?.Trim().ToUpperInvariant() ?? string.Empty;
-                    return !string.IsNullOrWhiteSpace(cleanName) && (cName == cleanName || cName.StartsWith(cleanName) || cleanName.StartsWith(cName));
+                    return !string.IsNullOrWhiteSpace(cleanName) && (cName == cleanName || cName.StartsWith(cleanName, StringComparison.CurrentCulture) || cleanName.StartsWith(cName, StringComparison.CurrentCulture));
                 });
 
                 return candidates?.FirstOrDefault();
