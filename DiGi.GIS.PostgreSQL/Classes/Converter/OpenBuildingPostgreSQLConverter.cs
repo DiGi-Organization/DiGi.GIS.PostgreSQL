@@ -266,6 +266,250 @@ namespace DiGi.GIS.PostgreSQL.Classes
         }
 
         /// <summary>
+        /// Asynchronously reads the <c>building_dataset</c> release register: every release with its version, download date, licence, SHA-256, row count and attribute list.
+        /// <para>This is the evidence of paper 01, Table 2 and the data-availability statement: which release of which dataset the comparison used and when it was fetched. Rows are ordered by dataset key, then download date.</para>
+        /// </summary>
+        /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> used to execute the command.</param>
+        /// <param name="datasetKey">The dataset key to read, or null to read every dataset.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> to monitor for cancellation requests.</param>
+        /// <returns>A task whose result is the releases (empty when the register holds none for the key), or null when the connection is null or the register does not exist.</returns>
+        public static async Task<List<BuildingDatasetRelease>?> GetReleasesAsync(NpgsqlConnection? npgsqlConnection, string? datasetKey = null, int commandTimeout = 30, CancellationToken cancellationToken = default)
+        {
+            if (npgsqlConnection is null)
+            {
+                return null;
+            }
+
+            if (!await DiGi.PostgreSQL.Query.TableExistsAsync(npgsqlConnection, Constants.TableName.BuildingDataset, cancellationToken: cancellationToken))
+            {
+                return null;
+            }
+
+            // One SQL text per scope rather than "@dataset_key IS NULL OR ...", as everywhere in this library.
+            string commandText = $@"
+                SELECT id, dataset_key, version, download_date, source_url, licence, source_observation_date, attribute_names::text, file_name, sha256, row_count, created_at
+                FROM {Constants.TableName.BuildingDataset}
+                {(datasetKey is null ? string.Empty : "WHERE dataset_key = @dataset_key")}
+                ORDER BY dataset_key, download_date, version;";
+
+            await using NpgsqlCommand npgsqlCommand = new(commandText, npgsqlConnection);
+            npgsqlCommand.CommandTimeout = commandTimeout;
+
+            if (datasetKey is not null)
+            {
+                npgsqlCommand.Parameters.Add(new NpgsqlParameter("dataset_key", NpgsqlDbType.Text) { Value = datasetKey });
+            }
+
+            List<BuildingDatasetRelease> result = [];
+
+            await using NpgsqlDataReader npgsqlDataReader = await npgsqlCommand.ExecuteReaderAsync(cancellationToken);
+            while (await npgsqlDataReader.ReadAsync(cancellationToken))
+            {
+                // The release type keeps the read-back columns (id, row count, attribute list, creation stamp)
+                // out of its primary constructor, because a caller registering a release never knows them; the
+                // row is therefore materialised through the JSON constructor, keyed by the type's property names.
+                JsonObject jsonObject = new()
+                {
+                    [nameof(BuildingDatasetRelease.Id)] = npgsqlDataReader.GetInt32(0),
+                    [nameof(BuildingDatasetRelease.DatasetKey)] = npgsqlDataReader.GetString(1),
+                    [nameof(BuildingDatasetRelease.Version)] = npgsqlDataReader.GetString(2),
+                    [nameof(BuildingDatasetRelease.DownloadDate)] = npgsqlDataReader.GetDateTime(3),
+                    [nameof(BuildingDatasetRelease.SourceUrl)] = npgsqlDataReader.IsDBNull(4) ? null : npgsqlDataReader.GetString(4),
+                    [nameof(BuildingDatasetRelease.Licence)] = npgsqlDataReader.IsDBNull(5) ? null : npgsqlDataReader.GetString(5),
+                    [nameof(BuildingDatasetRelease.SourceObservationDate)] = npgsqlDataReader.IsDBNull(6) ? null : npgsqlDataReader.GetString(6),
+                    [nameof(BuildingDatasetRelease.AttributeNames)] = npgsqlDataReader.IsDBNull(7) ? null : JsonNode.Parse(npgsqlDataReader.GetString(7)),
+                    [nameof(BuildingDatasetRelease.FileName)] = npgsqlDataReader.IsDBNull(8) ? null : npgsqlDataReader.GetString(8),
+                    [nameof(BuildingDatasetRelease.Sha256)] = npgsqlDataReader.IsDBNull(9) ? null : npgsqlDataReader.GetString(9),
+                    [nameof(BuildingDatasetRelease.RowCount)] = npgsqlDataReader.IsDBNull(10) ? null : npgsqlDataReader.GetInt64(10),
+                    [nameof(BuildingDatasetRelease.CreatedAt)] = npgsqlDataReader.IsDBNull(11) ? null : npgsqlDataReader.GetDateTime(11),
+                };
+
+                result.Add(new BuildingDatasetRelease(jsonObject));
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Asynchronously reads the <c>building_dataset</c> release register, automatically managing the connection.
+        /// </summary>
+        /// <param name="datasetKey">The dataset key to read, or null to read every dataset.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> to monitor for cancellation requests.</param>
+        /// <returns>A task whose result is the releases, or null when no connection could be built or the register does not exist.</returns>
+        public async Task<List<BuildingDatasetRelease>?> GetReleasesAsync(string? datasetKey = null, int commandTimeout = 30, CancellationToken cancellationToken = default)
+        {
+            await using NpgsqlConnection? npgsqlConnection = DiGi.PostgreSQL.Create.NpgsqlConnection(ConnectionData);
+            if (npgsqlConnection is null)
+            {
+                return null;
+            }
+
+            await npgsqlConnection.OpenAsync(cancellationToken);
+            return await GetReleasesAsync(npgsqlConnection, datasetKey, commandTimeout, cancellationToken);
+        }
+
+        /// <summary>
+        /// Asynchronously summarises one dataset's footprint table per county part and release: the footprint count, its split by <c>primary_source</c>, and the number of footprints carrying a licence exception.
+        /// <para>The source split is read from the narrow <c>primary_source</c> column; the licence exception lives only in the serialized <c>object</c>, so counting it detoasts each row - seconds per pilot county, minutes for the whole country. A county part holding no footprints is absent from the result rather than present with a zero.</para>
+        /// </summary>
+        /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> used to execute the command.</param>
+        /// <param name="datasetKey">The dataset key whose table is summarised; resolved through <see cref="Query.OpenBuildingTableName(string?)"/>. The GHS-OBAT attribute table has no footprints and is refused.</param>
+        /// <param name="countyIds">The county parts to summarise, or null to summarise every partition.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> to monitor for cancellation requests.</param>
+        /// <returns>A task whose result is one <see cref="OpenBuildingCountyResult"/> per county part and release holding footprints, or null when the connection is null, the key is unknown or names GHS-OBAT, or the table does not exist.</returns>
+        public static async Task<List<OpenBuildingCountyResult>?> GetSummariesByCountyIdsAsync(NpgsqlConnection? npgsqlConnection, string? datasetKey, IEnumerable<int>? countyIds = null, int commandTimeout = 600, CancellationToken cancellationToken = default)
+        {
+            string? tableName = Query.OpenBuildingTableName(datasetKey);
+            if (npgsqlConnection is null || tableName is null || string.Equals(tableName, Constants.TableName.GHS_OBAT_Building, StringComparison.Ordinal))
+            {
+                return null;
+            }
+
+            if (!await DiGi.PostgreSQL.Query.TableExistsAsync(npgsqlConnection, tableName, cancellationToken: cancellationToken))
+            {
+                return null;
+            }
+
+            int[]? countyIds_Array = countyIds is null ? null : [.. countyIds];
+
+            // A literal county predicate, emitted only when a scope is named, so the planner prunes partitions.
+            string commandText = $@"
+                SELECT
+                    county_id,
+                    dataset_id,
+                    COUNT(*),
+                    COUNT(*) FILTER (WHERE primary_source = '{Constants.PrimarySource.Register}'),
+                    COUNT(*) FILTER (WHERE primary_source = '{Constants.PrimarySource.Osm}'),
+                    COUNT(*) FILTER (WHERE primary_source = '{Constants.PrimarySource.Microsoft}'),
+                    COUNT(*) FILTER (WHERE primary_source = '{Constants.PrimarySource.Esri}'),
+                    COUNT(*) FILTER (WHERE primary_source NOT IN ('{Constants.PrimarySource.Register}', '{Constants.PrimarySource.Osm}', '{Constants.PrimarySource.Microsoft}', '{Constants.PrimarySource.Esri}')),
+                    COUNT(*) FILTER (WHERE object ->> 'LicenceException' IS NOT NULL)
+                FROM {tableName}
+                {(countyIds_Array is null ? string.Empty : "WHERE county_id = ANY(@countyIds)")}
+                GROUP BY county_id, dataset_id
+                ORDER BY county_id, dataset_id;";
+
+            await using NpgsqlCommand npgsqlCommand = new(commandText, npgsqlConnection);
+            npgsqlCommand.CommandTimeout = commandTimeout;
+
+            if (countyIds_Array is not null)
+            {
+                npgsqlCommand.Parameters.Add(new NpgsqlParameter("countyIds", NpgsqlDbType.Array | NpgsqlDbType.Integer) { Value = countyIds_Array });
+            }
+
+            List<OpenBuildingCountyResult> result = [];
+
+            await using NpgsqlDataReader npgsqlDataReader = await npgsqlCommand.ExecuteReaderAsync(cancellationToken);
+            while (await npgsqlDataReader.ReadAsync(cancellationToken))
+            {
+                result.Add(new OpenBuildingCountyResult(
+                    npgsqlDataReader.GetInt32(0),
+                    npgsqlDataReader.GetInt32(1),
+                    npgsqlDataReader.GetInt64(2),
+                    npgsqlDataReader.GetInt64(3),
+                    npgsqlDataReader.GetInt64(4),
+                    npgsqlDataReader.GetInt64(5),
+                    npgsqlDataReader.GetInt64(6),
+                    npgsqlDataReader.GetInt64(7),
+                    npgsqlDataReader.GetInt64(8)));
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Asynchronously summarises one dataset's footprint table per county part and release, automatically managing the connection.
+        /// </summary>
+        /// <param name="datasetKey">The dataset key whose table is summarised.</param>
+        /// <param name="countyIds">The county parts to summarise, or null to summarise every partition.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> to monitor for cancellation requests.</param>
+        /// <returns>A task whose result is one <see cref="OpenBuildingCountyResult"/> per county part and release holding footprints, or null when no connection could be built, the key is unknown or the table does not exist.</returns>
+        public async Task<List<OpenBuildingCountyResult>?> GetSummariesByCountyIdsAsync(string? datasetKey, IEnumerable<int>? countyIds = null, int commandTimeout = 600, CancellationToken cancellationToken = default)
+        {
+            await using NpgsqlConnection? npgsqlConnection = DiGi.PostgreSQL.Create.NpgsqlConnection(ConnectionData);
+            if (npgsqlConnection is null)
+            {
+                return null;
+            }
+
+            await npgsqlConnection.OpenAsync(cancellationToken);
+            return await GetSummariesByCountyIdsAsync(npgsqlConnection, datasetKey, countyIds, commandTimeout, cancellationToken);
+        }
+
+        /// <summary>
+        /// Asynchronously reads the footprints of one dataset whose EPSG:2180 envelope intersects a bounding box, in EPSG:2180 with their source attributes, provenance and licence exception.
+        /// <para>The envelope test is served by the table's GiST index on <c>box(point(min_x, min_y), point(max_x, max_y))</c> in every partition, so a test-area-sized box reads only the footprints near it. It is a prefilter: a footprint whose envelope reaches the box need not itself intersect it.</para>
+        /// </summary>
+        /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> used to execute the command.</param>
+        /// <param name="datasetKey">The dataset key whose table is read; resolved through <see cref="Query.OpenBuildingTableName(string?)"/>. GHS-OBAT holds centroids, not footprints, and is refused.</param>
+        /// <param name="boundingBox2D">The bounding box in EPSG:2180.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> to monitor for cancellation requests.</param>
+        /// <returns>A task whose result is the footprints (empty when none reaches the box), or null when the connection or box is null, the key is unknown or names GHS-OBAT, or the table does not exist.</returns>
+        public static async Task<List<Footprint>?> GetFootprintsByBoundingBox2DAsync(NpgsqlConnection? npgsqlConnection, string? datasetKey, BoundingBox2D? boundingBox2D, int commandTimeout = 30, CancellationToken cancellationToken = default)
+        {
+            string? tableName = Query.OpenBuildingTableName(datasetKey);
+            if (npgsqlConnection is null || boundingBox2D is null || tableName is null || string.Equals(tableName, Constants.TableName.GHS_OBAT_Building, StringComparison.Ordinal))
+            {
+                return null;
+            }
+
+            if (!await DiGi.PostgreSQL.Query.TableExistsAsync(npgsqlConnection, tableName, cancellationToken: cancellationToken))
+            {
+                return null;
+            }
+
+            string commandText = $@"
+                SELECT object::text
+                FROM {tableName}
+                WHERE box(point(min_x, min_y), point(max_x, max_y)) && box(point(@min_x, @min_y), point(@max_x, @max_y));";
+
+            await using NpgsqlCommand npgsqlCommand = new(commandText, npgsqlConnection);
+            npgsqlCommand.CommandTimeout = commandTimeout;
+            npgsqlCommand.Parameters.Add(new NpgsqlParameter("min_x", NpgsqlDbType.Double) { Value = boundingBox2D.Min.X });
+            npgsqlCommand.Parameters.Add(new NpgsqlParameter("min_y", NpgsqlDbType.Double) { Value = boundingBox2D.Min.Y });
+            npgsqlCommand.Parameters.Add(new NpgsqlParameter("max_x", NpgsqlDbType.Double) { Value = boundingBox2D.Max.X });
+            npgsqlCommand.Parameters.Add(new NpgsqlParameter("max_y", NpgsqlDbType.Double) { Value = boundingBox2D.Max.Y });
+
+            List<Footprint> result = [];
+
+            await using NpgsqlDataReader npgsqlDataReader = await npgsqlCommand.ExecuteReaderAsync(cancellationToken);
+            while (await npgsqlDataReader.ReadAsync(cancellationToken))
+            {
+                if (JsonNode.Parse(npgsqlDataReader.GetString(0)) is JsonObject jsonObject)
+                {
+                    result.Add(new Footprint(jsonObject));
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Asynchronously reads the footprints of one dataset whose envelope intersects a bounding box, automatically managing the connection.
+        /// </summary>
+        /// <param name="datasetKey">The dataset key whose table is read.</param>
+        /// <param name="boundingBox2D">The bounding box in EPSG:2180.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> to monitor for cancellation requests.</param>
+        /// <returns>A task whose result is the footprints, or null when no connection could be built, the key is unknown or the table does not exist.</returns>
+        public async Task<List<Footprint>?> GetFootprintsByBoundingBox2DAsync(string? datasetKey, BoundingBox2D? boundingBox2D, int commandTimeout = 30, CancellationToken cancellationToken = default)
+        {
+            await using NpgsqlConnection? npgsqlConnection = DiGi.PostgreSQL.Create.NpgsqlConnection(ConnectionData);
+            if (npgsqlConnection is null)
+            {
+                return null;
+            }
+
+            await npgsqlConnection.OpenAsync(cancellationToken);
+            return await GetFootprintsByBoundingBox2DAsync(npgsqlConnection, datasetKey, boundingBox2D, commandTimeout, cancellationToken);
+        }
+
+        /// <summary>
         /// Asynchronously imports one release: files every footprint of the stream under a county part and stores the release's rows, replacing the previous snapshot in scope as one transaction.
         /// <para>The run loads the county parts once, reprojects each footprint with the transformation of its own source coordinate reference system (built lazily, once per run, as locals - never per footprint and never shared across runs), filters it against the scope, files it through <see cref="Query.OpenBuildingCountyId(BoundingBox2D, IPolygonal2D, Point2D, IDictionary{int, IPolygonal2D}, IDictionary{int, BoundingBox2D}, IDictionary{int, PolygonalFace2D}, ISet{int}, BoundingBox2D, double, out bool)"/> and buffers it; the buffer flushes through a binary COPY per partition every <c>rowCount_Flush</c> rows.</para>
         /// <para>A footprint the reprojection rejects (null input, non-finite vertex, short ring, out-of-domain result, unsupported source reference system) is counted with <see cref="UpdateRejectionReason.GeometryRejected"/> and never written; one that files nowhere is counted with <see cref="UpdateRejectionReason.CountyUnresolved"/>; one outside the run's scope is counted as filtered, not as a rejection. The GHS-OBAT table additionally refuses a row without a source identifier, because that identifier is its primary key.</para>

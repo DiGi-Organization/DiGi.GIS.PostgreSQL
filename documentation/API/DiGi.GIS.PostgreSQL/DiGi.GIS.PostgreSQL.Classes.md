@@ -16581,6 +16581,242 @@ public class GISPostgreSQLConverterManager : DiGi.PostgreSQL.Classes.PostgreSQLC
 
 Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [DiGi\.PostgreSQL\.Classes\.PostgreSQLConverterManager&lt;](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.classes.postgresqlconvertermanager-1 'DiGi\.PostgreSQL\.Classes\.PostgreSQLConverterManager\`1')[IGISPostgreSQLConverter](DiGi.GIS.PostgreSQL.Interfaces.md#DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Interfaces\.IGISPostgreSQLConverter')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.classes.postgresqlconvertermanager-1 'DiGi\.PostgreSQL\.Classes\.PostgreSQLConverterManager\`1') → GISPostgreSQLConverterManager
 
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingCountyResult'></a>
+
+## OpenBuildingCountyResult Class
+
+What one county part of one open building footprint table holds for one release: how many footprints, split by the normalised origin of their geometry \(`primary_source`\), and how many carry a licence exception\.
+
+The per-source counts are the data of the provenance diagram (paper 01, figure R1; DiGi.GIS.PostgreSQL#126): they show how much of a dataset is a register, OpenStreetMap or a detector, and therefore which datasets are not independent of one another. They always sum to [Count](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingCountyResult.Count 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingCountyResult\.Count').
+
+```csharp
+public class OpenBuildingCountyResult : DiGi.Core.Classes.SerializableResult, DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLSerializableObject, DiGi.Core.Interfaces.ISerializableObject, DiGi.Core.Interfaces.ICloneableObject<DiGi.Core.Interfaces.ISerializableObject>, DiGi.Core.Interfaces.ICloneableObject, DiGi.Core.Interfaces.IObject
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [DiGi\.Core\.Classes\.Object](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.object 'DiGi\.Core\.Classes\.Object') → [DiGi\.Core\.Classes\.SerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.serializableobject 'DiGi\.Core\.Classes\.SerializableObject') → [DiGi\.Core\.Classes\.SerializableResult](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.serializableresult 'DiGi\.Core\.Classes\.SerializableResult') → OpenBuildingCountyResult
+
+Implements [IGISPostgreSQLSerializableObject](DiGi.GIS.PostgreSQL.Interfaces.md#DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLSerializableObject 'DiGi\.GIS\.PostgreSQL\.Interfaces\.IGISPostgreSQLSerializableObject'), [DiGi\.Core\.Interfaces\.ISerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iserializableobject 'DiGi\.Core\.Interfaces\.ISerializableObject'), [DiGi\.Core\.Interfaces\.ICloneableObject&lt;](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject-1 'DiGi\.Core\.Interfaces\.ICloneableObject\`1')[DiGi\.Core\.Interfaces\.ISerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iserializableobject 'DiGi\.Core\.Interfaces\.ISerializableObject')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject-1 'DiGi\.Core\.Interfaces\.ICloneableObject\`1'), [DiGi\.Core\.Interfaces\.ICloneableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject 'DiGi\.Core\.Interfaces\.ICloneableObject'), [DiGi\.Core\.Interfaces\.IObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iobject 'DiGi\.Core\.Interfaces\.IObject')
+### Constructors
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingCountyResult.OpenBuildingCountyResult(DiGi.GIS.PostgreSQL.Classes.OpenBuildingCountyResult)'></a>
+
+## OpenBuildingCountyResult\(OpenBuildingCountyResult\) Constructor
+
+Initializes a new instance of the [OpenBuildingCountyResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingCountyResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingCountyResult') class by copying an existing one\.
+
+```csharp
+public OpenBuildingCountyResult(DiGi.GIS.PostgreSQL.Classes.OpenBuildingCountyResult? openBuildingCountyResult);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingCountyResult.OpenBuildingCountyResult(DiGi.GIS.PostgreSQL.Classes.OpenBuildingCountyResult).openBuildingCountyResult'></a>
+
+`openBuildingCountyResult` [OpenBuildingCountyResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingCountyResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingCountyResult')
+
+The [OpenBuildingCountyResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingCountyResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingCountyResult') to copy from\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingCountyResult.OpenBuildingCountyResult(int,int,long,long,long,long,long,long,long)'></a>
+
+## OpenBuildingCountyResult\(int, int, long, long, long, long, long, long, long\) Constructor
+
+Initializes a new instance of the [OpenBuildingCountyResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingCountyResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingCountyResult') class\.
+
+```csharp
+public OpenBuildingCountyResult(int countyId, int datasetId, long count, long registerCount, long osmCount, long microsoftCount, long esriCount, long otherCount, long licenceExceptionCount);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingCountyResult.OpenBuildingCountyResult(int,int,long,long,long,long,long,long,long).countyId'></a>
+
+`countyId` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The identifier of the county part summarised\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingCountyResult.OpenBuildingCountyResult(int,int,long,long,long,long,long,long,long).datasetId'></a>
+
+`datasetId` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The identifier of the `building_dataset` register row the footprints belong to\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingCountyResult.OpenBuildingCountyResult(int,int,long,long,long,long,long,long,long).count'></a>
+
+`count` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+The number of footprints\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingCountyResult.OpenBuildingCountyResult(int,int,long,long,long,long,long,long,long).registerCount'></a>
+
+`registerCount` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+How many footprints have a government register as their primary source\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingCountyResult.OpenBuildingCountyResult(int,int,long,long,long,long,long,long,long).osmCount'></a>
+
+`osmCount` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+How many footprints have OpenStreetMap as their primary source\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingCountyResult.OpenBuildingCountyResult(int,int,long,long,long,long,long,long,long).microsoftCount'></a>
+
+`microsoftCount` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+How many footprints have the Microsoft detector as their primary source\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingCountyResult.OpenBuildingCountyResult(int,int,long,long,long,long,long,long,long).esriCount'></a>
+
+`esriCount` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+How many footprints have Esri Community Maps as their primary source\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingCountyResult.OpenBuildingCountyResult(int,int,long,long,long,long,long,long,long).otherCount'></a>
+
+`otherCount` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+How many footprints have any other, or an unrecognised, primary source\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingCountyResult.OpenBuildingCountyResult(int,int,long,long,long,long,long,long,long).licenceExceptionCount'></a>
+
+`licenceExceptionCount` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+How many footprints carry a licence exception \(EUBUCCO: Prague CC\-BY\-SA, Abruzzo CC\-BY\-NC\)\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingCountyResult.OpenBuildingCountyResult(System.Text.Json.Nodes.JsonObject)'></a>
+
+## OpenBuildingCountyResult\(JsonObject\) Constructor
+
+Initializes a new instance of the [OpenBuildingCountyResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingCountyResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingCountyResult') class from a [System\.Text\.Json\.Nodes\.JsonObject](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.nodes.jsonobject 'System\.Text\.Json\.Nodes\.JsonObject')\.
+
+```csharp
+public OpenBuildingCountyResult(System.Text.Json.Nodes.JsonObject? jsonObject);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingCountyResult.OpenBuildingCountyResult(System.Text.Json.Nodes.JsonObject).jsonObject'></a>
+
+`jsonObject` [System\.Text\.Json\.Nodes\.JsonObject](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.nodes.jsonobject 'System\.Text\.Json\.Nodes\.JsonObject')
+
+The [System\.Text\.Json\.Nodes\.JsonObject](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.nodes.jsonobject 'System\.Text\.Json\.Nodes\.JsonObject') containing the serialized data\.
+### Properties
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingCountyResult.Count'></a>
+
+## OpenBuildingCountyResult\.Count Property
+
+Gets the number of footprints the county part holds for the release\.
+
+```csharp
+public long Count { get; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingCountyResult.CountyId'></a>
+
+## OpenBuildingCountyResult\.CountyId Property
+
+Gets the identifier of the county part summarised\.
+
+```csharp
+public int CountyId { get; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingCountyResult.DatasetId'></a>
+
+## OpenBuildingCountyResult\.DatasetId Property
+
+Gets the identifier of the `building_dataset` register row the footprints belong to\.
+
+```csharp
+public int DatasetId { get; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingCountyResult.EsriCount'></a>
+
+## OpenBuildingCountyResult\.EsriCount Property
+
+Gets how many footprints have Esri Community Maps as their primary source\.
+
+```csharp
+public long EsriCount { get; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingCountyResult.LicenceExceptionCount'></a>
+
+## OpenBuildingCountyResult\.LicenceExceptionCount Property
+
+Gets how many footprints carry a licence exception \(EUBUCCO: Prague CC\-BY\-SA, Abruzzo CC\-BY\-NC\)\.
+
+```csharp
+public long LicenceExceptionCount { get; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingCountyResult.MicrosoftCount'></a>
+
+## OpenBuildingCountyResult\.MicrosoftCount Property
+
+Gets how many footprints have the Microsoft detector as their primary source\.
+
+```csharp
+public long MicrosoftCount { get; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingCountyResult.OsmCount'></a>
+
+## OpenBuildingCountyResult\.OsmCount Property
+
+Gets how many footprints have OpenStreetMap as their primary source\.
+
+```csharp
+public long OsmCount { get; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingCountyResult.OtherCount'></a>
+
+## OpenBuildingCountyResult\.OtherCount Property
+
+Gets how many footprints have any other, or an unrecognised, primary source\.
+
+```csharp
+public long OtherCount { get; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingCountyResult.RegisterCount'></a>
+
+## OpenBuildingCountyResult\.RegisterCount Property
+
+Gets how many footprints have a government register as their primary source\.
+
+For EUBUCCO in Poland this is Budynki3D LoD1 GUGiK, whose footprints come from BDOT10k - so a comparison of these footprints with `building_2d` is circular, not an independent test.
+
+```csharp
+public long RegisterCount { get; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
 <a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingImportResult'></a>
 
 ## OpenBuildingImportResult Class
@@ -17050,6 +17286,92 @@ The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dot
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A task whose result is the number of rows written by this flush\.
 
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.GetFootprintsByBoundingBox2DAsync(Npgsql.NpgsqlConnection,string,DiGi.Geometry.Planar.Classes.BoundingBox2D,int,System.Threading.CancellationToken)'></a>
+
+## OpenBuildingPostgreSQLConverter\.GetFootprintsByBoundingBox2DAsync\(NpgsqlConnection, string, BoundingBox2D, int, CancellationToken\) Method
+
+Asynchronously reads the footprints of one dataset whose EPSG:2180 envelope intersects a bounding box, in EPSG:2180 with their source attributes, provenance and licence exception\.
+
+The envelope test is served by the table's GiST index on `box(point(min_x, min_y), point(max_x, max_y))` in every partition, so a test-area-sized box reads only the footprints near it. It is a prefilter: a footprint whose envelope reaches the box need not itself intersect it.
+
+```csharp
+public static System.Threading.Tasks.Task<System.Collections.Generic.List<DiGi.GIS.IO.Classes.Footprint>?> GetFootprintsByBoundingBox2DAsync(Npgsql.NpgsqlConnection? npgsqlConnection, string? datasetKey, DiGi.Geometry.Planar.Classes.BoundingBox2D? boundingBox2D, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.GetFootprintsByBoundingBox2DAsync(Npgsql.NpgsqlConnection,string,DiGi.Geometry.Planar.Classes.BoundingBox2D,int,System.Threading.CancellationToken).npgsqlConnection'></a>
+
+`npgsqlConnection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
+
+The [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection') used to execute the command\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.GetFootprintsByBoundingBox2DAsync(Npgsql.NpgsqlConnection,string,DiGi.Geometry.Planar.Classes.BoundingBox2D,int,System.Threading.CancellationToken).datasetKey'></a>
+
+`datasetKey` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The dataset key whose table is read; resolved through [OpenBuildingTableName\(string\)](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Query.OpenBuildingTableName(string) 'DiGi\.GIS\.PostgreSQL\.Query\.OpenBuildingTableName\(string\)')\. GHS\-OBAT holds centroids, not footprints, and is refused\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.GetFootprintsByBoundingBox2DAsync(Npgsql.NpgsqlConnection,string,DiGi.Geometry.Planar.Classes.BoundingBox2D,int,System.Threading.CancellationToken).boundingBox2D'></a>
+
+`boundingBox2D` [DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.boundingbox2d 'DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D')
+
+The bounding box in EPSG:2180\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.GetFootprintsByBoundingBox2DAsync(Npgsql.NpgsqlConnection,string,DiGi.Geometry.Planar.Classes.BoundingBox2D,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.GetFootprintsByBoundingBox2DAsync(Npgsql.NpgsqlConnection,string,DiGi.Geometry.Planar.Classes.BoundingBox2D,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken') to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[DiGi\.GIS\.IO\.Classes\.Footprint](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.io.classes.footprint 'DiGi\.GIS\.IO\.Classes\.Footprint')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task whose result is the footprints \(empty when none reaches the box\), or null when the connection or box is null, the key is unknown or names GHS\-OBAT, or the table does not exist\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.GetFootprintsByBoundingBox2DAsync(string,DiGi.Geometry.Planar.Classes.BoundingBox2D,int,System.Threading.CancellationToken)'></a>
+
+## OpenBuildingPostgreSQLConverter\.GetFootprintsByBoundingBox2DAsync\(string, BoundingBox2D, int, CancellationToken\) Method
+
+Asynchronously reads the footprints of one dataset whose envelope intersects a bounding box, automatically managing the connection\.
+
+```csharp
+public System.Threading.Tasks.Task<System.Collections.Generic.List<DiGi.GIS.IO.Classes.Footprint>?> GetFootprintsByBoundingBox2DAsync(string? datasetKey, DiGi.Geometry.Planar.Classes.BoundingBox2D? boundingBox2D, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.GetFootprintsByBoundingBox2DAsync(string,DiGi.Geometry.Planar.Classes.BoundingBox2D,int,System.Threading.CancellationToken).datasetKey'></a>
+
+`datasetKey` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The dataset key whose table is read\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.GetFootprintsByBoundingBox2DAsync(string,DiGi.Geometry.Planar.Classes.BoundingBox2D,int,System.Threading.CancellationToken).boundingBox2D'></a>
+
+`boundingBox2D` [DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.boundingbox2d 'DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D')
+
+The bounding box in EPSG:2180\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.GetFootprintsByBoundingBox2DAsync(string,DiGi.Geometry.Planar.Classes.BoundingBox2D,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.GetFootprintsByBoundingBox2DAsync(string,DiGi.Geometry.Planar.Classes.BoundingBox2D,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken') to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[DiGi\.GIS\.IO\.Classes\.Footprint](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.io.classes.footprint 'DiGi\.GIS\.IO\.Classes\.Footprint')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task whose result is the footprints, or null when no connection could be built, the key is unknown or the table does not exist\.
+
 <a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.GetReleaseCountAsync(Npgsql.NpgsqlConnection,string,string,System.Nullable_System.DateTime_,int,System.Threading.CancellationToken)'></a>
 
 ## OpenBuildingPostgreSQLConverter\.GetReleaseCountAsync\(NpgsqlConnection, string, string, Nullable\<DateTime\>, int, CancellationToken\) Method
@@ -17101,6 +17423,80 @@ The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dot
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A task whose result is the number of matching register rows, or null when the connection or dataset key is null, or the register does not exist\.
 
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.GetReleasesAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken)'></a>
+
+## OpenBuildingPostgreSQLConverter\.GetReleasesAsync\(NpgsqlConnection, string, int, CancellationToken\) Method
+
+Asynchronously reads the `building_dataset` release register: every release with its version, download date, licence, SHA\-256, row count and attribute list\.
+
+This is the evidence of paper 01, Table 2 and the data-availability statement: which release of which dataset the comparison used and when it was fetched. Rows are ordered by dataset key, then download date.
+
+```csharp
+public static System.Threading.Tasks.Task<System.Collections.Generic.List<DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease>?> GetReleasesAsync(Npgsql.NpgsqlConnection? npgsqlConnection, string? datasetKey=null, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.GetReleasesAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken).npgsqlConnection'></a>
+
+`npgsqlConnection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
+
+The [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection') used to execute the command\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.GetReleasesAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken).datasetKey'></a>
+
+`datasetKey` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The dataset key to read, or null to read every dataset\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.GetReleasesAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.GetReleasesAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken') to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[BuildingDatasetRelease](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease 'DiGi\.GIS\.PostgreSQL\.Classes\.BuildingDatasetRelease')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task whose result is the releases \(empty when the register holds none for the key\), or null when the connection is null or the register does not exist\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.GetReleasesAsync(string,int,System.Threading.CancellationToken)'></a>
+
+## OpenBuildingPostgreSQLConverter\.GetReleasesAsync\(string, int, CancellationToken\) Method
+
+Asynchronously reads the `building_dataset` release register, automatically managing the connection\.
+
+```csharp
+public System.Threading.Tasks.Task<System.Collections.Generic.List<DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease>?> GetReleasesAsync(string? datasetKey=null, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.GetReleasesAsync(string,int,System.Threading.CancellationToken).datasetKey'></a>
+
+`datasetKey` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The dataset key to read, or null to read every dataset\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.GetReleasesAsync(string,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.GetReleasesAsync(string,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken') to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[BuildingDatasetRelease](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease 'DiGi\.GIS\.PostgreSQL\.Classes\.BuildingDatasetRelease')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task whose result is the releases, or null when no connection could be built or the register does not exist\.
+
 <a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.GetRowCountAsync(Npgsql.NpgsqlConnection,string,System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken)'></a>
 
 ## OpenBuildingPostgreSQLConverter\.GetRowCountAsync\(NpgsqlConnection, string, IEnumerable\<int\>, int, CancellationToken\) Method
@@ -17147,6 +17543,92 @@ The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dot
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A task whose result is the number of rows, or null when the connection or dataset key is null, the key is unknown, or the table does not exist\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.GetSummariesByCountyIdsAsync(Npgsql.NpgsqlConnection,string,System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken)'></a>
+
+## OpenBuildingPostgreSQLConverter\.GetSummariesByCountyIdsAsync\(NpgsqlConnection, string, IEnumerable\<int\>, int, CancellationToken\) Method
+
+Asynchronously summarises one dataset's footprint table per county part and release: the footprint count, its split by `primary_source`, and the number of footprints carrying a licence exception\.
+
+The source split is read from the narrow `primary_source` column; the licence exception lives only in the serialized `object`, so counting it detoasts each row - seconds per pilot county, minutes for the whole country. A county part holding no footprints is absent from the result rather than present with a zero.
+
+```csharp
+public static System.Threading.Tasks.Task<System.Collections.Generic.List<DiGi.GIS.PostgreSQL.Classes.OpenBuildingCountyResult>?> GetSummariesByCountyIdsAsync(Npgsql.NpgsqlConnection? npgsqlConnection, string? datasetKey, System.Collections.Generic.IEnumerable<int>? countyIds=null, int commandTimeout=600, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.GetSummariesByCountyIdsAsync(Npgsql.NpgsqlConnection,string,System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken).npgsqlConnection'></a>
+
+`npgsqlConnection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
+
+The [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection') used to execute the command\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.GetSummariesByCountyIdsAsync(Npgsql.NpgsqlConnection,string,System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken).datasetKey'></a>
+
+`datasetKey` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The dataset key whose table is summarised; resolved through [OpenBuildingTableName\(string\)](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Query.OpenBuildingTableName(string) 'DiGi\.GIS\.PostgreSQL\.Query\.OpenBuildingTableName\(string\)')\. The GHS\-OBAT attribute table has no footprints and is refused\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.GetSummariesByCountyIdsAsync(Npgsql.NpgsqlConnection,string,System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken).countyIds'></a>
+
+`countyIds` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The county parts to summarise, or null to summarise every partition\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.GetSummariesByCountyIdsAsync(Npgsql.NpgsqlConnection,string,System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.GetSummariesByCountyIdsAsync(Npgsql.NpgsqlConnection,string,System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken') to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[OpenBuildingCountyResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingCountyResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingCountyResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task whose result is one [OpenBuildingCountyResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingCountyResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingCountyResult') per county part and release holding footprints, or null when the connection is null, the key is unknown or names GHS\-OBAT, or the table does not exist\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.GetSummariesByCountyIdsAsync(string,System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken)'></a>
+
+## OpenBuildingPostgreSQLConverter\.GetSummariesByCountyIdsAsync\(string, IEnumerable\<int\>, int, CancellationToken\) Method
+
+Asynchronously summarises one dataset's footprint table per county part and release, automatically managing the connection\.
+
+```csharp
+public System.Threading.Tasks.Task<System.Collections.Generic.List<DiGi.GIS.PostgreSQL.Classes.OpenBuildingCountyResult>?> GetSummariesByCountyIdsAsync(string? datasetKey, System.Collections.Generic.IEnumerable<int>? countyIds=null, int commandTimeout=600, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.GetSummariesByCountyIdsAsync(string,System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken).datasetKey'></a>
+
+`datasetKey` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The dataset key whose table is summarised\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.GetSummariesByCountyIdsAsync(string,System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken).countyIds'></a>
+
+`countyIds` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The county parts to summarise, or null to summarise every partition\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.GetSummariesByCountyIdsAsync(string,System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.GetSummariesByCountyIdsAsync(string,System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken') to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[OpenBuildingCountyResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingCountyResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingCountyResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task whose result is one [OpenBuildingCountyResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingCountyResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingCountyResult') per county part and release holding footprints, or null when no connection could be built, the key is unknown or the table does not exist\.
 
 <a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.ImportAsync(System.Collections.Generic.IAsyncEnumerable_DiGi.GIS.IO.Classes.Footprint_,DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease,System.Collections.Generic.IEnumerable_int_,DiGi.Geometry.Planar.Classes.BoundingBox2D,System.IProgress_long_,double,int,System.Threading.CancellationToken)'></a>
 
@@ -17828,6 +18310,236 @@ public int Index { get; }
 
 #### Property Value
 [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaDatasetValidationResult'></a>
+
+## OrtoAreaDatasetValidationResult Class
+
+How one open building dataset compares with the interpreted reference sample of one test area \(paper 01, result blocks 2 and 4\.4; the independent check of DiGi\.GIS\.WebAPI\.UI\#83\)\.
+
+The reference sample is every object the interpreters saw as present: BDOT10k footprints labelled present and drawn objects (buildings BDOT10k lacks) labelled present. A reference object counts as detected when a dataset footprint contains its internal point or it contains the footprint's internal point. Dataset footprints are counted when the centre of their envelope lies inside the area, and each is classed by the labelled objects it matches: a present one, only absent ones, only indeterminate ones, or none.
+
+```csharp
+public class OrtoAreaDatasetValidationResult : DiGi.Core.Classes.SerializableResult, DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLSerializableObject, DiGi.Core.Interfaces.ISerializableObject, DiGi.Core.Interfaces.ICloneableObject<DiGi.Core.Interfaces.ISerializableObject>, DiGi.Core.Interfaces.ICloneableObject, DiGi.Core.Interfaces.IObject
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [DiGi\.Core\.Classes\.Object](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.object 'DiGi\.Core\.Classes\.Object') → [DiGi\.Core\.Classes\.SerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.serializableobject 'DiGi\.Core\.Classes\.SerializableObject') → [DiGi\.Core\.Classes\.SerializableResult](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.serializableresult 'DiGi\.Core\.Classes\.SerializableResult') → OrtoAreaDatasetValidationResult
+
+Implements [IGISPostgreSQLSerializableObject](DiGi.GIS.PostgreSQL.Interfaces.md#DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLSerializableObject 'DiGi\.GIS\.PostgreSQL\.Interfaces\.IGISPostgreSQLSerializableObject'), [DiGi\.Core\.Interfaces\.ISerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iserializableobject 'DiGi\.Core\.Interfaces\.ISerializableObject'), [DiGi\.Core\.Interfaces\.ICloneableObject&lt;](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject-1 'DiGi\.Core\.Interfaces\.ICloneableObject\`1')[DiGi\.Core\.Interfaces\.ISerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iserializableobject 'DiGi\.Core\.Interfaces\.ISerializableObject')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject-1 'DiGi\.Core\.Interfaces\.ICloneableObject\`1'), [DiGi\.Core\.Interfaces\.ICloneableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject 'DiGi\.Core\.Interfaces\.ICloneableObject'), [DiGi\.Core\.Interfaces\.IObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iobject 'DiGi\.Core\.Interfaces\.IObject')
+### Constructors
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaDatasetValidationResult.OrtoAreaDatasetValidationResult(DiGi.GIS.PostgreSQL.Classes.OrtoAreaDatasetValidationResult)'></a>
+
+## OrtoAreaDatasetValidationResult\(OrtoAreaDatasetValidationResult\) Constructor
+
+Initializes a new instance of the [OrtoAreaDatasetValidationResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaDatasetValidationResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaDatasetValidationResult') class by copying an existing one\.
+
+```csharp
+public OrtoAreaDatasetValidationResult(DiGi.GIS.PostgreSQL.Classes.OrtoAreaDatasetValidationResult? ortoAreaDatasetValidationResult);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaDatasetValidationResult.OrtoAreaDatasetValidationResult(DiGi.GIS.PostgreSQL.Classes.OrtoAreaDatasetValidationResult).ortoAreaDatasetValidationResult'></a>
+
+`ortoAreaDatasetValidationResult` [OrtoAreaDatasetValidationResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaDatasetValidationResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaDatasetValidationResult')
+
+The [OrtoAreaDatasetValidationResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaDatasetValidationResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaDatasetValidationResult') to copy from\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaDatasetValidationResult.OrtoAreaDatasetValidationResult(string,long,long,long,long,long,long,long)'></a>
+
+## OrtoAreaDatasetValidationResult\(string, long, long, long, long, long, long, long\) Constructor
+
+Initializes a new instance of the [OrtoAreaDatasetValidationResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaDatasetValidationResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaDatasetValidationResult') class\.
+
+```csharp
+public OrtoAreaDatasetValidationResult(string? datasetKey, long referenceCount, long detectedReferenceCount, long footprintCount, long matchedPresentFootprintCount, long matchedAbsentFootprintCount, long matchedIndeterminateFootprintCount, long unmatchedFootprintCount);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaDatasetValidationResult.OrtoAreaDatasetValidationResult(string,long,long,long,long,long,long,long).datasetKey'></a>
+
+`datasetKey` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The dataset compared \(`eubucco`, `overture`, `osm`, `dbsm`, `microsoft`\)\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaDatasetValidationResult.OrtoAreaDatasetValidationResult(string,long,long,long,long,long,long,long).referenceCount'></a>
+
+`referenceCount` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+The number of reference objects \(labelled present\) in the area\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaDatasetValidationResult.OrtoAreaDatasetValidationResult(string,long,long,long,long,long,long,long).detectedReferenceCount'></a>
+
+`detectedReferenceCount` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+How many reference objects a dataset footprint matches\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaDatasetValidationResult.OrtoAreaDatasetValidationResult(string,long,long,long,long,long,long,long).footprintCount'></a>
+
+`footprintCount` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+The number of dataset footprints whose envelope centre lies inside the area\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaDatasetValidationResult.OrtoAreaDatasetValidationResult(string,long,long,long,long,long,long,long).matchedPresentFootprintCount'></a>
+
+`matchedPresentFootprintCount` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+How many of those footprints match at least one reference object\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaDatasetValidationResult.OrtoAreaDatasetValidationResult(string,long,long,long,long,long,long,long).matchedAbsentFootprintCount'></a>
+
+`matchedAbsentFootprintCount` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+How many match only objects labelled absent \- confirmed commission\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaDatasetValidationResult.OrtoAreaDatasetValidationResult(string,long,long,long,long,long,long,long).matchedIndeterminateFootprintCount'></a>
+
+`matchedIndeterminateFootprintCount` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+How many match only objects labelled indeterminate\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaDatasetValidationResult.OrtoAreaDatasetValidationResult(string,long,long,long,long,long,long,long).unmatchedFootprintCount'></a>
+
+`unmatchedFootprintCount` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+How many match no labelled object at all \- commission, or a building the interpreters did not draw\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaDatasetValidationResult.OrtoAreaDatasetValidationResult(System.Text.Json.Nodes.JsonObject)'></a>
+
+## OrtoAreaDatasetValidationResult\(JsonObject\) Constructor
+
+Initializes a new instance of the [OrtoAreaDatasetValidationResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaDatasetValidationResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaDatasetValidationResult') class from a [System\.Text\.Json\.Nodes\.JsonObject](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.nodes.jsonobject 'System\.Text\.Json\.Nodes\.JsonObject')\.
+
+```csharp
+public OrtoAreaDatasetValidationResult(System.Text.Json.Nodes.JsonObject? jsonObject);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaDatasetValidationResult.OrtoAreaDatasetValidationResult(System.Text.Json.Nodes.JsonObject).jsonObject'></a>
+
+`jsonObject` [System\.Text\.Json\.Nodes\.JsonObject](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.nodes.jsonobject 'System\.Text\.Json\.Nodes\.JsonObject')
+
+The [System\.Text\.Json\.Nodes\.JsonObject](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.nodes.jsonobject 'System\.Text\.Json\.Nodes\.JsonObject') containing the serialized data\.
+### Properties
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaDatasetValidationResult.DatasetKey'></a>
+
+## OrtoAreaDatasetValidationResult\.DatasetKey Property
+
+Gets the dataset compared\.
+
+```csharp
+public string? DatasetKey { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaDatasetValidationResult.DetectedReferenceCount'></a>
+
+## OrtoAreaDatasetValidationResult\.DetectedReferenceCount Property
+
+Gets how many reference objects a dataset footprint matches\.
+
+```csharp
+public long DetectedReferenceCount { get; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaDatasetValidationResult.FootprintCount'></a>
+
+## OrtoAreaDatasetValidationResult\.FootprintCount Property
+
+Gets the number of dataset footprints whose envelope centre lies inside the area\.
+
+```csharp
+public long FootprintCount { get; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaDatasetValidationResult.MatchedAbsentFootprintCount'></a>
+
+## OrtoAreaDatasetValidationResult\.MatchedAbsentFootprintCount Property
+
+Gets how many dataset footprints match only objects labelled absent \- confirmed commission\.
+
+```csharp
+public long MatchedAbsentFootprintCount { get; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaDatasetValidationResult.MatchedIndeterminateFootprintCount'></a>
+
+## OrtoAreaDatasetValidationResult\.MatchedIndeterminateFootprintCount Property
+
+Gets how many dataset footprints match only objects labelled indeterminate\.
+
+```csharp
+public long MatchedIndeterminateFootprintCount { get; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaDatasetValidationResult.MatchedPresentFootprintCount'></a>
+
+## OrtoAreaDatasetValidationResult\.MatchedPresentFootprintCount Property
+
+Gets how many dataset footprints match at least one reference object\.
+
+```csharp
+public long MatchedPresentFootprintCount { get; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaDatasetValidationResult.OmissionRate'></a>
+
+## OrtoAreaDatasetValidationResult\.OmissionRate Property
+
+Gets the share of reference objects the dataset omits, or null when the area has no reference object\.
+
+```csharp
+public System.Nullable<double> OmissionRate { get; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaDatasetValidationResult.ReferenceCount'></a>
+
+## OrtoAreaDatasetValidationResult\.ReferenceCount Property
+
+Gets the number of reference objects \(labelled present\) in the area\.
+
+```csharp
+public long ReferenceCount { get; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaDatasetValidationResult.UnmatchedFootprintCount'></a>
+
+## OrtoAreaDatasetValidationResult\.UnmatchedFootprintCount Property
+
+Gets how many dataset footprints match no labelled object at all\.
+
+In a fully interpreted area this is commission; it can also be a building the interpreters missed, which is why it is kept apart from [MatchedAbsentFootprintCount](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaDatasetValidationResult.MatchedAbsentFootprintCount 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaDatasetValidationResult\.MatchedAbsentFootprintCount').
+
+```csharp
+public long UnmatchedFootprintCount { get; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
 
 <a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaImage'></a>
 
@@ -19551,6 +20263,349 @@ The cancellation token to monitor for cancellation requests\.
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A task that represents the asynchronous operation\. The task result contains the number of rows inserted or replaced, or null when the connection or the area is null or the table could not be created\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaValidationResult'></a>
+
+## OrtoAreaValidationResult Class
+
+The interpreted reference sample of one test area at one imagery epoch, compared with BDOT10k and, optionally, with the open building datasets \(paper 01, sections 4\.4 and 5\.2; DiGi\.GIS\.WebAPI\.UI\#83\)\.
+
+Labels are resolved per object: when every interpreter who did not answer indeterminate agrees, that state stands; when they disagree, the object counts as indeterminate and in [DisagreementCount](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaValidationResult.DisagreementCount 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaValidationResult\.DisagreementCount'). BDOT10k footprints labelled absent are its commission; drawn objects labelled present are buildings it omits.
+
+```csharp
+public class OrtoAreaValidationResult : DiGi.Core.Classes.SerializableResult, DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLSerializableObject, DiGi.Core.Interfaces.ISerializableObject, DiGi.Core.Interfaces.ICloneableObject<DiGi.Core.Interfaces.ISerializableObject>, DiGi.Core.Interfaces.ICloneableObject, DiGi.Core.Interfaces.IObject
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [DiGi\.Core\.Classes\.Object](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.object 'DiGi\.Core\.Classes\.Object') → [DiGi\.Core\.Classes\.SerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.serializableobject 'DiGi\.Core\.Classes\.SerializableObject') → [DiGi\.Core\.Classes\.SerializableResult](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.serializableresult 'DiGi\.Core\.Classes\.SerializableResult') → OrtoAreaValidationResult
+
+Implements [IGISPostgreSQLSerializableObject](DiGi.GIS.PostgreSQL.Interfaces.md#DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLSerializableObject 'DiGi\.GIS\.PostgreSQL\.Interfaces\.IGISPostgreSQLSerializableObject'), [DiGi\.Core\.Interfaces\.ISerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iserializableobject 'DiGi\.Core\.Interfaces\.ISerializableObject'), [DiGi\.Core\.Interfaces\.ICloneableObject&lt;](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject-1 'DiGi\.Core\.Interfaces\.ICloneableObject\`1')[DiGi\.Core\.Interfaces\.ISerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iserializableobject 'DiGi\.Core\.Interfaces\.ISerializableObject')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject-1 'DiGi\.Core\.Interfaces\.ICloneableObject\`1'), [DiGi\.Core\.Interfaces\.ICloneableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject 'DiGi\.Core\.Interfaces\.ICloneableObject'), [DiGi\.Core\.Interfaces\.IObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iobject 'DiGi\.Core\.Interfaces\.IObject')
+### Constructors
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaValidationResult.OrtoAreaValidationResult(DiGi.GIS.PostgreSQL.Classes.OrtoAreaValidationResult)'></a>
+
+## OrtoAreaValidationResult\(OrtoAreaValidationResult\) Constructor
+
+Initializes a new instance of the [OrtoAreaValidationResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaValidationResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaValidationResult') class by copying an existing one\.
+
+```csharp
+public OrtoAreaValidationResult(DiGi.GIS.PostgreSQL.Classes.OrtoAreaValidationResult? ortoAreaValidationResult);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaValidationResult.OrtoAreaValidationResult(DiGi.GIS.PostgreSQL.Classes.OrtoAreaValidationResult).ortoAreaValidationResult'></a>
+
+`ortoAreaValidationResult` [OrtoAreaValidationResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaValidationResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaValidationResult')
+
+The [OrtoAreaValidationResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaValidationResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaValidationResult') to copy from\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaValidationResult.OrtoAreaValidationResult(string,string,System.Nullable_short_,int,long,long,long,long,long,long,long,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OrtoAreaDatasetValidationResult_)'></a>
+
+## OrtoAreaValidationResult\(string, string, Nullable\<short\>, int, long, long, long, long, long, long, long, IEnumerable\<OrtoAreaDatasetValidationResult\>\) Constructor
+
+Initializes a new instance of the [OrtoAreaValidationResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaValidationResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaValidationResult') class\.
+
+```csharp
+public OrtoAreaValidationResult(string? areaKey, string? stratum, System.Nullable<short> epochYear, int interpreterCount, long footprintPresentCount, long footprintAbsentCount, long footprintIndeterminateCount, long drawnPresentCount, long drawnAbsentCount, long drawnIndeterminateCount, long disagreementCount, System.Collections.Generic.IEnumerable<DiGi.GIS.PostgreSQL.Classes.OrtoAreaDatasetValidationResult>? datasetValidationResults);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaValidationResult.OrtoAreaValidationResult(string,string,System.Nullable_short_,int,long,long,long,long,long,long,long,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OrtoAreaDatasetValidationResult_).areaKey'></a>
+
+`areaKey` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The invariant location key of the test area\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaValidationResult.OrtoAreaValidationResult(string,string,System.Nullable_short_,int,long,long,long,long,long,long,long,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OrtoAreaDatasetValidationResult_).stratum'></a>
+
+`stratum` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The stratum of the test area, or null when unrecorded\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaValidationResult.OrtoAreaValidationResult(string,string,System.Nullable_short_,int,long,long,long,long,long,long,long,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OrtoAreaDatasetValidationResult_).epochYear'></a>
+
+`epochYear` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int16](https://learn.microsoft.com/en-us/dotnet/api/system.int16 'System\.Int16')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The imagery epoch the labels interpret, or null when the area holds no label\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaValidationResult.OrtoAreaValidationResult(string,string,System.Nullable_short_,int,long,long,long,long,long,long,long,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OrtoAreaDatasetValidationResult_).interpreterCount'></a>
+
+`interpreterCount` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The number of distinct interpreters who labelled the epoch\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaValidationResult.OrtoAreaValidationResult(string,string,System.Nullable_short_,int,long,long,long,long,long,long,long,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OrtoAreaDatasetValidationResult_).footprintPresentCount'></a>
+
+`footprintPresentCount` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+BDOT10k footprints resolved as present\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaValidationResult.OrtoAreaValidationResult(string,string,System.Nullable_short_,int,long,long,long,long,long,long,long,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OrtoAreaDatasetValidationResult_).footprintAbsentCount'></a>
+
+`footprintAbsentCount` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+BDOT10k footprints resolved as absent \- its commission\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaValidationResult.OrtoAreaValidationResult(string,string,System.Nullable_short_,int,long,long,long,long,long,long,long,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OrtoAreaDatasetValidationResult_).footprintIndeterminateCount'></a>
+
+`footprintIndeterminateCount` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+BDOT10k footprints resolved as indeterminate\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaValidationResult.OrtoAreaValidationResult(string,string,System.Nullable_short_,int,long,long,long,long,long,long,long,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OrtoAreaDatasetValidationResult_).drawnPresentCount'></a>
+
+`drawnPresentCount` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+Drawn objects resolved as present \- buildings BDOT10k omits\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaValidationResult.OrtoAreaValidationResult(string,string,System.Nullable_short_,int,long,long,long,long,long,long,long,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OrtoAreaDatasetValidationResult_).drawnAbsentCount'></a>
+
+`drawnAbsentCount` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+Drawn objects resolved as absent\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaValidationResult.OrtoAreaValidationResult(string,string,System.Nullable_short_,int,long,long,long,long,long,long,long,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OrtoAreaDatasetValidationResult_).drawnIndeterminateCount'></a>
+
+`drawnIndeterminateCount` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+Drawn objects resolved as indeterminate\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaValidationResult.OrtoAreaValidationResult(string,string,System.Nullable_short_,int,long,long,long,long,long,long,long,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OrtoAreaDatasetValidationResult_).disagreementCount'></a>
+
+`disagreementCount` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+Objects whose interpreters disagreed; already counted as indeterminate\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaValidationResult.OrtoAreaValidationResult(string,string,System.Nullable_short_,int,long,long,long,long,long,long,long,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OrtoAreaDatasetValidationResult_).datasetValidationResults'></a>
+
+`datasetValidationResults` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[OrtoAreaDatasetValidationResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaDatasetValidationResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaDatasetValidationResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The comparison with each open building dataset requested, or null when none was\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaValidationResult.OrtoAreaValidationResult(System.Text.Json.Nodes.JsonObject)'></a>
+
+## OrtoAreaValidationResult\(JsonObject\) Constructor
+
+Initializes a new instance of the [OrtoAreaValidationResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaValidationResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaValidationResult') class from a [System\.Text\.Json\.Nodes\.JsonObject](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.nodes.jsonobject 'System\.Text\.Json\.Nodes\.JsonObject')\.
+
+```csharp
+public OrtoAreaValidationResult(System.Text.Json.Nodes.JsonObject? jsonObject);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaValidationResult.OrtoAreaValidationResult(System.Text.Json.Nodes.JsonObject).jsonObject'></a>
+
+`jsonObject` [System\.Text\.Json\.Nodes\.JsonObject](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.nodes.jsonobject 'System\.Text\.Json\.Nodes\.JsonObject')
+
+The [System\.Text\.Json\.Nodes\.JsonObject](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.nodes.jsonobject 'System\.Text\.Json\.Nodes\.JsonObject') containing the serialized data\.
+### Properties
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaValidationResult.AreaKey'></a>
+
+## OrtoAreaValidationResult\.AreaKey Property
+
+Gets the invariant location key of the test area\.
+
+```csharp
+public string? AreaKey { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaValidationResult.BDOT10kCommissionRate'></a>
+
+## OrtoAreaValidationResult\.BDOT10kCommissionRate Property
+
+Gets the share of BDOT10k footprints with a decided state that were seen as absent, or null when none was decided\.
+
+```csharp
+public System.Nullable<double> BDOT10kCommissionRate { get; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaValidationResult.BDOT10kOmissionRate'></a>
+
+## OrtoAreaValidationResult\.BDOT10kOmissionRate Property
+
+Gets the share of reference objects BDOT10k omits \(drawn objects seen as present\), or null when the area has no reference object\.
+
+```csharp
+public System.Nullable<double> BDOT10kOmissionRate { get; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaValidationResult.DatasetValidationResults'></a>
+
+## OrtoAreaValidationResult\.DatasetValidationResults Property
+
+Gets the comparison with each open building dataset requested, or null when none was\.
+
+```csharp
+public System.Collections.Generic.List<DiGi.GIS.PostgreSQL.Classes.OrtoAreaDatasetValidationResult>? DatasetValidationResults { get; }
+```
+
+#### Property Value
+[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[OrtoAreaDatasetValidationResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaDatasetValidationResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaDatasetValidationResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaValidationResult.DisagreementCount'></a>
+
+## OrtoAreaValidationResult\.DisagreementCount Property
+
+Gets the number of objects whose interpreters disagreed; they are already counted as indeterminate\.
+
+```csharp
+public long DisagreementCount { get; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaValidationResult.DrawnAbsentCount'></a>
+
+## OrtoAreaValidationResult\.DrawnAbsentCount Property
+
+Gets the number of drawn objects resolved as absent\.
+
+```csharp
+public long DrawnAbsentCount { get; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaValidationResult.DrawnIndeterminateCount'></a>
+
+## OrtoAreaValidationResult\.DrawnIndeterminateCount Property
+
+Gets the number of drawn objects resolved as indeterminate\.
+
+```csharp
+public long DrawnIndeterminateCount { get; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaValidationResult.DrawnPresentCount'></a>
+
+## OrtoAreaValidationResult\.DrawnPresentCount Property
+
+Gets the number of drawn objects resolved as present \- buildings BDOT10k omits\.
+
+```csharp
+public long DrawnPresentCount { get; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaValidationResult.EpochYear'></a>
+
+## OrtoAreaValidationResult\.EpochYear Property
+
+Gets the imagery epoch the labels interpret, or null when the area holds no label\.
+
+```csharp
+public System.Nullable<short> EpochYear { get; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int16](https://learn.microsoft.com/en-us/dotnet/api/system.int16 'System\.Int16')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaValidationResult.FootprintAbsentCount'></a>
+
+## OrtoAreaValidationResult\.FootprintAbsentCount Property
+
+Gets the number of BDOT10k footprints resolved as absent \- its commission\.
+
+```csharp
+public long FootprintAbsentCount { get; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaValidationResult.FootprintIndeterminateCount'></a>
+
+## OrtoAreaValidationResult\.FootprintIndeterminateCount Property
+
+Gets the number of BDOT10k footprints resolved as indeterminate\.
+
+```csharp
+public long FootprintIndeterminateCount { get; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaValidationResult.FootprintPresentCount'></a>
+
+## OrtoAreaValidationResult\.FootprintPresentCount Property
+
+Gets the number of BDOT10k footprints resolved as present\.
+
+```csharp
+public long FootprintPresentCount { get; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaValidationResult.IndeterminateRate'></a>
+
+## OrtoAreaValidationResult\.IndeterminateRate Property
+
+Gets the share of labelled objects resolved as indeterminate, or null when nothing was labelled\. Paper 01 reports it as part of the result \(section 4\.4\)\.
+
+```csharp
+public System.Nullable<double> IndeterminateRate { get; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaValidationResult.InterpreterCount'></a>
+
+## OrtoAreaValidationResult\.InterpreterCount Property
+
+Gets the number of distinct interpreters who labelled the epoch\.
+
+```csharp
+public int InterpreterCount { get; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaValidationResult.ReferenceCount'></a>
+
+## OrtoAreaValidationResult\.ReferenceCount Property
+
+Gets the number of reference objects: BDOT10k footprints and drawn objects resolved as present\.
+
+```csharp
+public long ReferenceCount { get; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OrtoAreaValidationResult.Stratum'></a>
+
+## OrtoAreaValidationResult\.Stratum Property
+
+Gets the stratum of the test area, or null when unrecorded\.
+
+```csharp
+public string? Stratum { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 <a name='DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisition'></a>
 

@@ -3770,6 +3770,85 @@ public static string OrtoAreaObjectsByAreaKeyCommandText();
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')  
 The statement\.
 
+<a name='DiGi.GIS.PostgreSQL.Query.OrtoAreaValidationAsync(DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabelPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.Building2DPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter,string,System.Nullable_short_,System.Collections.Generic.IEnumerable_string_,int,System.Threading.CancellationToken)'></a>
+
+## Query\.OrtoAreaValidationAsync\(OrtoAreaPostgreSQLConverter, OrtoAreaLabelPostgreSQLConverter, OrtoAreaObjectPostgreSQLConverter, Building2DPostgreSQLConverter, OpenBuildingPostgreSQLConverter, string, Nullable\<short\>, IEnumerable\<string\>, int, CancellationToken\) Method
+
+Asynchronously compares the interpreted reference sample of one test area with BDOT10k and, optionally, with open building datasets \(paper 01, sections 4\.4 and 5\.2; DiGi\.GIS\.WebAPI\.UI\#83\)\.
+
+Labels of one epoch are resolved per object (footprint identity `(county_id, reference)` or drawn-object identity): the state every non-indeterminate interpreter agrees on stands, and disagreement resolves to indeterminate. A reference object is one resolved as present. A dataset footprint and a labelled object match when either contains the other's internal point; their envelopes are compared first. Footprints are counted for the area when the centre of their envelope lies inside the area's bounding box.
+
+Every table read lives on the Main database (`orto_area`, `orto_area_label`, `orto_area_object`, `building_2d` and the open building tables), so no join across databases is needed; the matching runs in memory and is sized for 1 km test areas, not for counties.
+
+```csharp
+public static System.Threading.Tasks.Task<DiGi.GIS.PostgreSQL.Classes.OrtoAreaValidationResult?> OrtoAreaValidationAsync(DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter? ortoAreaPostgreSQLConverter, DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabelPostgreSQLConverter? ortoAreaLabelPostgreSQLConverter, DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter? ortoAreaObjectPostgreSQLConverter, DiGi.GIS.PostgreSQL.Classes.Building2DPostgreSQLConverter? building2DPostgreSQLConverter, DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter? openBuildingPostgreSQLConverter, string? areaKey, System.Nullable<short> epochYear, System.Collections.Generic.IEnumerable<string>? datasetKeys, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Query.OrtoAreaValidationAsync(DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabelPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.Building2DPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter,string,System.Nullable_short_,System.Collections.Generic.IEnumerable_string_,int,System.Threading.CancellationToken).ortoAreaPostgreSQLConverter'></a>
+
+`ortoAreaPostgreSQLConverter` [OrtoAreaPostgreSQLConverter](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaPostgreSQLConverter')
+
+The converter reading the test area\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.OrtoAreaValidationAsync(DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabelPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.Building2DPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter,string,System.Nullable_short_,System.Collections.Generic.IEnumerable_string_,int,System.Threading.CancellationToken).ortoAreaLabelPostgreSQLConverter'></a>
+
+`ortoAreaLabelPostgreSQLConverter` [OrtoAreaLabelPostgreSQLConverter](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabelPostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaLabelPostgreSQLConverter')
+
+The converter reading the area's labels\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.OrtoAreaValidationAsync(DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabelPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.Building2DPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter,string,System.Nullable_short_,System.Collections.Generic.IEnumerable_string_,int,System.Threading.CancellationToken).ortoAreaObjectPostgreSQLConverter'></a>
+
+`ortoAreaObjectPostgreSQLConverter` [OrtoAreaObjectPostgreSQLConverter](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaObjectPostgreSQLConverter')
+
+The converter reading the area's drawn objects\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.OrtoAreaValidationAsync(DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabelPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.Building2DPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter,string,System.Nullable_short_,System.Collections.Generic.IEnumerable_string_,int,System.Threading.CancellationToken).building2DPostgreSQLConverter'></a>
+
+`building2DPostgreSQLConverter` [Building2DPostgreSQLConverter](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.Building2DPostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Classes\.Building2DPostgreSQLConverter')
+
+The converter reading the BDOT10k footprints in the area\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.OrtoAreaValidationAsync(DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabelPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.Building2DPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter,string,System.Nullable_short_,System.Collections.Generic.IEnumerable_string_,int,System.Threading.CancellationToken).openBuildingPostgreSQLConverter'></a>
+
+`openBuildingPostgreSQLConverter` [OpenBuildingPostgreSQLConverter](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingPostgreSQLConverter')
+
+The converter reading the open dataset footprints; may be null when no dataset is requested\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.OrtoAreaValidationAsync(DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabelPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.Building2DPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter,string,System.Nullable_short_,System.Collections.Generic.IEnumerable_string_,int,System.Threading.CancellationToken).areaKey'></a>
+
+`areaKey` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The invariant location key of the test area\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.OrtoAreaValidationAsync(DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabelPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.Building2DPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter,string,System.Nullable_short_,System.Collections.Generic.IEnumerable_string_,int,System.Threading.CancellationToken).epochYear'></a>
+
+`epochYear` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int16](https://learn.microsoft.com/en-us/dotnet/api/system.int16 'System\.Int16')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The imagery epoch to evaluate, or null for the latest epoch labelled in the area\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.OrtoAreaValidationAsync(DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabelPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.Building2DPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter,string,System.Nullable_short_,System.Collections.Generic.IEnumerable_string_,int,System.Threading.CancellationToken).datasetKeys'></a>
+
+`datasetKeys` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The open building datasets to compare, or null to compare BDOT10k only\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.OrtoAreaValidationAsync(DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabelPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.Building2DPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter,string,System.Nullable_short_,System.Collections.Generic.IEnumerable_string_,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of each command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.OrtoAreaValidationAsync(DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OrtoAreaLabelPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OrtoAreaObjectPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.Building2DPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter,string,System.Nullable_short_,System.Collections.Generic.IEnumerable_string_,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken') to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[OrtoAreaValidationResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaValidationResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaValidationResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task whose result is the comparison, or null when a required converter or the area key is null, the area does not exist, or a requested dataset key is unknown or its table does not exist\.
+
 <a name='DiGi.GIS.PostgreSQL.Query.OrtoSheetBoundingBoxCommandText()'></a>
 
 ## Query\.OrtoSheetBoundingBoxCommandText\(\) Method
