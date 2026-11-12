@@ -58,9 +58,14 @@ namespace DiGi.GIS.PostgreSQL
                     {
                         solved = buildingShapeSolver.Solve();
                     }
-                    catch (Exception exception) when (exception is not OperationCanceledException)
+                    catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                    {
+                        throw;
+                    }
+                    catch (Exception exception)
                     {
                         // A footprint whose geometry breaks the solver cannot be sampled; it is dropped like an unclassified one.
+                        Serilog.Modify.Log(Serilog.Enums.LogEventLevel.Warning, "{Method}: footprint {Reference} of county part {CountyId} dropped, the solver failed: {Message}", nameof(BuildingShapeSampleItemsAsync), building2D.Reference, countyId, exception.Message);
                         continue;
                     }
 

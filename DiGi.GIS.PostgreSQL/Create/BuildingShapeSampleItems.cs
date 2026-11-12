@@ -84,13 +84,13 @@ namespace DiGi.GIS.PostgreSQL
 
             int quota = size / dictionary.Count;
 
-            Dictionary<BuildingShape, int> counts = [];
+            Dictionary<BuildingShape, int> dictionary_Count = [];
             int count_Taken = 0;
             int count_Spare = 0;
             foreach (KeyValuePair<BuildingShape, List<BuildingShapeSampleItem>> keyValuePair in dictionary)
             {
                 int count = Math.Min(keyValuePair.Value.Count, quota);
-                counts[keyValuePair.Key] = count;
+                dictionary_Count[keyValuePair.Key] = count;
                 count_Taken += count;
                 count_Spare += keyValuePair.Value.Count - count;
             }
@@ -102,7 +102,7 @@ namespace DiGi.GIS.PostgreSQL
                 int count_Distributed = 0;
                 foreach (KeyValuePair<BuildingShape, List<BuildingShapeSampleItem>> keyValuePair in dictionary)
                 {
-                    int spare = keyValuePair.Value.Count - counts[keyValuePair.Key];
+                    int spare = keyValuePair.Value.Count - dictionary_Count[keyValuePair.Key];
                     if (spare == 0)
                     {
                         continue;
@@ -110,7 +110,7 @@ namespace DiGi.GIS.PostgreSQL
 
                     double share = (double)count_Leftover * spare / count_Spare;
                     int count = Math.Min(spare, (int)Math.Floor(share));
-                    counts[keyValuePair.Key] += count;
+                    dictionary_Count[keyValuePair.Key] += count;
                     count_Distributed += count;
                     remainders.Add((keyValuePair.Key, share - count));
                 }
@@ -121,9 +121,9 @@ namespace DiGi.GIS.PostgreSQL
                 while (count_Distributed < count_Leftover && remainders.Count > 0)
                 {
                     BuildingShape buildingShape = remainders[index % remainders.Count].BuildingShape;
-                    if (counts[buildingShape] < dictionary[buildingShape].Count)
+                    if (dictionary_Count[buildingShape] < dictionary[buildingShape].Count)
                     {
-                        counts[buildingShape]++;
+                        dictionary_Count[buildingShape]++;
                         count_Distributed++;
                     }
 
@@ -134,7 +134,7 @@ namespace DiGi.GIS.PostgreSQL
             List<BuildingShapeSampleItem> buildingShapeSampleItems_Selected = [];
             foreach (KeyValuePair<BuildingShape, List<BuildingShapeSampleItem>> keyValuePair in dictionary)
             {
-                buildingShapeSampleItems_Selected.AddRange(keyValuePair.Value.GetRange(0, counts[keyValuePair.Key]));
+                buildingShapeSampleItems_Selected.AddRange(keyValuePair.Value.GetRange(0, dictionary_Count[keyValuePair.Key]));
             }
 
             Shuffle(buildingShapeSampleItems_Selected, random);

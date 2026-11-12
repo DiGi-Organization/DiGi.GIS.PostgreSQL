@@ -1454,9 +1454,9 @@ namespace DiGi.GIS.PostgreSQL
                 await npgsqlCommand.ExecuteNonQueryAsync(cancellationToken);
                 return true;
             }
-            catch (NpgsqlException ex)
+            catch (NpgsqlException npgsqlException)
             {
-                Console.WriteLine($"Postgres Error ({nameof(TableAsync_BuildingShapeSample)}): {ex.Message}");
+                Serilog.Modify.Log(npgsqlException, "{Method} failed for table {TableName}", nameof(TableAsync_BuildingShapeSample), Constants.TableName.BuildingShapeSample);
                 return false;
             }
         }
@@ -1499,9 +1499,9 @@ namespace DiGi.GIS.PostgreSQL
                 await npgsqlCommand.ExecuteNonQueryAsync(cancellationToken);
                 return true;
             }
-            catch (NpgsqlException ex)
+            catch (NpgsqlException npgsqlException)
             {
-                Console.WriteLine($"Postgres Error ({nameof(TableAsync_BuildingShapeLabel)}): {ex.Message}");
+                Serilog.Modify.Log(npgsqlException, "{Method} failed for table {TableName}", nameof(TableAsync_BuildingShapeLabel), Constants.TableName.BuildingShapeLabel);
                 return false;
             }
         }
