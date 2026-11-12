@@ -1414,5 +1414,96 @@ namespace DiGi.GIS.PostgreSQL
                 return false;
             }
         }
+
+        /// <summary>
+        /// Asynchronously creates the <see cref="Constants.TableName.BuildingShapeSample"/> table, the fixed, ordered building shape labelling samples.
+        /// <para>One row per footprint of a sample, unique on <c>(sample_key, county_id, reference)</c> (a reference is unique only within its county part) and on <c>(sample_key, ordinal)</c>, the labelling order every annotator follows; the second index also serves the next-item read. <c>solver_shape</c> is the <see cref="GIS.Enums.BuildingShape"/> value the solver gave at sampling time. The table lives on the Main database (DiGi.GIS.PostgreSQL#135). Every statement is idempotent.</para>
+        /// </summary>
+        /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> instance used to execute the command.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> to monitor for cancellation requests.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result is true if the table exists or was created; otherwise, false.</returns>
+        public static async Task<bool> TableAsync_BuildingShapeSample(this NpgsqlConnection? npgsqlConnection, int commandTimeout = 30, CancellationToken cancellationToken = default)
+        {
+            if (npgsqlConnection is null)
+            {
+                return false;
+            }
+
+            string commandText = $@"
+                CREATE TABLE IF NOT EXISTS {Constants.TableName.BuildingShapeSample} (
+                    sample_key TEXT NOT NULL,
+                    ordinal INTEGER NOT NULL,
+                    county_id INTEGER NOT NULL,
+                    reference TEXT NOT NULL,
+                    solver_shape SMALLINT NOT NULL
+                );
+
+                CREATE UNIQUE INDEX IF NOT EXISTS idx_{Constants.TableName.BuildingShapeSample}_identity
+                ON {Constants.TableName.BuildingShapeSample} (sample_key, county_id, reference);
+
+                CREATE UNIQUE INDEX IF NOT EXISTS idx_{Constants.TableName.BuildingShapeSample}_ordinal
+                ON {Constants.TableName.BuildingShapeSample} (sample_key, ordinal);
+                ";
+
+            try
+            {
+                await using NpgsqlCommand npgsqlCommand = new(commandText, npgsqlConnection);
+                npgsqlCommand.CommandTimeout = commandTimeout;
+
+                await npgsqlCommand.ExecuteNonQueryAsync(cancellationToken);
+                return true;
+            }
+            catch (NpgsqlException ex)
+            {
+                Console.WriteLine($"Postgres Error ({nameof(TableAsync_BuildingShapeSample)}): {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Asynchronously creates the <see cref="Constants.TableName.BuildingShapeLabel"/> table, the manual building shape labels of the labelling samples.
+        /// <para>One row per sample item and interpreter, unique on <c>(sample_key, county_id, reference, interpreter)</c>, which is the conflict target of the label upsert: an interpreter's re-label replaces her or his own row, while a second interpreter keeps a parallel one. Every identity column is <c>NOT NULL</c>, so no <c>NULLS NOT DISTINCT</c> is needed. The table lives on the Main database beside <see cref="Constants.TableName.BuildingShapeSample"/> (DiGi.GIS.PostgreSQL#135). Every statement is idempotent.</para>
+        /// </summary>
+        /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> instance used to execute the command.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> to monitor for cancellation requests.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result is true if the table exists or was created; otherwise, false.</returns>
+        public static async Task<bool> TableAsync_BuildingShapeLabel(this NpgsqlConnection? npgsqlConnection, int commandTimeout = 30, CancellationToken cancellationToken = default)
+        {
+            if (npgsqlConnection is null)
+            {
+                return false;
+            }
+
+            string commandText = $@"
+                CREATE TABLE IF NOT EXISTS {Constants.TableName.BuildingShapeLabel} (
+                    sample_key TEXT NOT NULL,
+                    county_id INTEGER NOT NULL,
+                    reference TEXT NOT NULL,
+                    shape SMALLINT NOT NULL,
+                    interpreter TEXT NOT NULL,
+                    note TEXT,
+                    updated_at timestamptz NOT NULL
+                );
+
+                CREATE UNIQUE INDEX IF NOT EXISTS idx_{Constants.TableName.BuildingShapeLabel}_identity
+                ON {Constants.TableName.BuildingShapeLabel} (sample_key, county_id, reference, interpreter);
+                ";
+
+            try
+            {
+                await using NpgsqlCommand npgsqlCommand = new(commandText, npgsqlConnection);
+                npgsqlCommand.CommandTimeout = commandTimeout;
+
+                await npgsqlCommand.ExecuteNonQueryAsync(cancellationToken);
+                return true;
+            }
+            catch (NpgsqlException ex)
+            {
+                Console.WriteLine($"Postgres Error ({nameof(TableAsync_BuildingShapeLabel)}): {ex.Message}");
+                return false;
+            }
+        }
     }
 }

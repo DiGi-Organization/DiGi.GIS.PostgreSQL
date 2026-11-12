@@ -411,6 +411,49 @@ The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dot
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[BuildingDataCoverageResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.BuildingDataCoverageResult 'DiGi\.GIS\.PostgreSQL\.Classes\.BuildingDataCoverageResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A task that represents the asynchronous operation\. The task result contains the coverage, or null when either converter is missing or either side could not be read\.
 
+<a name='DiGi.GIS.PostgreSQL.Create.BuildingShapeSampleItems(thisSystem.Collections.Generic.IEnumerable_DiGi.GIS.Classes.BuildingShapeSampleItem_,string,int,int)'></a>
+
+## Create\.BuildingShapeSampleItems\(this IEnumerable\<BuildingShapeSampleItem\>, string, int, int\) Method
+
+Draws a stratified building shape labelling sample from solved candidate footprints: each solver class is a stratum, so rare classes are present\.
+
+Allocation: every class receives `min(n_class, size / classCount)`, which takes a class smaller than the equal quota whole; what the small classes leave unused is spread over the classes with footprints to spare in proportion to their spare counts (largest remainder, ties to the lower enum value). The sample holds `min(size, candidate count)` items.
+
+The draw is deterministic for the same candidates and [seed](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Create.BuildingShapeSampleItems(thisSystem.Collections.Generic.IEnumerable_DiGi.GIS.Classes.BuildingShapeSampleItem_,string,int,int).seed 'DiGi\.GIS\.PostgreSQL\.Create\.BuildingShapeSampleItems\(this System\.Collections\.Generic\.IEnumerable\<DiGi\.GIS\.Classes\.BuildingShapeSampleItem\>, string, int, int\)\.seed'), whatever their input order: candidates are sorted by (county id, ordinal reference) and deduplicated on that pair, each class is shuffled by one [System\.Random](https://learn.microsoft.com/en-us/dotnet/api/system.random 'System\.Random') seeded with [seed](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Create.BuildingShapeSampleItems(thisSystem.Collections.Generic.IEnumerable_DiGi.GIS.Classes.BuildingShapeSampleItem_,string,int,int).seed 'DiGi\.GIS\.PostgreSQL\.Create\.BuildingShapeSampleItems\(this System\.Collections\.Generic\.IEnumerable\<DiGi\.GIS\.Classes\.BuildingShapeSampleItem\>, string, int, int\)\.seed') in enum order, and the selection is shuffled once more before ordinals 0…n−1 are assigned, so the labelling order does not group by class. Candidates without a reference, and those whose solver shape is [DiGi\.GIS\.Enums\.BuildingShape\.Undefined](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.enums.buildingshape.undefined 'DiGi\.GIS\.Enums\.BuildingShape\.Undefined'), are dropped; the candidates' own sample key and ordinal are ignored.
+
+```csharp
+public static System.Collections.Generic.List<DiGi.GIS.Classes.BuildingShapeSampleItem>? BuildingShapeSampleItems(this System.Collections.Generic.IEnumerable<DiGi.GIS.Classes.BuildingShapeSampleItem?>? buildingShapeSampleItems, string? sampleKey, int size, int seed);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Create.BuildingShapeSampleItems(thisSystem.Collections.Generic.IEnumerable_DiGi.GIS.Classes.BuildingShapeSampleItem_,string,int,int).buildingShapeSampleItems'></a>
+
+`buildingShapeSampleItems` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[DiGi\.GIS\.Classes\.BuildingShapeSampleItem](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.buildingshapesampleitem 'DiGi\.GIS\.Classes\.BuildingShapeSampleItem')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The candidate footprints with their solver shape\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.BuildingShapeSampleItems(thisSystem.Collections.Generic.IEnumerable_DiGi.GIS.Classes.BuildingShapeSampleItem_,string,int,int).sampleKey'></a>
+
+`sampleKey` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The identity given to every item of the sample\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.BuildingShapeSampleItems(thisSystem.Collections.Generic.IEnumerable_DiGi.GIS.Classes.BuildingShapeSampleItem_,string,int,int).size'></a>
+
+`size` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The requested number of items\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.BuildingShapeSampleItems(thisSystem.Collections.Generic.IEnumerable_DiGi.GIS.Classes.BuildingShapeSampleItem_,string,int,int).seed'></a>
+
+`seed` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The seed of the draw\.
+
+#### Returns
+[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[DiGi\.GIS\.Classes\.BuildingShapeSampleItem](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.buildingshapesampleitem 'DiGi\.GIS\.Classes\.BuildingShapeSampleItem')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')  
+The sample items in labelling order, or null when the candidates are null, the key is blank or the size is not positive\.
+
 <a name='DiGi.GIS.PostgreSQL.Create.BuildingSolarRadiationResult(thisDiGi.GIS.Classes.BuildingSolarRadiationResult,int,System.Collections.Generic.IList_byte[]_)'></a>
 
 ## Create\.BuildingSolarRadiationResult\(this BuildingSolarRadiationResult, int, IList\<byte\[\]\>\) Method
@@ -911,6 +954,76 @@ The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dot
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A task that represents the asynchronous operation\. The task result is true if the table exists afterwards; otherwise, false\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_BuildingShapeLabel(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken)'></a>
+
+## Create\.TableAsync\_BuildingShapeLabel\(this NpgsqlConnection, int, CancellationToken\) Method
+
+Asynchronously creates the [BuildingShapeLabel](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.TableName.BuildingShapeLabel 'DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.BuildingShapeLabel') table, the manual building shape labels of the labelling samples\.
+
+One row per sample item and interpreter, unique on `(sample_key, county_id, reference, interpreter)`, which is the conflict target of the label upsert: an interpreter's re-label replaces her or his own row, while a second interpreter keeps a parallel one. Every identity column is `NOT NULL`, so no `NULLS NOT DISTINCT` is needed. The table lives on the Main database beside [BuildingShapeSample](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.TableName.BuildingShapeSample 'DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.BuildingShapeSample') (DiGi.GIS.PostgreSQL#135). Every statement is idempotent.
+
+```csharp
+public static System.Threading.Tasks.Task<bool> TableAsync_BuildingShapeLabel(this Npgsql.NpgsqlConnection? npgsqlConnection, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_BuildingShapeLabel(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken).npgsqlConnection'></a>
+
+`npgsqlConnection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
+
+The [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection') instance used to execute the command\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_BuildingShapeLabel(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_BuildingShapeLabel(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken') to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result is true if the table exists or was created; otherwise, false\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_BuildingShapeSample(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken)'></a>
+
+## Create\.TableAsync\_BuildingShapeSample\(this NpgsqlConnection, int, CancellationToken\) Method
+
+Asynchronously creates the [BuildingShapeSample](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.TableName.BuildingShapeSample 'DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.BuildingShapeSample') table, the fixed, ordered building shape labelling samples\.
+
+One row per footprint of a sample, unique on `(sample_key, county_id, reference)` (a reference is unique only within its county part) and on `(sample_key, ordinal)`, the labelling order every annotator follows; the second index also serves the next-item read. `solver_shape` is the [DiGi\.GIS\.Enums\.BuildingShape](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.enums.buildingshape 'DiGi\.GIS\.Enums\.BuildingShape') value the solver gave at sampling time. The table lives on the Main database (DiGi.GIS.PostgreSQL#135). Every statement is idempotent.
+
+```csharp
+public static System.Threading.Tasks.Task<bool> TableAsync_BuildingShapeSample(this Npgsql.NpgsqlConnection? npgsqlConnection, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_BuildingShapeSample(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken).npgsqlConnection'></a>
+
+`npgsqlConnection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
+
+The [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection') instance used to execute the command\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_BuildingShapeSample(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_BuildingShapeSample(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken') to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result is true if the table exists or was created; otherwise, false\.
 
 <a name='DiGi.GIS.PostgreSQL.Create.TableAsync_BuildingSolarRadiation(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken)'></a>
 
@@ -2650,6 +2763,67 @@ The tolerance used for the closest point calculation\.
 #### Returns
 [Building](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.Building 'DiGi\.GIS\.PostgreSQL\.Classes\.Building')  
 The most relevant [Building](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.Building 'DiGi\.GIS\.PostgreSQL\.Classes\.Building'), or null if the collection is null, empty or no candidate could be resolved\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.BuildingShapeSampleItemsAsync(thisDiGi.GIS.PostgreSQL.Classes.Building2DPostgreSQLConverter,string,System.Collections.Generic.IEnumerable_int_,int,int,int,System.Threading.CancellationToken)'></a>
+
+## Query\.BuildingShapeSampleItemsAsync\(this Building2DPostgreSQLConverter, string, IEnumerable\<int\>, int, int, int, CancellationToken\) Method
+
+Asynchronously draws a stratified building shape labelling sample from the footprints of the given county parts\.
+
+Every `building_2d` footprint of each county id (a part id, not a county code) is read and classified with a default [DiGi\.GIS\.Classes\.BuildingShapeSolver](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.buildingshapesolver 'DiGi\.GIS\.Classes\.BuildingShapeSolver'); the solved footprints then go through [BuildingShapeSampleItems\(this IEnumerable&lt;BuildingShapeSampleItem&gt;, string, int, int\)](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Create.BuildingShapeSampleItems(thisSystem.Collections.Generic.IEnumerable_DiGi.GIS.Classes.BuildingShapeSampleItem_,string,int,int) 'DiGi\.GIS\.PostgreSQL\.Create\.BuildingShapeSampleItems\(this System\.Collections\.Generic\.IEnumerable\<DiGi\.GIS\.Classes\.BuildingShapeSampleItem\>, string, int, int\)'), which stratifies by solver class and fixes the labelling order. Footprints the solver cannot classify are dropped. Each item keeps the county id its row is filed under, since a reference is unique only within its county part. Nothing is written: the caller stores the result with [InsertSampleAsync\(IEnumerable&lt;BuildingShapeSampleItem&gt;, int, int, CancellationToken\)](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.InsertSampleAsync(System.Collections.Generic.IEnumerable_DiGi.GIS.Classes.BuildingShapeSampleItem_,int,int,System.Threading.CancellationToken) 'DiGi\.GIS\.PostgreSQL\.Classes\.BuildingShapePostgreSQLConverter\.InsertSampleAsync\(System\.Collections\.Generic\.IEnumerable\<DiGi\.GIS\.Classes\.BuildingShapeSampleItem\>, int, int, System\.Threading\.CancellationToken\)').
+
+The solver runs once per footprint, so the time grows with the county populations (a whole county part per read; tens of thousands of footprints each).
+
+```csharp
+public static System.Threading.Tasks.Task<System.Collections.Generic.List<DiGi.GIS.Classes.BuildingShapeSampleItem>?> BuildingShapeSampleItemsAsync(this DiGi.GIS.PostgreSQL.Classes.Building2DPostgreSQLConverter? building2DPostgreSQLConverter, string? sampleKey, System.Collections.Generic.IEnumerable<int>? countyIds, int size=500, int seed=12, int commandTimeout=600, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Query.BuildingShapeSampleItemsAsync(thisDiGi.GIS.PostgreSQL.Classes.Building2DPostgreSQLConverter,string,System.Collections.Generic.IEnumerable_int_,int,int,int,System.Threading.CancellationToken).building2DPostgreSQLConverter'></a>
+
+`building2DPostgreSQLConverter` [Building2DPostgreSQLConverter](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.Building2DPostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Classes\.Building2DPostgreSQLConverter')
+
+The converter reading `building_2d` on the Main database\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.BuildingShapeSampleItemsAsync(thisDiGi.GIS.PostgreSQL.Classes.Building2DPostgreSQLConverter,string,System.Collections.Generic.IEnumerable_int_,int,int,int,System.Threading.CancellationToken).sampleKey'></a>
+
+`sampleKey` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The identity given to every item of the sample\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.BuildingShapeSampleItemsAsync(thisDiGi.GIS.PostgreSQL.Classes.Building2DPostgreSQLConverter,string,System.Collections.Generic.IEnumerable_int_,int,int,int,System.Threading.CancellationToken).countyIds'></a>
+
+`countyIds` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The county part ids to draw from\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.BuildingShapeSampleItemsAsync(thisDiGi.GIS.PostgreSQL.Classes.Building2DPostgreSQLConverter,string,System.Collections.Generic.IEnumerable_int_,int,int,int,System.Threading.CancellationToken).size'></a>
+
+`size` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The requested number of items\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.BuildingShapeSampleItemsAsync(thisDiGi.GIS.PostgreSQL.Classes.Building2DPostgreSQLConverter,string,System.Collections.Generic.IEnumerable_int_,int,int,int,System.Threading.CancellationToken).seed'></a>
+
+`seed` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The seed of the draw\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.BuildingShapeSampleItemsAsync(thisDiGi.GIS.PostgreSQL.Classes.Building2DPostgreSQLConverter,string,System.Collections.Generic.IEnumerable_int_,int,int,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for each county read\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.BuildingShapeSampleItemsAsync(thisDiGi.GIS.PostgreSQL.Classes.Building2DPostgreSQLConverter,string,System.Collections.Generic.IEnumerable_int_,int,int,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The cancellation token to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[DiGi\.GIS\.Classes\.BuildingShapeSampleItem](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.buildingshapesampleitem 'DiGi\.GIS\.Classes\.BuildingShapeSampleItem')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result contains the sample items in labelling order, or null when the converter or the county ids are null, the key is blank or the size is not positive\.
 
 <a name='DiGi.GIS.PostgreSQL.Query.ChildAdministrativeArealType(thisDiGi.GIS.PostgreSQL.Enums.AdministrativeArealType)'></a>
 

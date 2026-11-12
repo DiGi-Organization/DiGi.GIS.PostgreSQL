@@ -154,5 +154,15 @@
         /// The name of the statistical data collection table.
         /// </summary>
         public const string StatisticalDataCollection = "statistical_data_collection";
+
+        /// <summary>
+        /// The name of the building shape labelling sample table: one row per footprint of a fixed, ordered sample, unique on (<c>sample_key</c>, <c>county_id</c>, <c>reference</c>) and on (<c>sample_key</c>, <c>ordinal</c>), carrying the solver shape at sampling time (DiGi.GIS.PostgreSQL#135). On the Main database.
+        /// </summary>
+        public const string BuildingShapeSample = "building_shape_sample";
+
+        /// <summary>
+        /// The name of the building shape label table: one manual label per sample item and interpreter, unique on (<c>sample_key</c>, <c>county_id</c>, <c>reference</c>, <c>interpreter</c>) (DiGi.GIS.PostgreSQL#135). On the Main database.
+        /// </summary>
+        public const string BuildingShapeLabel = "building_shape_label";
     }
 }

@@ -14885,6 +14885,661 @@ The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dot
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[PostgreSQLUpdateResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLUpdateResult 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLUpdateResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A task representing the asynchronous operation\. The task result contains the identifiers written and the rows dropped before the database, or null when the update could not be attempted at all \- no connection, or the table could not be created\.
 
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter'></a>
+
+## BuildingShapePostgreSQLConverter Class
+
+Stores and reads the fixed, ordered building shape labelling samples \([BuildingShapeSample](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.TableName.BuildingShapeSample 'DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.BuildingShapeSample')\) and their manual labels \([BuildingShapeLabel](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.TableName.BuildingShapeLabel 'DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.BuildingShapeLabel')\) \(DiGi\.GIS\.PostgreSQL\#135\)\.
+
+A sample is written once and never overwritten: every annotator labels the same items in the same [DiGi\.GIS\.Classes\.BuildingShapeSampleItem\.Ordinal](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.buildingshapesampleitem.ordinal 'DiGi\.GIS\.Classes\.BuildingShapeSampleItem\.Ordinal') order, which inter-annotator agreement needs. One label is kept per sample item and interpreter; a re-label replaces the interpreter's own row, while a second interpreter keeps a parallel one. A label is accepted only for an item of its sample. Both tables live on the Main database.
+
+```csharp
+public class BuildingShapePostgreSQLConverter : DiGi.PostgreSQL.Classes.PostgreSQLConverter<DiGi.GIS.Classes.BuildingShapeLabel>, DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLConverter, DiGi.PostgreSQL.Interfaces.IPostgreSQLConverter, DiGi.PostgreSQL.Interfaces.IPostgreSQLObject, DiGi.Core.Interfaces.IObject, DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLObject
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [DiGi\.PostgreSQL\.Classes\.PostgreSQLConverter&lt;](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.classes.postgresqlconverter-1 'DiGi\.PostgreSQL\.Classes\.PostgreSQLConverter\`1')[DiGi\.GIS\.Classes\.BuildingShapeLabel](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.buildingshapelabel 'DiGi\.GIS\.Classes\.BuildingShapeLabel')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.classes.postgresqlconverter-1 'DiGi\.PostgreSQL\.Classes\.PostgreSQLConverter\`1') → BuildingShapePostgreSQLConverter
+
+Implements [IGISPostgreSQLConverter](DiGi.GIS.PostgreSQL.Interfaces.md#DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Interfaces\.IGISPostgreSQLConverter'), [DiGi\.PostgreSQL\.Interfaces\.IPostgreSQLConverter](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.interfaces.ipostgresqlconverter 'DiGi\.PostgreSQL\.Interfaces\.IPostgreSQLConverter'), [DiGi\.PostgreSQL\.Interfaces\.IPostgreSQLObject](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.interfaces.ipostgresqlobject 'DiGi\.PostgreSQL\.Interfaces\.IPostgreSQLObject'), [DiGi\.Core\.Interfaces\.IObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iobject 'DiGi\.Core\.Interfaces\.IObject'), [IGISPostgreSQLObject](DiGi.GIS.PostgreSQL.Interfaces.md#DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLObject 'DiGi\.GIS\.PostgreSQL\.Interfaces\.IGISPostgreSQLObject')
+### Constructors
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.BuildingShapePostgreSQLConverter(DiGi.PostgreSQL.Classes.ConnectionData)'></a>
+
+## BuildingShapePostgreSQLConverter\(ConnectionData\) Constructor
+
+Initializes a new instance of the [BuildingShapePostgreSQLConverter](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Classes\.BuildingShapePostgreSQLConverter') class\.
+
+```csharp
+public BuildingShapePostgreSQLConverter(DiGi.PostgreSQL.Classes.ConnectionData? connectionData);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.BuildingShapePostgreSQLConverter(DiGi.PostgreSQL.Classes.ConnectionData).connectionData'></a>
+
+`connectionData` [DiGi\.PostgreSQL\.Classes\.ConnectionData](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.classes.connectiondata 'DiGi\.PostgreSQL\.Classes\.ConnectionData')
+
+The [DiGi\.PostgreSQL\.Classes\.ConnectionData](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.classes.connectiondata 'DiGi\.PostgreSQL\.Classes\.ConnectionData') containing the connection settings required to establish a connection to the PostgreSQL database\. This value can be null\.
+### Properties
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.TableName_Label'></a>
+
+## BuildingShapePostgreSQLConverter\.TableName\_Label Property
+
+Gets the name of the database table holding the labels\.
+
+```csharp
+public static string TableName_Label { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.TableName_Sample'></a>
+
+## BuildingShapePostgreSQLConverter\.TableName\_Sample Property
+
+Gets the name of the database table holding the labelling samples\.
+
+```csharp
+public static string TableName_Sample { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+### Methods
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.CreateTableAsync(int,System.Threading.CancellationToken)'></a>
+
+## BuildingShapePostgreSQLConverter\.CreateTableAsync\(int, CancellationToken\) Method
+
+Asynchronously creates both tables \(and their indexes\) and analyzes them, so the query\-planner statistics are populated from the first query\.
+
+```csharp
+public System.Threading.Tasks.Task<bool> CreateTableAsync(int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.CreateTableAsync(int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.CreateTableAsync(int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken') to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result is true if both tables exist afterwards; otherwise, false\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.GetLabelCountAsync(Npgsql.NpgsqlConnection,string,string,int,System.Threading.CancellationToken)'></a>
+
+## BuildingShapePostgreSQLConverter\.GetLabelCountAsync\(NpgsqlConnection, string, string, int, CancellationToken\) Method
+
+Asynchronously reads the number of labels one interpreter has filed for the items of a sample\.
+
+Only labels of items that belong to the sample are counted. A missing table answers 0.
+
+```csharp
+public static System.Threading.Tasks.Task<System.Nullable<int>> GetLabelCountAsync(Npgsql.NpgsqlConnection? npgsqlConnection, string? sampleKey, string? interpreter, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.GetLabelCountAsync(Npgsql.NpgsqlConnection,string,string,int,System.Threading.CancellationToken).npgsqlConnection'></a>
+
+`npgsqlConnection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
+
+The [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection') used to connect to the database\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.GetLabelCountAsync(Npgsql.NpgsqlConnection,string,string,int,System.Threading.CancellationToken).sampleKey'></a>
+
+`sampleKey` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The identity of the sample\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.GetLabelCountAsync(Npgsql.NpgsqlConnection,string,string,int,System.Threading.CancellationToken).interpreter'></a>
+
+`interpreter` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The interpreter whose labels are counted\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.GetLabelCountAsync(Npgsql.NpgsqlConnection,string,string,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.GetLabelCountAsync(Npgsql.NpgsqlConnection,string,string,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The cancellation token to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result contains the count, or null when the connection, the key or the interpreter is null or blank\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.GetLabelCountAsync(string,string,int,System.Threading.CancellationToken)'></a>
+
+## BuildingShapePostgreSQLConverter\.GetLabelCountAsync\(string, string, int, CancellationToken\) Method
+
+Asynchronously reads the number of labels one interpreter has filed for the items of a sample, automatically managing the connection\.
+
+```csharp
+public System.Threading.Tasks.Task<System.Nullable<int>> GetLabelCountAsync(string? sampleKey, string? interpreter, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.GetLabelCountAsync(string,string,int,System.Threading.CancellationToken).sampleKey'></a>
+
+`sampleKey` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The identity of the sample\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.GetLabelCountAsync(string,string,int,System.Threading.CancellationToken).interpreter'></a>
+
+`interpreter` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The interpreter whose labels are counted\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.GetLabelCountAsync(string,string,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.GetLabelCountAsync(string,string,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The cancellation token to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result contains the count, or null when nothing could be read\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.GetLabelsAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken)'></a>
+
+## BuildingShapePostgreSQLConverter\.GetLabelsAsync\(NpgsqlConnection, string, int, CancellationToken\) Method
+
+Asynchronously reads every label filed for the items of a sample, by every interpreter, ordered by item ordinal and interpreter\.
+
+Labels of references that are not in the sample are not returned. A missing table answers an empty list.
+
+```csharp
+public static System.Threading.Tasks.Task<System.Collections.Generic.List<DiGi.GIS.Classes.BuildingShapeLabel>?> GetLabelsAsync(Npgsql.NpgsqlConnection? npgsqlConnection, string? sampleKey, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.GetLabelsAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken).npgsqlConnection'></a>
+
+`npgsqlConnection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
+
+The [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection') used to connect to the database\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.GetLabelsAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken).sampleKey'></a>
+
+`sampleKey` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The identity of the sample\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.GetLabelsAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.GetLabelsAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The cancellation token to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[DiGi\.GIS\.Classes\.BuildingShapeLabel](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.buildingshapelabel 'DiGi\.GIS\.Classes\.BuildingShapeLabel')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result contains the labels, or null when the connection or the key is null or blank\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.GetLabelsAsync(string,int,System.Threading.CancellationToken)'></a>
+
+## BuildingShapePostgreSQLConverter\.GetLabelsAsync\(string, int, CancellationToken\) Method
+
+Asynchronously reads every label filed for the items of a sample, automatically managing the connection\.
+
+```csharp
+public System.Threading.Tasks.Task<System.Collections.Generic.List<DiGi.GIS.Classes.BuildingShapeLabel>?> GetLabelsAsync(string? sampleKey, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.GetLabelsAsync(string,int,System.Threading.CancellationToken).sampleKey'></a>
+
+`sampleKey` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The identity of the sample\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.GetLabelsAsync(string,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.GetLabelsAsync(string,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The cancellation token to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[DiGi\.GIS\.Classes\.BuildingShapeLabel](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.buildingshapelabel 'DiGi\.GIS\.Classes\.BuildingShapeLabel')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result contains the labels, or null when nothing could be read\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.GetNextSampleItemAsync(Npgsql.NpgsqlConnection,string,string,System.Nullable_int_,int,System.Threading.CancellationToken)'></a>
+
+## BuildingShapePostgreSQLConverter\.GetNextSampleItemAsync\(NpgsqlConnection, string, string, Nullable\<int\>, int, CancellationToken\) Method
+
+Asynchronously reads the next item of a sample that one interpreter has not labelled yet\.
+
+Without [afterOrdinal](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.GetNextSampleItemAsync(Npgsql.NpgsqlConnection,string,string,System.Nullable_int_,int,System.Threading.CancellationToken).afterOrdinal 'DiGi\.GIS\.PostgreSQL\.Classes\.BuildingShapePostgreSQLConverter\.GetNextSampleItemAsync\(Npgsql\.NpgsqlConnection, string, string, System\.Nullable\<int\>, int, System\.Threading\.CancellationToken\)\.afterOrdinal') the unlabelled item with the lowest ordinal is returned. With it, the search starts after that ordinal and wraps around to the start, so a skipped item comes back only once the interpreter has passed every other unlabelled item. A missing table answers null.
+
+```csharp
+public static System.Threading.Tasks.Task<DiGi.GIS.Classes.BuildingShapeSampleItem?> GetNextSampleItemAsync(Npgsql.NpgsqlConnection? npgsqlConnection, string? sampleKey, string? interpreter, System.Nullable<int> afterOrdinal=null, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.GetNextSampleItemAsync(Npgsql.NpgsqlConnection,string,string,System.Nullable_int_,int,System.Threading.CancellationToken).npgsqlConnection'></a>
+
+`npgsqlConnection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
+
+The [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection') used to connect to the database\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.GetNextSampleItemAsync(Npgsql.NpgsqlConnection,string,string,System.Nullable_int_,int,System.Threading.CancellationToken).sampleKey'></a>
+
+`sampleKey` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The identity of the sample\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.GetNextSampleItemAsync(Npgsql.NpgsqlConnection,string,string,System.Nullable_int_,int,System.Threading.CancellationToken).interpreter'></a>
+
+`interpreter` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The interpreter whose labels are excluded\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.GetNextSampleItemAsync(Npgsql.NpgsqlConnection,string,string,System.Nullable_int_,int,System.Threading.CancellationToken).afterOrdinal'></a>
+
+`afterOrdinal` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The ordinal of the item the interpreter skipped or last saw, or null to start from the beginning\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.GetNextSampleItemAsync(Npgsql.NpgsqlConnection,string,string,System.Nullable_int_,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.GetNextSampleItemAsync(Npgsql.NpgsqlConnection,string,string,System.Nullable_int_,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The cancellation token to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[DiGi\.GIS\.Classes\.BuildingShapeSampleItem](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.buildingshapesampleitem 'DiGi\.GIS\.Classes\.BuildingShapeSampleItem')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result contains the next unlabelled item, or null when the interpreter has labelled every item, the sample does not exist, or the connection, the key or the interpreter is null or blank\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.GetNextSampleItemAsync(string,string,System.Nullable_int_,int,System.Threading.CancellationToken)'></a>
+
+## BuildingShapePostgreSQLConverter\.GetNextSampleItemAsync\(string, string, Nullable\<int\>, int, CancellationToken\) Method
+
+Asynchronously reads the next item of a sample that one interpreter has not labelled yet, automatically managing the connection\.
+
+```csharp
+public System.Threading.Tasks.Task<DiGi.GIS.Classes.BuildingShapeSampleItem?> GetNextSampleItemAsync(string? sampleKey, string? interpreter, System.Nullable<int> afterOrdinal=null, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.GetNextSampleItemAsync(string,string,System.Nullable_int_,int,System.Threading.CancellationToken).sampleKey'></a>
+
+`sampleKey` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The identity of the sample\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.GetNextSampleItemAsync(string,string,System.Nullable_int_,int,System.Threading.CancellationToken).interpreter'></a>
+
+`interpreter` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The interpreter whose labels are excluded\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.GetNextSampleItemAsync(string,string,System.Nullable_int_,int,System.Threading.CancellationToken).afterOrdinal'></a>
+
+`afterOrdinal` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The ordinal of the item the interpreter skipped or last saw, or null to start from the beginning\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.GetNextSampleItemAsync(string,string,System.Nullable_int_,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.GetNextSampleItemAsync(string,string,System.Nullable_int_,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The cancellation token to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[DiGi\.GIS\.Classes\.BuildingShapeSampleItem](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.buildingshapesampleitem 'DiGi\.GIS\.Classes\.BuildingShapeSampleItem')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result contains the next unlabelled item, or null when there is none or nothing could be read\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.GetSampleItemCountAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken)'></a>
+
+## BuildingShapePostgreSQLConverter\.GetSampleItemCountAsync\(NpgsqlConnection, string, int, CancellationToken\) Method
+
+Asynchronously reads the number of items of a sample\.
+
+A missing table answers 0.
+
+```csharp
+public static System.Threading.Tasks.Task<System.Nullable<int>> GetSampleItemCountAsync(Npgsql.NpgsqlConnection? npgsqlConnection, string? sampleKey, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.GetSampleItemCountAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken).npgsqlConnection'></a>
+
+`npgsqlConnection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
+
+The [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection') used to connect to the database\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.GetSampleItemCountAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken).sampleKey'></a>
+
+`sampleKey` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The identity of the sample\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.GetSampleItemCountAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.GetSampleItemCountAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The cancellation token to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result contains the count, or null when the connection or the key is null or blank\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.GetSampleItemCountAsync(string,int,System.Threading.CancellationToken)'></a>
+
+## BuildingShapePostgreSQLConverter\.GetSampleItemCountAsync\(string, int, CancellationToken\) Method
+
+Asynchronously reads the number of items of a sample, automatically managing the connection\.
+
+```csharp
+public System.Threading.Tasks.Task<System.Nullable<int>> GetSampleItemCountAsync(string? sampleKey, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.GetSampleItemCountAsync(string,int,System.Threading.CancellationToken).sampleKey'></a>
+
+`sampleKey` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The identity of the sample\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.GetSampleItemCountAsync(string,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.GetSampleItemCountAsync(string,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The cancellation token to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result contains the count, or null when nothing could be read\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.GetSampleItemsAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken)'></a>
+
+## BuildingShapePostgreSQLConverter\.GetSampleItemsAsync\(NpgsqlConnection, string, int, CancellationToken\) Method
+
+Asynchronously reads every item of a sample, ordered by ordinal\.
+
+A missing table answers an empty list.
+
+```csharp
+public static System.Threading.Tasks.Task<System.Collections.Generic.List<DiGi.GIS.Classes.BuildingShapeSampleItem>?> GetSampleItemsAsync(Npgsql.NpgsqlConnection? npgsqlConnection, string? sampleKey, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.GetSampleItemsAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken).npgsqlConnection'></a>
+
+`npgsqlConnection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
+
+The [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection') used to connect to the database\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.GetSampleItemsAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken).sampleKey'></a>
+
+`sampleKey` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The identity of the sample\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.GetSampleItemsAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.GetSampleItemsAsync(Npgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The cancellation token to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[DiGi\.GIS\.Classes\.BuildingShapeSampleItem](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.buildingshapesampleitem 'DiGi\.GIS\.Classes\.BuildingShapeSampleItem')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result contains the items, or null when the connection or the key is null or blank\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.GetSampleItemsAsync(string,int,System.Threading.CancellationToken)'></a>
+
+## BuildingShapePostgreSQLConverter\.GetSampleItemsAsync\(string, int, CancellationToken\) Method
+
+Asynchronously reads every item of a sample, automatically managing the connection\.
+
+```csharp
+public System.Threading.Tasks.Task<System.Collections.Generic.List<DiGi.GIS.Classes.BuildingShapeSampleItem>?> GetSampleItemsAsync(string? sampleKey, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.GetSampleItemsAsync(string,int,System.Threading.CancellationToken).sampleKey'></a>
+
+`sampleKey` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The identity of the sample\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.GetSampleItemsAsync(string,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.GetSampleItemsAsync(string,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The cancellation token to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[DiGi\.GIS\.Classes\.BuildingShapeSampleItem](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.buildingshapesampleitem 'DiGi\.GIS\.Classes\.BuildingShapeSampleItem')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result contains the items, or null when nothing could be read\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.InsertSampleAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_DiGi.GIS.Classes.BuildingShapeSampleItem_,int,int,System.Threading.CancellationToken)'></a>
+
+## BuildingShapePostgreSQLConverter\.InsertSampleAsync\(NpgsqlConnection, IEnumerable\<BuildingShapeSampleItem\>, int, int, CancellationToken\) Method
+
+Asynchronously writes a new sample, refusing to touch a sample key that already holds rows\.
+
+Every item must carry the same non-blank sample key and a non-blank reference; otherwise nothing is written. The rows are written in one transaction, [batchSize](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.InsertSampleAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_DiGi.GIS.Classes.BuildingShapeSampleItem_,int,int,System.Threading.CancellationToken).batchSize 'DiGi\.GIS\.PostgreSQL\.Classes\.BuildingShapePostgreSQLConverter\.InsertSampleAsync\(Npgsql\.NpgsqlConnection, System\.Collections\.Generic\.IEnumerable\<DiGi\.GIS\.Classes\.BuildingShapeSampleItem\>, int, int, System\.Threading\.CancellationToken\)\.batchSize') at a time, one statement per batch carrying one array per column. A key that already holds rows, two items sharing a (county, reference) or an ordinal, and a concurrent insert of the same key are all refused, so a sample is never overwritten or mixed.
+
+```csharp
+public static System.Threading.Tasks.Task<System.Nullable<bool>> InsertSampleAsync(Npgsql.NpgsqlConnection? npgsqlConnection, System.Collections.Generic.IEnumerable<DiGi.GIS.Classes.BuildingShapeSampleItem?>? buildingShapeSampleItems, int batchSize=1000, int commandTimeout=120, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.InsertSampleAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_DiGi.GIS.Classes.BuildingShapeSampleItem_,int,int,System.Threading.CancellationToken).npgsqlConnection'></a>
+
+`npgsqlConnection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
+
+The [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection') used to connect to the database\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.InsertSampleAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_DiGi.GIS.Classes.BuildingShapeSampleItem_,int,int,System.Threading.CancellationToken).buildingShapeSampleItems'></a>
+
+`buildingShapeSampleItems` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[DiGi\.GIS\.Classes\.BuildingShapeSampleItem](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.buildingshapesampleitem 'DiGi\.GIS\.Classes\.BuildingShapeSampleItem')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The items of the sample\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.InsertSampleAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_DiGi.GIS.Classes.BuildingShapeSampleItem_,int,int,System.Threading.CancellationToken).batchSize'></a>
+
+`batchSize` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The number of rows written per statement\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.InsertSampleAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_DiGi.GIS.Classes.BuildingShapeSampleItem_,int,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.InsertSampleAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_DiGi.GIS.Classes.BuildingShapeSampleItem_,int,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The cancellation token to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result is true when the sample was written, false when it was refused \(empty, inconsistent or already existing\), or null when the connection or the items are null or the tables could not be created\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.InsertSampleAsync(System.Collections.Generic.IEnumerable_DiGi.GIS.Classes.BuildingShapeSampleItem_,int,int,System.Threading.CancellationToken)'></a>
+
+## BuildingShapePostgreSQLConverter\.InsertSampleAsync\(IEnumerable\<BuildingShapeSampleItem\>, int, int, CancellationToken\) Method
+
+Asynchronously writes a new sample, automatically managing the connection\.
+
+```csharp
+public System.Threading.Tasks.Task<System.Nullable<bool>> InsertSampleAsync(System.Collections.Generic.IEnumerable<DiGi.GIS.Classes.BuildingShapeSampleItem?>? buildingShapeSampleItems, int batchSize=1000, int commandTimeout=120, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.InsertSampleAsync(System.Collections.Generic.IEnumerable_DiGi.GIS.Classes.BuildingShapeSampleItem_,int,int,System.Threading.CancellationToken).buildingShapeSampleItems'></a>
+
+`buildingShapeSampleItems` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[DiGi\.GIS\.Classes\.BuildingShapeSampleItem](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.buildingshapesampleitem 'DiGi\.GIS\.Classes\.BuildingShapeSampleItem')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The items of the sample\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.InsertSampleAsync(System.Collections.Generic.IEnumerable_DiGi.GIS.Classes.BuildingShapeSampleItem_,int,int,System.Threading.CancellationToken).batchSize'></a>
+
+`batchSize` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The number of rows written per statement\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.InsertSampleAsync(System.Collections.Generic.IEnumerable_DiGi.GIS.Classes.BuildingShapeSampleItem_,int,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.InsertSampleAsync(System.Collections.Generic.IEnumerable_DiGi.GIS.Classes.BuildingShapeSampleItem_,int,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The cancellation token to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result is true when the sample was written, false when it was refused, or null when nothing could be written\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.UpsertLabelAsync(DiGi.GIS.Classes.BuildingShapeLabel,int,System.Threading.CancellationToken)'></a>
+
+## BuildingShapePostgreSQLConverter\.UpsertLabelAsync\(BuildingShapeLabel, int, CancellationToken\) Method
+
+Asynchronously stores one label, automatically managing the connection\.
+
+```csharp
+public System.Threading.Tasks.Task<System.Nullable<bool>> UpsertLabelAsync(DiGi.GIS.Classes.BuildingShapeLabel? buildingShapeLabel, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.UpsertLabelAsync(DiGi.GIS.Classes.BuildingShapeLabel,int,System.Threading.CancellationToken).buildingShapeLabel'></a>
+
+`buildingShapeLabel` [DiGi\.GIS\.Classes\.BuildingShapeLabel](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.buildingshapelabel 'DiGi\.GIS\.Classes\.BuildingShapeLabel')
+
+The label to store\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.UpsertLabelAsync(DiGi.GIS.Classes.BuildingShapeLabel,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.UpsertLabelAsync(DiGi.GIS.Classes.BuildingShapeLabel,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The cancellation token to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result is true when the label was stored, false when its item is not in the sample, or null when nothing could be stored\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.UpsertLabelAsync(Npgsql.NpgsqlConnection,DiGi.GIS.Classes.BuildingShapeLabel,int,System.Threading.CancellationToken)'></a>
+
+## BuildingShapePostgreSQLConverter\.UpsertLabelAsync\(NpgsqlConnection, BuildingShapeLabel, int, CancellationToken\) Method
+
+Asynchronously stores one label, replacing the interpreter's earlier label of the same item\.
+
+The label is written only when its (sample key, county, reference) is an item of the sample; the conflict target is `(sample_key, county_id, reference, interpreter)`, so the same interpreter's re-label updates `shape`, `note` and `updated_at` in place while a different interpreter inserts a row of her or his own.
+
+```csharp
+public static System.Threading.Tasks.Task<System.Nullable<bool>> UpsertLabelAsync(Npgsql.NpgsqlConnection? npgsqlConnection, DiGi.GIS.Classes.BuildingShapeLabel? buildingShapeLabel, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.UpsertLabelAsync(Npgsql.NpgsqlConnection,DiGi.GIS.Classes.BuildingShapeLabel,int,System.Threading.CancellationToken).npgsqlConnection'></a>
+
+`npgsqlConnection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
+
+The [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection') used to connect to the database\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.UpsertLabelAsync(Npgsql.NpgsqlConnection,DiGi.GIS.Classes.BuildingShapeLabel,int,System.Threading.CancellationToken).buildingShapeLabel'></a>
+
+`buildingShapeLabel` [DiGi\.GIS\.Classes\.BuildingShapeLabel](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.buildingshapelabel 'DiGi\.GIS\.Classes\.BuildingShapeLabel')
+
+The label to store\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.UpsertLabelAsync(Npgsql.NpgsqlConnection,DiGi.GIS.Classes.BuildingShapeLabel,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingShapePostgreSQLConverter.UpsertLabelAsync(Npgsql.NpgsqlConnection,DiGi.GIS.Classes.BuildingShapeLabel,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The cancellation token to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result is true when the label was stored, false when its item is not in the sample, or null when the connection or the label is null, the label lacks a sample key, reference or interpreter, or the tables could not be created\.
+
 <a name='DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationPostgreSQLConverter'></a>
 
 ## BuildingSolarRadiationPostgreSQLConverter Class

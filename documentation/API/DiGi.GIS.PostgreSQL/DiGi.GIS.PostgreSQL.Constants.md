@@ -226,6 +226,32 @@ public const string BuildingModel = "building_model";
 #### Field Value
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
+<a name='DiGi.GIS.PostgreSQL.Constants.TableName.BuildingShapeLabel'></a>
+
+## TableName\.BuildingShapeLabel Field
+
+The name of the building shape label table: one manual label per sample item and interpreter, unique on \(`sample_key`, `county_id`, `reference`, `interpreter`\) \(DiGi\.GIS\.PostgreSQL\#135\)\. On the Main database\.
+
+```csharp
+public const string BuildingShapeLabel = "building_shape_label";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.PostgreSQL.Constants.TableName.BuildingShapeSample'></a>
+
+## TableName\.BuildingShapeSample Field
+
+The name of the building shape labelling sample table: one row per footprint of a fixed, ordered sample, unique on \(`sample_key`, `county_id`, `reference`\) and on \(`sample_key`, `ordinal`\), carrying the solver shape at sampling time \(DiGi\.GIS\.PostgreSQL\#135\)\. On the Main database\.
+
+```csharp
+public const string BuildingShapeSample = "building_shape_sample";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
 <a name='DiGi.GIS.PostgreSQL.Constants.TableName.BuildingSolarRadiation'></a>
 
 ## TableName\.BuildingSolarRadiation Field

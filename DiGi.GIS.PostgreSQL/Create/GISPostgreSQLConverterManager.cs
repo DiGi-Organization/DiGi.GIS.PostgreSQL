@@ -53,6 +53,7 @@ namespace DiGi.GIS.PostgreSQL
                     result.Add(new OrtoAreaPostgreSQLConverter(connectionData), postgreSQLConfigurationFile_Main);
                     result.Add(new OrtoAreaObjectPostgreSQLConverter(connectionData), postgreSQLConfigurationFile_Main);
                     result.Add(new OrtoAreaLabelPostgreSQLConverter(connectionData), postgreSQLConfigurationFile_Main);
+                    result.Add(new BuildingShapePostgreSQLConverter(connectionData), postgreSQLConfigurationFile_Main);
                 }
             }
 
