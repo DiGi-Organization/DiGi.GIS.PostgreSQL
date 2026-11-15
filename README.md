@@ -8,6 +8,7 @@
 
 The repository contains the following core components and assemblies:
 * **[DiGi.GIS.PostgreSQL](DiGi.GIS.PostgreSQL)** (Path: `DiGi.GIS.PostgreSQL\DiGi.GIS.PostgreSQL`)
+* **[DiGi.GIS.PostgreSQL.Solar](DiGi.GIS.PostgreSQL.Solar)** (Path: `DiGi.GIS.PostgreSQL\DiGi.GIS.PostgreSQL.Solar`) — the batch solar radiation solve (`PostgreSQLBuildingSolarRadiationSolveTask`), kept apart so that `DiGi.Solar` and its `SolarCalculator` package reach only the hosts that run it.
 
 ---
 

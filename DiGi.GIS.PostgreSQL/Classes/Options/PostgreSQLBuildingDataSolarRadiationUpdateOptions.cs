@@ -40,8 +40,16 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 CommandTimeout = postgreSQLBuildingDataSolarRadiationUpdateOptions.CommandTimeout;
                 SkipCompleted = postgreSQLBuildingDataSolarRadiationUpdateOptions.SkipCompleted;
                 CountyIds = postgreSQLBuildingDataSolarRadiationUpdateOptions.CountyIds == null ? null : [.. postgreSQLBuildingDataSolarRadiationUpdateOptions.CountyIds];
+                Radius = postgreSQLBuildingDataSolarRadiationUpdateOptions.Radius;
             }
         }
+
+        /// <summary>
+        /// Gets or sets the neighbour radius, in m, exactly as stored, whose results the summary is built from; null takes the latest stored result of any radius.
+        /// <para>A building can carry several variants - the isolated building (0) and one or more neighbour radii (DiGi.GIS.PostgreSQL#107). Without a radius the variant written last wins, building by building, so a summary meant to describe one variant names it here. The summary records the radius it used in its <c>SolarRadius</c> column.</para>
+        /// </summary>
+        [JsonInclude, JsonPropertyName(nameof(Radius))]
+        public double? Radius { get; set; } = null;
 
         /// <summary>
         /// Gets or sets the timeout in seconds applied to every statement the update issues. A value of 0 disables the timeout.

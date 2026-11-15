@@ -148,6 +148,114 @@ namespace DiGi.GIS.PostgreSQL.Classes
         }
 
         /// <summary>
+        /// Asynchronously reads the id and location of every EPW file, without the files themselves.
+        /// <para>A projection for a batch that positions many buildings: with the stations in hand, <see cref="Query.NearestEPWFileId"/> picks the same station as <see cref="GetEPWFileWithIdAsync(NpgsqlConnection?, double, double, int, CancellationToken)"/> (the smallest planar distance) in memory, and only the stations actually used are read, once, with <see cref="GetEPWFileByIdAsync(NpgsqlConnection?, int, int, CancellationToken)"/>.</para>
+        /// </summary>
+        /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> used to connect to the database.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The cancellation token to monitor for cancellation requests.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the id and the EPSG:2180 location of each row, ordered by id, or null when the connection is null.</returns>
+        public static async Task<List<(int Id, double X, double Y)>?> GetEPWFileLocationsAsync(NpgsqlConnection? npgsqlConnection, int commandTimeout = 30, CancellationToken cancellationToken = default)
+        {
+            if (npgsqlConnection is null)
+            {
+                return null;
+            }
+
+            string commandText = $@"
+                SELECT id, x, y
+                FROM {TableName}
+                ORDER BY id ASC;";
+
+            await using NpgsqlCommand npgsqlCommand = new(commandText, npgsqlConnection);
+            npgsqlCommand.CommandTimeout = commandTimeout;
+
+            List<(int Id, double X, double Y)> result = [];
+            await using NpgsqlDataReader npgsqlDataReader = await npgsqlCommand.ExecuteReaderAsync(cancellationToken);
+            while (await npgsqlDataReader.ReadAsync(cancellationToken))
+            {
+                if (npgsqlDataReader.IsDBNull(1) || npgsqlDataReader.IsDBNull(2))
+                {
+                    continue;
+                }
+
+                result.Add((npgsqlDataReader.GetInt32(0), npgsqlDataReader.GetDouble(1), npgsqlDataReader.GetDouble(2)));
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Asynchronously reads the EPW file of one <c>epw_file</c> row.
+        /// </summary>
+        /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> used to connect to the database.</param>
+        /// <param name="id">The id of the row.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The cancellation token to monitor for cancellation requests.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the <see cref="EPWFile"/>, or null when the connection is null or no row has the id.</returns>
+        public static async Task<EPWFile?> GetEPWFileByIdAsync(NpgsqlConnection? npgsqlConnection, int id, int commandTimeout = 30, CancellationToken cancellationToken = default)
+        {
+            if (npgsqlConnection is null)
+            {
+                return null;
+            }
+
+            string commandText = $@"
+                SELECT object
+                FROM {TableName}
+                WHERE id = @id;";
+
+            await using NpgsqlCommand npgsqlCommand = new(commandText, npgsqlConnection);
+            npgsqlCommand.CommandTimeout = commandTimeout;
+            npgsqlCommand.Parameters.Add(new NpgsqlParameter("id", NpgsqlDbType.Integer) { Value = id });
+
+            await using NpgsqlDataReader npgsqlDataReader = await npgsqlCommand.ExecuteReaderAsync(cancellationToken);
+            if (await npgsqlDataReader.ReadAsync(cancellationToken) && JsonNode.Parse(npgsqlDataReader.GetString(0)) is JsonObject jsonObject)
+            {
+                return new EPWFile(jsonObject);
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Asynchronously reads the id and location of every EPW file, without the files themselves, automatically managing the connection.
+        /// </summary>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The cancellation token to monitor for cancellation requests.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the id and the EPSG:2180 location of each row, ordered by id, or null when no connection could be made.</returns>
+        public async Task<List<(int Id, double X, double Y)>?> GetEPWFileLocationsAsync(int commandTimeout = 30, CancellationToken cancellationToken = default)
+        {
+            await using NpgsqlConnection? npgsqlConnection = DiGi.PostgreSQL.Create.NpgsqlConnection(ConnectionData);
+            if (npgsqlConnection is null)
+            {
+                return null;
+            }
+
+            await npgsqlConnection.OpenAsync(cancellationToken);
+            return await GetEPWFileLocationsAsync(npgsqlConnection, commandTimeout, cancellationToken);
+        }
+
+        /// <summary>
+        /// Asynchronously reads the EPW file of one <c>epw_file</c> row, automatically managing the connection.
+        /// </summary>
+        /// <param name="id">The id of the row.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The cancellation token to monitor for cancellation requests.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the <see cref="EPWFile"/>, or null when no row has the id.</returns>
+        public async Task<EPWFile?> GetEPWFileByIdAsync(int id, int commandTimeout = 30, CancellationToken cancellationToken = default)
+        {
+            await using NpgsqlConnection? npgsqlConnection = DiGi.PostgreSQL.Create.NpgsqlConnection(ConnectionData);
+            if (npgsqlConnection is null)
+            {
+                return null;
+            }
+
+            await npgsqlConnection.OpenAsync(cancellationToken);
+            return await GetEPWFileByIdAsync(npgsqlConnection, id, commandTimeout, cancellationToken);
+        }
+
+        /// <summary>
         /// Asynchronously inserts or updates a collection of EPWFile objects in the database.
         /// </summary>
         /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> used to connect to the database.</param>

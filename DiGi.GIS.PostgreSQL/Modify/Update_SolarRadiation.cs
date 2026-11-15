@@ -176,7 +176,7 @@ namespace DiGi.GIS.PostgreSQL
                     IO.Modify.SetValue(row, columns_Solar[22], result.WeatherSourceId);
                 }
                 IO.Modify.SetValue(row, columns_Solar[23], (int)result.WeatherSourceType);
-                if (double.IsFinite(result.Radius) && result.Radius > 0)
+                if (double.IsFinite(result.Radius) && result.Radius >= 0)
                 {
                     IO.Modify.SetValue(row, columns_Solar[24], (float)result.Radius);
                 }

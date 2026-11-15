@@ -106,6 +106,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             int commandTimeout = PostgreSQLBuildingDataSolarRadiationUpdateOptions.CommandTimeout;
             int batchSize = Math.Max(1, PostgreSQLBuildingDataSolarRadiationUpdateOptions.BatchSize);
             bool skipCompleted = PostgreSQLBuildingDataSolarRadiationUpdateOptions.SkipCompleted;
+            double? radius = PostgreSQLBuildingDataSolarRadiationUpdateOptions.Radius;
 
             BuildingSolarRadiationPostgreSQLConverter? buildingSolarRadiationPostgreSQLConverter = gISPostgreSQLConverterManager.GetPostgreSQLConverter<BuildingSolarRadiationPostgreSQLConverter>();
             if (buildingSolarRadiationPostgreSQLConverter is null)
@@ -138,12 +139,13 @@ namespace DiGi.GIS.PostgreSQL.Classes
             HashSet<int>? countyIds = PostgreSQLBuildingDataSolarRadiationUpdateOptions.CountyIds;
 
             Serilog.Modify.Log(
-                "{Type}: starting over {CountyCount} counties, scope {CountyScope}, batch size {BatchSize}, skip completed {SkipCompleted}",
+                "{Type}: starting over {CountyCount} counties, scope {CountyScope}, batch size {BatchSize}, skip completed {SkipCompleted}, radius {Radius}",
                 nameof(PostgreSQLBuildingDataSolarRadiationUpdateTask),
                 countyReferences.Count,
                 countyIds is null ? "all" : string.Join(", ", countyIds),
                 batchSize,
-                skipCompleted);
+                skipCompleted,
+                radius is null ? "any" : radius.Value.ToString(System.Globalization.CultureInfo.InvariantCulture));
 
             // The columns the resume check reads. The reference column is asked for explicitly so the rows can be
             // matched back; the total is non-null only on a row a run has written.
@@ -176,7 +178,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 List<string> references_List = [];
                 try
                 {
-                    HashSet<string>? references = await buildingSolarRadiationPostgreSQLConverter.GetReferencesAsync(countyId, commandTimeout: commandTimeout, cancellationToken: cancellationToken);
+                    HashSet<string>? references = await buildingSolarRadiationPostgreSQLConverter.GetReferencesAsync(countyId, commandTimeout: commandTimeout, radius: radius, cancellationToken: cancellationToken);
                     if (references is not null)
                     {
                         references_List = [.. references];
@@ -232,7 +234,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
                     {
                         // No fallback by reference: a reference the county does not hold is absent from the read, and
                         // the record that comes back carries this county's identifier, so nothing is filed elsewhere.
-                        results_Batch = await buildingSolarRadiationPostgreSQLConverter.GetItemsByReferencesAsync(references_Batch, countyId, commandTimeout: commandTimeout, cancellationToken: cancellationToken);
+                        results_Batch = await buildingSolarRadiationPostgreSQLConverter.GetItemsByReferencesAsync(references_Batch, countyId, commandTimeout: commandTimeout, radius: radius, cancellationToken: cancellationToken);
                         if (results_Batch is null)
                         {
                             countyFailed = true;

@@ -1757,6 +1757,51 @@ The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dot
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A task that represents the asynchronous operation\. The task result is true if the table was created successfully; otherwise, false\.
 
+<a name='DiGi.GIS.PostgreSQL.Create.Table_SolarRadiationContext(System.Collections.Generic.IEnumerable_DiGi.GIS.Classes.BuildingSolarRadiationResult_,System.Collections.Generic.IList_double_,DiGi.Core.IO.Table.Classes.Table,bool)'></a>
+
+## Create\.Table\_SolarRadiationContext\(IEnumerable\<BuildingSolarRadiationResult\>, IList\<double\>, Table, bool\) Method
+
+Builds the urban\-context table of a set of buildings: per building, the annual irradiation of its walls by facing sector, of its roof and of the whole building for each neighbour radius, the shortfall of each radius against the isolated building, and the building's descriptors from `building_data` \(DiGi\.GIS\.PostgreSQL\#107, \#136\)\.
+
+Irradiation is the area-weighted average over the usable surfaces of a group (a finite area greater than zero), in kWh/m² per year, as in [Update\_SolarRadiation\(this Table, IEnumerable&lt;BuildingSolarRadiationResult&gt;\)](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Modify.Update_SolarRadiation(thisDiGi.Core.IO.Table.Classes.Table,System.Collections.Generic.IEnumerable_DiGi.GIS.Classes.BuildingSolarRadiationResult_) 'DiGi\.GIS\.PostgreSQL\.Modify\.Update\_SolarRadiation\(this DiGi\.Core\.IO\.Table\.Classes\.Table, System\.Collections\.Generic\.IEnumerable\<DiGi\.GIS\.Classes\.BuildingSolarRadiationResult\>\)'). A surface whose outward normal is steeper than 60° from the vertical (|n<sub>z</sub>| ≥ 0.5) counts as roof, any other as wall; a wall is filed under the cardinal sector of its normal's azimuth, the eight sectors of the solar radiation summary. A group with no usable surface is left empty.
+
+The reduction of a group at radius r is `1 - E(r) / E(0)`: the share of the isolated building's irradiation (radius 0, `SolarRadiusIsolated`) its neighbours take away. It is written only when [radii](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Create.Table_SolarRadiationContext(System.Collections.Generic.IEnumerable_DiGi.GIS.Classes.BuildingSolarRadiationResult_,System.Collections.Generic.IList_double_,DiGi.Core.IO.Table.Classes.Table,bool).radii 'DiGi\.GIS\.PostgreSQL\.Create\.Table\_SolarRadiationContext\(System\.Collections\.Generic\.IEnumerable\<DiGi\.GIS\.Classes\.BuildingSolarRadiationResult\>, System\.Collections\.Generic\.IList\<double\>, DiGi\.Core\.IO\.Table\.Classes\.Table, bool\)\.radii') holds 0 and both values exist.
+
+The descriptors copied are the year built (calculated), storeys, building shape (calculated), settlement type, general function and the residential flag, and every `Radial …` ratio column the building data table carries. A building is written when the building data table holds its row and it has at least one result; with [residentialOnly](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Create.Table_SolarRadiationContext(System.Collections.Generic.IEnumerable_DiGi.GIS.Classes.BuildingSolarRadiationResult_,System.Collections.Generic.IList_double_,DiGi.Core.IO.Table.Classes.Table,bool).residentialOnly 'DiGi\.GIS\.PostgreSQL\.Create\.Table\_SolarRadiationContext\(System\.Collections\.Generic\.IEnumerable\<DiGi\.GIS\.Classes\.BuildingSolarRadiationResult\>, System\.Collections\.Generic\.IList\<double\>, DiGi\.Core\.IO\.Table\.Classes\.Table, bool\)\.residentialOnly') only a building whose row says it is residential.
+
+```csharp
+public static DiGi.Core.IO.Table.Classes.Table? Table_SolarRadiationContext(System.Collections.Generic.IEnumerable<DiGi.GIS.Classes.BuildingSolarRadiationResult?>? buildingSolarRadiationResults, System.Collections.Generic.IList<double>? radii, DiGi.Core.IO.Table.Classes.Table? table_BuildingData, bool residentialOnly);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Create.Table_SolarRadiationContext(System.Collections.Generic.IEnumerable_DiGi.GIS.Classes.BuildingSolarRadiationResult_,System.Collections.Generic.IList_double_,DiGi.Core.IO.Table.Classes.Table,bool).buildingSolarRadiationResults'></a>
+
+`buildingSolarRadiationResults` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[DiGi\.GIS\.Classes\.BuildingSolarRadiationResult](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.buildingsolarradiationresult 'DiGi\.GIS\.Classes\.BuildingSolarRadiationResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The stored results, of any of [radii](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Create.Table_SolarRadiationContext(System.Collections.Generic.IEnumerable_DiGi.GIS.Classes.BuildingSolarRadiationResult_,System.Collections.Generic.IList_double_,DiGi.Core.IO.Table.Classes.Table,bool).radii 'DiGi\.GIS\.PostgreSQL\.Create\.Table\_SolarRadiationContext\(System\.Collections\.Generic\.IEnumerable\<DiGi\.GIS\.Classes\.BuildingSolarRadiationResult\>, System\.Collections\.Generic\.IList\<double\>, DiGi\.Core\.IO\.Table\.Classes\.Table, bool\)\.radii'); the first result of a county part, reference and radius is used\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.Table_SolarRadiationContext(System.Collections.Generic.IEnumerable_DiGi.GIS.Classes.BuildingSolarRadiationResult_,System.Collections.Generic.IList_double_,DiGi.Core.IO.Table.Classes.Table,bool).radii'></a>
+
+`radii` [System\.Collections\.Generic\.IList&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ilist-1 'System\.Collections\.Generic\.IList\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ilist-1 'System\.Collections\.Generic\.IList\`1')
+
+The radii to write, in m, exactly as stored, in column order\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.Table_SolarRadiationContext(System.Collections.Generic.IEnumerable_DiGi.GIS.Classes.BuildingSolarRadiationResult_,System.Collections.Generic.IList_double_,DiGi.Core.IO.Table.Classes.Table,bool).table_BuildingData'></a>
+
+`table_BuildingData` [DiGi\.Core\.IO\.Table\.Classes\.Table](https://learn.microsoft.com/en-us/dotnet/api/digi.core.io.table.classes.table 'DiGi\.Core\.IO\.Table\.Classes\.Table')
+
+The building data rows of the buildings, keyed by county identifier and reference\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.Table_SolarRadiationContext(System.Collections.Generic.IEnumerable_DiGi.GIS.Classes.BuildingSolarRadiationResult_,System.Collections.Generic.IList_double_,DiGi.Core.IO.Table.Classes.Table,bool).residentialOnly'></a>
+
+`residentialOnly` [System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')
+
+True to write only the buildings whose building data row is residential\.
+
+#### Returns
+[DiGi\.Core\.IO\.Table\.Classes\.Table](https://learn.microsoft.com/en-us/dotnet/api/digi.core.io.table.classes.table 'DiGi\.Core\.IO\.Table\.Classes\.Table')  
+The table, or null when an input is missing or the building data table has no county or reference column\.
+
 <a name='DiGi.GIS.PostgreSQL.Create.TerrainPointDensityResult(int,long,double,System.Nullable_double_)'></a>
 
 ## Create\.TerrainPointDensityResult\(int, long, double, Nullable\<double\>\) Method
@@ -2763,6 +2808,61 @@ The tolerance used for the closest point calculation\.
 #### Returns
 [Building](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.Building 'DiGi\.GIS\.PostgreSQL\.Classes\.Building')  
 The most relevant [Building](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.Building 'DiGi\.GIS\.PostgreSQL\.Classes\.Building'), or null if the collection is null, empty or no candidate could be resolved\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.BuildingModelsByCircle2DAsync(thisDiGi.GIS.PostgreSQL.Classes.Building2DPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.BuildingModelPostgreSQLConverter,DiGi.Geometry.Planar.Classes.Circle2D,double,int,System.Threading.CancellationToken)'></a>
+
+## Query\.BuildingModelsByCircle2DAsync\(this Building2DPostgreSQLConverter, BuildingModelPostgreSQLConverter, Circle2D, double, int, CancellationToken\) Method
+
+Asynchronously reads the building models of every building whose footprint bounding box lies within or intersects a circle, with the county part each one is filed under\.
+
+The same selection as the Web API's `gis/buildingmodel/itemsbycircle`, which the solar radiation solve of the 3D viewers takes its neighbours from: the buildings are found in `building_2d` (Main database) and their models read from `building_model` (Storage database), one statement per county part the circle reaches - no join across the two databases (`Coding - PostgreSQL.md` §6). Unlike that route, the models keep the bare `building_2d` reference in `BuildingModelParameter.Reference`, the key stored solar radiation and `building_data` are held under.
+
+A building without a stored model is simply absent; a county part whose read fails throws, because a partial set of neighbours would understate the shading.
+
+```csharp
+public static System.Threading.Tasks.Task<System.Collections.Generic.List<(int CountyId,DiGi.Analytical.Building.Classes.BuildingModel BuildingModel)>?> BuildingModelsByCircle2DAsync(this DiGi.GIS.PostgreSQL.Classes.Building2DPostgreSQLConverter? building2DPostgreSQLConverter, DiGi.GIS.PostgreSQL.Classes.BuildingModelPostgreSQLConverter? buildingModelPostgreSQLConverter, DiGi.Geometry.Planar.Classes.Circle2D? circle2D, double tolerance=1E-06, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Query.BuildingModelsByCircle2DAsync(thisDiGi.GIS.PostgreSQL.Classes.Building2DPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.BuildingModelPostgreSQLConverter,DiGi.Geometry.Planar.Classes.Circle2D,double,int,System.Threading.CancellationToken).building2DPostgreSQLConverter'></a>
+
+`building2DPostgreSQLConverter` [Building2DPostgreSQLConverter](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.Building2DPostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Classes\.Building2DPostgreSQLConverter')
+
+The converter that finds the buildings in `building_2d`\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.BuildingModelsByCircle2DAsync(thisDiGi.GIS.PostgreSQL.Classes.Building2DPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.BuildingModelPostgreSQLConverter,DiGi.Geometry.Planar.Classes.Circle2D,double,int,System.Threading.CancellationToken).buildingModelPostgreSQLConverter'></a>
+
+`buildingModelPostgreSQLConverter` [BuildingModelPostgreSQLConverter](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.BuildingModelPostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Classes\.BuildingModelPostgreSQLConverter')
+
+The converter that reads their models from `building_model`\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.BuildingModelsByCircle2DAsync(thisDiGi.GIS.PostgreSQL.Classes.Building2DPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.BuildingModelPostgreSQLConverter,DiGi.Geometry.Planar.Classes.Circle2D,double,int,System.Threading.CancellationToken).circle2D'></a>
+
+`circle2D` [DiGi\.Geometry\.Planar\.Classes\.Circle2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.circle2d 'DiGi\.Geometry\.Planar\.Classes\.Circle2D')
+
+The circle, in EPSG:2180\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.BuildingModelsByCircle2DAsync(thisDiGi.GIS.PostgreSQL.Classes.Building2DPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.BuildingModelPostgreSQLConverter,DiGi.Geometry.Planar.Classes.Circle2D,double,int,System.Threading.CancellationToken).tolerance'></a>
+
+`tolerance` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The distance by which the circle is widened, in m\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.BuildingModelsByCircle2DAsync(thisDiGi.GIS.PostgreSQL.Classes.Building2DPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.BuildingModelPostgreSQLConverter,DiGi.Geometry.Planar.Classes.Circle2D,double,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of each command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.BuildingModelsByCircle2DAsync(thisDiGi.GIS.PostgreSQL.Classes.Building2DPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.BuildingModelPostgreSQLConverter,DiGi.Geometry.Planar.Classes.Circle2D,double,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The cancellation token to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.valuetuple 'System\.ValueTuple')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[,](https://learn.microsoft.com/en-us/dotnet/api/system.valuetuple 'System\.ValueTuple')[DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.valuetuple 'System\.ValueTuple')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result contains each model with the county part it was read from, empty when no building lies in the circle, or null when an input is missing or the buildings could not be found\.
 
 <a name='DiGi.GIS.PostgreSQL.Query.BuildingShapeSampleItemsAsync(thisDiGi.GIS.PostgreSQL.Classes.Building2DPostgreSQLConverter,string,System.Collections.Generic.IEnumerable_int_,int,int,int,System.Threading.CancellationToken)'></a>
 
