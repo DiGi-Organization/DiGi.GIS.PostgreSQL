@@ -348,6 +348,8 @@ With a [houseNumber](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.
 
 Order: similarity descending, then an exact house number before a prefix match, then the house number. [countyId](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AddressPointPostgreSQLConverter.GetAddressPointMatchesByAddressAsync(Npgsql.NpgsqlConnection,string,string,System.Nullable_int_,int,int,System.Threading.CancellationToken).countyId 'DiGi\.GIS\.PostgreSQL\.Classes\.AddressPointPostgreSQLConverter\.GetAddressPointMatchesByAddressAsync\(Npgsql\.NpgsqlConnection, string, string, System\.Nullable\<int\>, int, int, System\.Threading\.CancellationToken\)\.countyId') filters on one county part; a county with several parts is searched without it, or once per part (`Coding - GIS Administrative Data.md`). A table that does not exist yet answers empty.
 
+Every match carries [DiGi\.GIS\.Classes\.AddressPointMatch\.CountyId](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.addresspointmatch.countyid 'DiGi\.GIS\.Classes\.AddressPointMatch\.CountyId') taken from the row's `county_id` column, so a caller that needs the building's partition does not have to ask the building data for it (DiGi-Organization/DiGi.GIS.WebAPI#85).
+
 ```csharp
 public static System.Threading.Tasks.Task<System.Collections.Generic.List<DiGi.GIS.Classes.AddressPointMatch>?> GetAddressPointMatchesByAddressAsync(Npgsql.NpgsqlConnection? npgsqlConnection, string? text, string? houseNumber, System.Nullable<int> countyId, int limit=20, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
 ```
@@ -457,6 +459,8 @@ A task that represents the asynchronous operation\. The task result contains the
 Asynchronously reads the address points matched to the given buildings: the reverse of the address search\.
 
 The `building_reference` column holds the `building_2d` reference the point was matched to. A building may hold any number of points; unmatched points are never returned. A table that does not exist yet answers empty.
+
+Every match carries [DiGi\.GIS\.Classes\.AddressPointMatch\.CountyId](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.addresspointmatch.countyid 'DiGi\.GIS\.Classes\.AddressPointMatch\.CountyId') taken from the row's `county_id` column, the same as the address search.
 
 ```csharp
 public static System.Threading.Tasks.Task<System.Collections.Generic.List<DiGi.GIS.Classes.AddressPointMatch>?> GetAddressPointMatchesByReferencesAsync(Npgsql.NpgsqlConnection? npgsqlConnection, System.Collections.Generic.IEnumerable<string>? references, int batchSize=1000, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
@@ -616,7 +620,9 @@ A task that represents the asynchronous operation\. The task result contains the
 
 ## AddressPointPostgreSQLConverter\.ReadAsync\(NpgsqlCommand, List\<AddressPointMatch\>, CancellationToken\) Method
 
-Reads the `object` column of every row of a command into address point matches\.
+Reads the `county_id` and `object` columns of every row of a command into address point matches\.
+
+The first column is the county part, the second the stored `object` JSON. The stored JSON carries no county id (it is written at import, before the row's `county_id` is bound to the match), so the column value is injected into the parsed object before the match is built - the members are [readonly](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/readonly 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/readonly'), so the JSON constructor is the only path that can set them.
 
 ```csharp
 private static System.Threading.Tasks.Task ReadAsync(Npgsql.NpgsqlCommand npgsqlCommand, System.Collections.Generic.List<DiGi.GIS.Classes.AddressPointMatch> addressPointMatches, System.Threading.CancellationToken cancellationToken);
@@ -627,7 +633,7 @@ private static System.Threading.Tasks.Task ReadAsync(Npgsql.NpgsqlCommand npgsql
 
 `npgsqlCommand` [Npgsql\.NpgsqlCommand](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlcommand 'Npgsql\.NpgsqlCommand')
 
-The command whose first column is the `object` JSON\.
+The command whose first column is the `county_id` and whose second column is the `object` JSON\.
 
 <a name='DiGi.GIS.PostgreSQL.Classes.AddressPointPostgreSQLConverter.ReadAsync(Npgsql.NpgsqlCommand,System.Collections.Generic.List_DiGi.GIS.Classes.AddressPointMatch_,System.Threading.CancellationToken).addressPointMatches'></a>
 

@@ -174,6 +174,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// <para>Both <paramref name="text"/> and the stored <c>search_text</c> are reduced by <see cref="Query.SearchText(string?)"/>. A row qualifies when its trigram similarity reaches the <c>pg_trgm.similarity_threshold</c> (the <c>%</c> operator, 0.3 by default, raised to 0.4 for this statement alone by <c>SET LOCAL</c> inside a short transaction on <paramref name="npgsqlConnection"/> - nothing persists beyond it, so a pooled connection never inherits it; measured on production, the statement went from about 1.5 s to 0.76 s for a common street, at full typo and partial-name recall) or when it contains the normalised text (<c>LIKE '%text%'</c>); both are served by the GIN trigram index. The <c>LIKE</c> branch is what serves short queries, whose trigram similarity is inherently low. The normalised text holds only letters, digits and single spaces, so it needs no <c>LIKE</c> escaping. Reference: DiGi.GIS.PostgreSQL#112.</para>
         /// <para>With a <paramref name="houseNumber"/>, only exact matches and prefix matches qualify, compared case-insensitively: <c>12</c> matches <c>12</c>, <c>12A</c> and <c>12/3</c>, but not <c>120</c> - the character after the prefix must not be a digit.</para>
         /// <para>Order: similarity descending, then an exact house number before a prefix match, then the house number. <paramref name="countyId"/> filters on one county part; a county with several parts is searched without it, or once per part (<c>Coding - GIS Administrative Data.md</c>). A table that does not exist yet answers empty.</para>
+        /// <para>Every match carries <see cref="AddressPointMatch.CountyId"/> taken from the row's <c>county_id</c> column, so a caller that needs the building's partition does not have to ask the building data for it (DiGi-Organization/DiGi.GIS.WebAPI#85).</para>
         /// </summary>
         /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> used to connect to the database.</param>
         /// <param name="text">The street or locality name to search for, as typed.</param>
@@ -201,7 +202,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             string orderHouseNumber = houseNumber_Lower is null ? string.Empty : "(lower(house_number) = @house_number) DESC,";
 
             string commandText = $@"
-                SELECT object
+                SELECT county_id, object
                 FROM {TableName}
                 WHERE (search_text % @search_text OR search_text LIKE @search_pattern)
                   {whereCountyId}{whereHouseNumber}
@@ -253,6 +254,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// <summary>
         /// Asynchronously reads the address points matched to the given buildings: the reverse of the address search.
         /// <para>The <c>building_reference</c> column holds the <c>building_2d</c> reference the point was matched to. A building may hold any number of points; unmatched points are never returned. A table that does not exist yet answers empty.</para>
+        /// <para>Every match carries <see cref="AddressPointMatch.CountyId"/> taken from the row's <c>county_id</c> column, the same as the address search.</para>
         /// </summary>
         /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> used to connect to the database.</param>
         /// <param name="references">The <c>building_2d</c> references of the buildings.</param>
@@ -271,7 +273,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             batchSize = Math.Max(1, batchSize);
 
             string commandText = $@"
-                SELECT object
+                SELECT county_id, object
                 FROM {TableName}
                 WHERE building_reference = ANY(@references)
                 ORDER BY building_reference, house_number, reference_id;";
@@ -540,9 +542,10 @@ namespace DiGi.GIS.PostgreSQL.Classes
         }
 
         /// <summary>
-        /// Reads the <c>object</c> column of every row of a command into address point matches.
+        /// Reads the <c>county_id</c> and <c>object</c> columns of every row of a command into address point matches.
+        /// <para>The first column is the county part, the second the stored <c>object</c> JSON. The stored JSON carries no county id (it is written at import, before the row's <c>county_id</c> is bound to the match), so the column value is injected into the parsed object before the match is built - the members are <see langword="readonly"/>, so the JSON constructor is the only path that can set them.</para>
         /// </summary>
-        /// <param name="npgsqlCommand">The command whose first column is the <c>object</c> JSON.</param>
+        /// <param name="npgsqlCommand">The command whose first column is the <c>county_id</c> and whose second column is the <c>object</c> JSON.</param>
         /// <param name="addressPointMatches">The list the matches are appended to.</param>
         /// <param name="cancellationToken">The cancellation token to monitor for cancellation requests.</param>
         /// <returns>A task that represents the asynchronous operation.</returns>
@@ -551,10 +554,18 @@ namespace DiGi.GIS.PostgreSQL.Classes
             await using NpgsqlDataReader npgsqlDataReader = await npgsqlCommand.ExecuteReaderAsync(cancellationToken);
             while (await npgsqlDataReader.ReadAsync(cancellationToken))
             {
-                if (JsonNode.Parse(npgsqlDataReader.GetString(0)) is JsonObject jsonObject)
+                if (JsonNode.Parse(npgsqlDataReader.GetString(1)) is not JsonObject jsonObject)
                 {
-                    addressPointMatches.Add(new AddressPointMatch(jsonObject));
+                    continue;
                 }
+
+                if (!npgsqlDataReader.IsDBNull(0))
+                {
+                    // The row's partition wins over anything the stored object may hold under the same name.
+                    jsonObject[nameof(AddressPointMatch.CountyId)] = JsonValue.Create(npgsqlDataReader.GetInt32(0));
+                }
+
+                addressPointMatches.Add(new AddressPointMatch(jsonObject));
             }
         }
     }
