@@ -15540,6 +15540,242 @@ The cancellation token to monitor for cancellation requests\.
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A task that represents the asynchronous operation\. The task result is true when the label was stored, false when its item is not in the sample, or null when the connection or the label is null, the label lacks a sample key, reference or interpreter, or the tables could not be created\.
 
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationCountyResult'></a>
+
+## BuildingSolarRadiationCountyResult Class
+
+What one county part of the building solar radiation table holds for one neighbour radius and solver version: how many results, how many of the part's residential buildings they cover, when they were written and how large the part's partition is \(DiGi\.GIS\.PostgreSQL\#138\)\.
+
+It is the lasting account of a batch solve (`PostgreSQLBuildingSolarRadiationSolveTask`), whose own counts are discarded when it ends. It describes the database it was read from.
+
+```csharp
+public class BuildingSolarRadiationCountyResult : DiGi.Core.Classes.SerializableResult, DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLSerializableObject, DiGi.Core.Interfaces.ISerializableObject, DiGi.Core.Interfaces.ICloneableObject<DiGi.Core.Interfaces.ISerializableObject>, DiGi.Core.Interfaces.ICloneableObject, DiGi.Core.Interfaces.IObject
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [DiGi\.Core\.Classes\.Object](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.object 'DiGi\.Core\.Classes\.Object') → [DiGi\.Core\.Classes\.SerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.serializableobject 'DiGi\.Core\.Classes\.SerializableObject') → [DiGi\.Core\.Classes\.SerializableResult](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.serializableresult 'DiGi\.Core\.Classes\.SerializableResult') → BuildingSolarRadiationCountyResult
+
+Implements [IGISPostgreSQLSerializableObject](DiGi.GIS.PostgreSQL.Interfaces.md#DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLSerializableObject 'DiGi\.GIS\.PostgreSQL\.Interfaces\.IGISPostgreSQLSerializableObject'), [DiGi\.Core\.Interfaces\.ISerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iserializableobject 'DiGi\.Core\.Interfaces\.ISerializableObject'), [DiGi\.Core\.Interfaces\.ICloneableObject&lt;](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject-1 'DiGi\.Core\.Interfaces\.ICloneableObject\`1')[DiGi\.Core\.Interfaces\.ISerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iserializableobject 'DiGi\.Core\.Interfaces\.ISerializableObject')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject-1 'DiGi\.Core\.Interfaces\.ICloneableObject\`1'), [DiGi\.Core\.Interfaces\.ICloneableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject 'DiGi\.Core\.Interfaces\.ICloneableObject'), [DiGi\.Core\.Interfaces\.IObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iobject 'DiGi\.Core\.Interfaces\.IObject')
+### Constructors
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationCountyResult.BuildingSolarRadiationCountyResult(DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationCountyResult)'></a>
+
+## BuildingSolarRadiationCountyResult\(BuildingSolarRadiationCountyResult\) Constructor
+
+Initializes a new instance of the [BuildingSolarRadiationCountyResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationCountyResult 'DiGi\.GIS\.PostgreSQL\.Classes\.BuildingSolarRadiationCountyResult') class by copying an existing one\.
+
+```csharp
+public BuildingSolarRadiationCountyResult(DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationCountyResult? buildingSolarRadiationCountyResult);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationCountyResult.BuildingSolarRadiationCountyResult(DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationCountyResult).buildingSolarRadiationCountyResult'></a>
+
+`buildingSolarRadiationCountyResult` [BuildingSolarRadiationCountyResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationCountyResult 'DiGi\.GIS\.PostgreSQL\.Classes\.BuildingSolarRadiationCountyResult')
+
+The [BuildingSolarRadiationCountyResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationCountyResult 'DiGi\.GIS\.PostgreSQL\.Classes\.BuildingSolarRadiationCountyResult') to copy from\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationCountyResult.BuildingSolarRadiationCountyResult(int,double,int,long,System.Nullable_long_,System.Nullable_long_,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_,System.Nullable_long_)'></a>
+
+## BuildingSolarRadiationCountyResult\(int, double, int, long, Nullable\<long\>, Nullable\<long\>, Nullable\<DateTimeOffset\>, Nullable\<DateTimeOffset\>, Nullable\<long\>\) Constructor
+
+Initializes a new instance of the [BuildingSolarRadiationCountyResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationCountyResult 'DiGi\.GIS\.PostgreSQL\.Classes\.BuildingSolarRadiationCountyResult') class\.
+
+```csharp
+public BuildingSolarRadiationCountyResult(int countyId, double radius, int solverVersion, long rowCount, System.Nullable<long> residentialBuildingCount, System.Nullable<long> residentialCoveredCount, System.Nullable<System.DateTimeOffset> createdAtMin, System.Nullable<System.DateTimeOffset> createdAtMax, System.Nullable<long> partitionSize);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationCountyResult.BuildingSolarRadiationCountyResult(int,double,int,long,System.Nullable_long_,System.Nullable_long_,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_,System.Nullable_long_).countyId'></a>
+
+`countyId` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The identifier of the county part summarised\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationCountyResult.BuildingSolarRadiationCountyResult(int,double,int,long,System.Nullable_long_,System.Nullable_long_,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_,System.Nullable_long_).radius'></a>
+
+`radius` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The neighbour radius, in m, exactly as stored\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationCountyResult.BuildingSolarRadiationCountyResult(int,double,int,long,System.Nullable_long_,System.Nullable_long_,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_,System.Nullable_long_).solverVersion'></a>
+
+`solverVersion` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The solver version\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationCountyResult.BuildingSolarRadiationCountyResult(int,double,int,long,System.Nullable_long_,System.Nullable_long_,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_,System.Nullable_long_).rowCount'></a>
+
+`rowCount` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+The number of results stored\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationCountyResult.BuildingSolarRadiationCountyResult(int,double,int,long,System.Nullable_long_,System.Nullable_long_,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_,System.Nullable_long_).residentialBuildingCount'></a>
+
+`residentialBuildingCount` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The number of buildings of the part whose building data row is residential, or null when it cannot be read\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationCountyResult.BuildingSolarRadiationCountyResult(int,double,int,long,System.Nullable_long_,System.Nullable_long_,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_,System.Nullable_long_).residentialCoveredCount'></a>
+
+`residentialCoveredCount` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The number of residential buildings of the part with a result for this radius and solver version, or null when it cannot be read\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationCountyResult.BuildingSolarRadiationCountyResult(int,double,int,long,System.Nullable_long_,System.Nullable_long_,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_,System.Nullable_long_).createdAtMin'></a>
+
+`createdAtMin` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.DateTimeOffset](https://learn.microsoft.com/en-us/dotnet/api/system.datetimeoffset 'System\.DateTimeOffset')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The earliest creation time of the results\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationCountyResult.BuildingSolarRadiationCountyResult(int,double,int,long,System.Nullable_long_,System.Nullable_long_,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_,System.Nullable_long_).createdAtMax'></a>
+
+`createdAtMax` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.DateTimeOffset](https://learn.microsoft.com/en-us/dotnet/api/system.datetimeoffset 'System\.DateTimeOffset')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The latest creation time of the results\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationCountyResult.BuildingSolarRadiationCountyResult(int,double,int,long,System.Nullable_long_,System.Nullable_long_,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_,System.Nullable_long_).partitionSize'></a>
+
+`partitionSize` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The total size, in bytes, of the part's partition, or null when it cannot be read\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationCountyResult.BuildingSolarRadiationCountyResult(System.Text.Json.Nodes.JsonObject)'></a>
+
+## BuildingSolarRadiationCountyResult\(JsonObject\) Constructor
+
+Initializes a new instance of the [BuildingSolarRadiationCountyResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationCountyResult 'DiGi\.GIS\.PostgreSQL\.Classes\.BuildingSolarRadiationCountyResult') class from a [System\.Text\.Json\.Nodes\.JsonObject](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.nodes.jsonobject 'System\.Text\.Json\.Nodes\.JsonObject')\.
+
+```csharp
+public BuildingSolarRadiationCountyResult(System.Text.Json.Nodes.JsonObject? jsonObject);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationCountyResult.BuildingSolarRadiationCountyResult(System.Text.Json.Nodes.JsonObject).jsonObject'></a>
+
+`jsonObject` [System\.Text\.Json\.Nodes\.JsonObject](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.nodes.jsonobject 'System\.Text\.Json\.Nodes\.JsonObject')
+
+The [System\.Text\.Json\.Nodes\.JsonObject](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.nodes.jsonobject 'System\.Text\.Json\.Nodes\.JsonObject') containing the serialized data\.
+### Properties
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationCountyResult.CountyId'></a>
+
+## BuildingSolarRadiationCountyResult\.CountyId Property
+
+Gets the identifier of the county part summarised\.
+
+```csharp
+public int CountyId { get; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationCountyResult.CreatedAtMax'></a>
+
+## BuildingSolarRadiationCountyResult\.CreatedAtMax Property
+
+Gets the latest creation time of the results\.
+
+A write for an existing key replaces `created_at`, so with [CreatedAtMin](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationCountyResult.CreatedAtMin 'DiGi\.GIS\.PostgreSQL\.Classes\.BuildingSolarRadiationCountyResult\.CreatedAtMin') it gives the wall-clock span of a fresh run, not of the first write ever.
+
+```csharp
+public System.Nullable<System.DateTimeOffset> CreatedAtMax { get; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.DateTimeOffset](https://learn.microsoft.com/en-us/dotnet/api/system.datetimeoffset 'System\.DateTimeOffset')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationCountyResult.CreatedAtMin'></a>
+
+## BuildingSolarRadiationCountyResult\.CreatedAtMin Property
+
+Gets the earliest creation time of the results\. A write for an existing key replaces `created_at`\.
+
+```csharp
+public System.Nullable<System.DateTimeOffset> CreatedAtMin { get; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.DateTimeOffset](https://learn.microsoft.com/en-us/dotnet/api/system.datetimeoffset 'System\.DateTimeOffset')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationCountyResult.PartitionSize'></a>
+
+## BuildingSolarRadiationCountyResult\.PartitionSize Property
+
+Gets the total size, in bytes, of the part's partition \- table, TOAST and indexes \(`pg_total_relation_size`\) \- or null when it cannot be read\. Every radius and solver version of a part carries the same value\.
+
+```csharp
+public System.Nullable<long> PartitionSize { get; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationCountyResult.Radius'></a>
+
+## BuildingSolarRadiationCountyResult\.Radius Property
+
+Gets the neighbour radius, in m, exactly as stored\.
+
+```csharp
+public double Radius { get; }
+```
+
+#### Property Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationCountyResult.ResidentialBuildingCount'></a>
+
+## BuildingSolarRadiationCountyResult\.ResidentialBuildingCount Property
+
+Gets the number of buildings of the part whose building data row is residential, or null when the database holds no building data or no residential column\. Every radius and solver version of a part carries the same value\.
+
+```csharp
+public System.Nullable<long> ResidentialBuildingCount { get; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationCountyResult.ResidentialCoveredCount'></a>
+
+## BuildingSolarRadiationCountyResult\.ResidentialCoveredCount Property
+
+Gets the number of residential buildings of the part with a result for this radius and solver version, or null when the database holds no building data or no residential column\.
+
+```csharp
+public System.Nullable<long> ResidentialCoveredCount { get; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationCountyResult.RowCount'></a>
+
+## BuildingSolarRadiationCountyResult\.RowCount Property
+
+Gets the number of results stored for the part, radius and solver version\.
+
+```csharp
+public long RowCount { get; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationCountyResult.SolverVersion'></a>
+
+## BuildingSolarRadiationCountyResult\.SolverVersion Property
+
+Gets the solver version\.
+
+```csharp
+public int SolverVersion { get; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
 <a name='DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationPostgreSQLConverter'></a>
 
 ## BuildingSolarRadiationPostgreSQLConverter Class
@@ -15924,6 +16160,102 @@ The token to monitor for cancellation requests\.
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.HashSet&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.hashset-1 'System\.Collections\.Generic\.HashSet\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.hashset-1 'System\.Collections\.Generic\.HashSet\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A task that represents the asynchronous operation\. The task result contains the references, empty when the county holds none or the table is missing, or null when the connection is null\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationPostgreSQLConverter.GetSummariesByCountyIdsAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_int_,System.Nullable_int_,DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter,int,System.Threading.CancellationToken)'></a>
+
+## BuildingSolarRadiationPostgreSQLConverter\.GetSummariesByCountyIdsAsync\(NpgsqlConnection, IEnumerable\<int\>, Nullable\<int\>, BuildingDataPostgreSQLConverter, int, CancellationToken\) Method
+
+Asynchronously summarises what each of the specified county parts holds per neighbour radius and solver version: how many results, how many of the part's residential buildings they cover, when they were written and how large the part's partition is \(DiGi\.GIS\.PostgreSQL\#138\)\.
+
+Every statement prunes partitions with `county_id = ANY(@county_ids)`. An unscoped read first lists the parts that hold results and then reads exactly those, so `building_data` is read only for parts with results (`Coding - PostgreSQL.md` §3). The partition size is taken from each row's own partition (`tableoid`), never from a built name.
+
+The residential counts join `building_data` on `(county_id, reference)`; both tables are on the Storage database. The residential column is resolved against the building data column list and quoted (§5); when the building data table or the column is missing the counts are null. The summary describes the database [npgsqlConnection](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationPostgreSQLConverter.GetSummariesByCountyIdsAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_int_,System.Nullable_int_,DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter,int,System.Threading.CancellationToken).npgsqlConnection 'DiGi\.GIS\.PostgreSQL\.Classes\.BuildingSolarRadiationPostgreSQLConverter\.GetSummariesByCountyIdsAsync\(Npgsql\.NpgsqlConnection, System\.Collections\.Generic\.IEnumerable\<int\>, System\.Nullable\<int\>, DiGi\.GIS\.PostgreSQL\.Classes\.BuildingDataPostgreSQLConverter, int, System\.Threading\.CancellationToken\)\.npgsqlConnection') points at.
+
+```csharp
+public static System.Threading.Tasks.Task<System.Collections.Generic.List<DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationCountyResult>?> GetSummariesByCountyIdsAsync(Npgsql.NpgsqlConnection? npgsqlConnection, System.Collections.Generic.IEnumerable<int>? countyIds, System.Nullable<int> solverVersion=null, DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter? buildingDataPostgreSQLConverter=null, int commandTimeout=600, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationPostgreSQLConverter.GetSummariesByCountyIdsAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_int_,System.Nullable_int_,DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter,int,System.Threading.CancellationToken).npgsqlConnection'></a>
+
+`npgsqlConnection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
+
+The [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection') used to execute the commands\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationPostgreSQLConverter.GetSummariesByCountyIdsAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_int_,System.Nullable_int_,DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter,int,System.Threading.CancellationToken).countyIds'></a>
+
+`countyIds` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The identifiers of the county parts to summarise\. When null every part holding results is summarised\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationPostgreSQLConverter.GetSummariesByCountyIdsAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_int_,System.Nullable_int_,DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter,int,System.Threading.CancellationToken).solverVersion'></a>
+
+`solverVersion` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The solver version to summarise; null summarises every version, one row per version\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationPostgreSQLConverter.GetSummariesByCountyIdsAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_int_,System.Nullable_int_,DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter,int,System.Threading.CancellationToken).buildingDataPostgreSQLConverter'></a>
+
+`buildingDataPostgreSQLConverter` [BuildingDataPostgreSQLConverter](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Classes\.BuildingDataPostgreSQLConverter')
+
+The building data converter whose table and column list the residential counts are read from; null for [BuildingDataPostgreSQLConverter](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Classes\.BuildingDataPostgreSQLConverter')\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationPostgreSQLConverter.GetSummariesByCountyIdsAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_int_,System.Nullable_int_,DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of each command\. A value of 0 disables the timeout\. Defaults to 600 seconds\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationPostgreSQLConverter.GetSummariesByCountyIdsAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_int_,System.Nullable_int_,DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken') to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[BuildingSolarRadiationCountyResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationCountyResult 'DiGi\.GIS\.PostgreSQL\.Classes\.BuildingSolarRadiationCountyResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task whose result carries one [BuildingSolarRadiationCountyResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationCountyResult 'DiGi\.GIS\.PostgreSQL\.Classes\.BuildingSolarRadiationCountyResult') per county part, radius and solver version holding results, ordered by county part, solver version and radius; empty when nothing is stored or the table is missing; null when the connection is null\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationPostgreSQLConverter.GetSummariesByCountyIdsAsync(System.Collections.Generic.IEnumerable_int_,System.Nullable_int_,int,System.Threading.CancellationToken)'></a>
+
+## BuildingSolarRadiationPostgreSQLConverter\.GetSummariesByCountyIdsAsync\(IEnumerable\<int\>, Nullable\<int\>, int, CancellationToken\) Method
+
+Asynchronously summarises what each of the specified county parts holds per neighbour radius and solver version, automatically managing the connection\.
+
+The residential counts are read from [BuildingDataPostgreSQLConverter](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Classes\.BuildingDataPostgreSQLConverter') on the same database (Storage).
+
+```csharp
+public System.Threading.Tasks.Task<System.Collections.Generic.List<DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationCountyResult>?> GetSummariesByCountyIdsAsync(System.Collections.Generic.IEnumerable<int>? countyIds, System.Nullable<int> solverVersion=null, int commandTimeout=600, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationPostgreSQLConverter.GetSummariesByCountyIdsAsync(System.Collections.Generic.IEnumerable_int_,System.Nullable_int_,int,System.Threading.CancellationToken).countyIds'></a>
+
+`countyIds` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The identifiers of the county parts to summarise\. When null every part holding results is summarised\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationPostgreSQLConverter.GetSummariesByCountyIdsAsync(System.Collections.Generic.IEnumerable_int_,System.Nullable_int_,int,System.Threading.CancellationToken).solverVersion'></a>
+
+`solverVersion` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The solver version to summarise; null summarises every version, one row per version\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationPostgreSQLConverter.GetSummariesByCountyIdsAsync(System.Collections.Generic.IEnumerable_int_,System.Nullable_int_,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of each command\. A value of 0 disables the timeout\. Defaults to 600 seconds\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationPostgreSQLConverter.GetSummariesByCountyIdsAsync(System.Collections.Generic.IEnumerable_int_,System.Nullable_int_,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken') to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[BuildingSolarRadiationCountyResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationCountyResult 'DiGi\.GIS\.PostgreSQL\.Classes\.BuildingSolarRadiationCountyResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task whose result carries one [BuildingSolarRadiationCountyResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationCountyResult 'DiGi\.GIS\.PostgreSQL\.Classes\.BuildingSolarRadiationCountyResult') per county part, radius and solver version holding results; empty when nothing is stored or the table is missing; null when no connection could be opened\.
 
 <a name='DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationPostgreSQLConverter.UpdateAsync(int,DiGi.GIS.Classes.BuildingSolarRadiationResult,int,System.Threading.CancellationToken)'></a>
 

@@ -154,6 +154,7 @@ Derived
 ↳ [BuildingDataCoverageResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.BuildingDataCoverageResult 'DiGi\.GIS\.PostgreSQL\.Classes\.BuildingDataCoverageResult')  
 ↳ [BuildingDatasetRelease](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease 'DiGi\.GIS\.PostgreSQL\.Classes\.BuildingDatasetRelease')  
 ↳ [BuildingDataYearBuiltUpdateResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.BuildingDataYearBuiltUpdateResult 'DiGi\.GIS\.PostgreSQL\.Classes\.BuildingDataYearBuiltUpdateResult')  
+↳ [BuildingSolarRadiationCountyResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationCountyResult 'DiGi\.GIS\.PostgreSQL\.Classes\.BuildingSolarRadiationCountyResult')  
 ↳ [ExternalComponentsAreaResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.ExternalComponentsAreaResult 'DiGi\.GIS\.PostgreSQL\.Classes\.ExternalComponentsAreaResult')  
 ↳ [OpenBuildingCountyResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingCountyResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingCountyResult')  
 ↳ [OpenBuildingImportResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingImportResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingImportResult')  

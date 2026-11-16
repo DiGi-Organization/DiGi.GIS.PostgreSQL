@@ -22,6 +22,7 @@ namespace DiGi.GIS.PostgreSQL.Solar.Classes
     /// Represents a background task that solves the annual solar radiation of every building of a county part for one or more neighbour radii and stores it in the building solar radiation table (DiGi.GIS.PostgreSQL#136).
     /// <para>Each building is solved exactly as the viewer solves it (DiGi.GIS.WebAPI.UI <c>SolarController</c>): the same building model detail level, the same neighbour circle (<c>DiGi.GIS.Analytical.Solar.Query.SolarNeighbourCircle</c>), the same nearest EPW station, the same solver options and solver version, and the same stored form - so a result does not depend on which of the two produced it. Radius 0 solves the building alone (<c>SolarRadiusIsolated</c>): it still shades and blocks the view of its own surfaces, but no neighbour does.</para>
     /// <para>A county part is solved in square tiles of <see cref="PostgreSQLBuildingSolarRadiationSolveOptions.TileSize"/>, by the centroid of each building, at most <see cref="PostgreSQLBuildingSolarRadiationSolveOptions.BatchSize"/> buildings at a time: one read of the batch's models, one read of every neighbour any of them can see at the largest radius, and one write of the batch's results. The neighbours of each building and radius are then picked in memory, as <c>gis/buildingmodel/itemsbycircle</c> picks them - every model whose bounding box lies within or intersects the building's circle.</para>
+    /// <para><see cref="PostgreSQLBuildingSolarRadiationSolveOptions.BuildingCountMax"/> cuts the walk of each part after its first buildings in that order (<see cref="Query.SolarSolveTiles"/>), for a pilot that still logs its part and run summaries (DiGi.GIS.PostgreSQL#138).</para>
     /// <para>A building that cannot be solved - no stored model, no location, no closed envelope, no weather, or above a ceiling - is counted and stepped over. A county part whose buildings, models or neighbours cannot be read, or whose results cannot be written, is failed and logged with the exception, and the run keeps going over the other parts; a run with a failed part reports itself as not succeeded. Batch rows carry no user email: no user asked for them.</para>
     /// </summary>
     public class PostgreSQLBuildingSolarRadiationSolveTask : ReportableBackgroundTask<long>, IGISPostgreSQLObject
@@ -78,7 +79,7 @@ namespace DiGi.GIS.PostgreSQL.Solar.Classes
         public PostgreSQLBuildingSolarRadiationSolveOptions PostgreSQLBuildingSolarRadiationSolveOptions { get; set; } = new();
 
         /// <summary>
-        /// Gets the number of buildings that were considered during the last run, whatever happened to them; the progress reported.
+        /// Gets the number of buildings that were considered during the last run, whatever happened to them; the progress reported. Buildings left out by <see cref="PostgreSQLBuildingSolarRadiationSolveOptions.BuildingCountMax"/> are not counted.
         /// </summary>
         public long ProcessedBuildingCount { get; private set; }
 
@@ -125,6 +126,7 @@ namespace DiGi.GIS.PostgreSQL.Solar.Classes
 
             int commandTimeout = PostgreSQLBuildingSolarRadiationSolveOptions.CommandTimeout;
             int batchSize = Math.Max(1, PostgreSQLBuildingSolarRadiationSolveOptions.BatchSize);
+            int? buildingCountMax = PostgreSQLBuildingSolarRadiationSolveOptions.BuildingCountMax is int buildingCountMax_Value ? Math.Max(1, buildingCountMax_Value) : null;
             double tileSize = Math.Max(1, PostgreSQLBuildingSolarRadiationSolveOptions.TileSize);
             bool skipExisting = PostgreSQLBuildingSolarRadiationSolveOptions.SkipExisting;
             int receiverCountMax = PostgreSQLBuildingSolarRadiationSolveOptions.ReceiverCountMax;
@@ -182,13 +184,14 @@ namespace DiGi.GIS.PostgreSQL.Solar.Classes
             HashSet<int>? countyIds = PostgreSQLBuildingSolarRadiationSolveOptions.CountyIds;
 
             Serilog.Modify.Log(
-                "{Type}: starting over {CountyCount} counties, scope {CountyScope}, radii {Radii} m, tile {TileSize} m, batch size {BatchSize}, skip existing {SkipExisting}, receiver ceiling {ReceiverCountMax}, caster ceiling {CasterTriangleCountMax}, solver version {SolverVersion}",
+                "{Type}: starting over {CountyCount} counties, scope {CountyScope}, radii {Radii} m, tile {TileSize} m, batch size {BatchSize}, building cap {BuildingCountMax}, skip existing {SkipExisting}, receiver ceiling {ReceiverCountMax}, caster ceiling {CasterTriangleCountMax}, solver version {SolverVersion}",
                 nameof(PostgreSQLBuildingSolarRadiationSolveTask),
                 countyReferences.Count,
                 countyIds is null ? "all" : string.Join(", ", countyIds),
                 string.Join(", ", radii.Select(x => x.ToString(CultureInfo.InvariantCulture))),
                 tileSize,
                 batchSize,
+                buildingCountMax is null ? "none" : buildingCountMax.Value.ToString(CultureInfo.InvariantCulture),
                 skipExisting,
                 receiverCountMax,
                 casterTriangleCountMax,
@@ -209,6 +212,8 @@ namespace DiGi.GIS.PostgreSQL.Solar.Classes
                 long countySolvedCount = 0;
                 long countySolveMilliseconds = 0;
                 long countyBuildingCount = 0;
+                long countyPendingCount = 0;
+                bool countyCapped = false;
 
                 // Weather files read for this part, by station id: a part uses a handful of stations, each read once.
                 Dictionary<int, EPWFile?> ePWFiles = [];
@@ -269,15 +274,14 @@ namespace DiGi.GIS.PostgreSQL.Solar.Classes
 
                     progress.Report(ProcessedBuildingCount);
 
-                    // Tiles in row order, buildings within a tile by reference, so a re-run walks the same batches.
-                    IEnumerable<IGrouping<(long, long), Building2DCentroid>> tiles = building2DCentroids_Pending
-                        .GroupBy(x => ((long)Math.Floor(x.X / tileSize), (long)Math.Floor(x.Y / tileSize)))
-                        .OrderBy(x => x.Key.Item2)
-                        .ThenBy(x => x.Key.Item1);
+                    // Tiles in row order, buildings within a tile by reference, so a re-run walks the same batches; the
+                    // cap cuts the walk after ordering, so a capped run solves a compact cluster.
+                    countyPendingCount = building2DCentroids_Pending.Count;
+                    countyCapped = buildingCountMax is not null && countyPendingCount > buildingCountMax.Value;
+                    List<List<string>> tiles = building2DCentroids_Pending.SolarSolveTiles(tileSize, buildingCountMax) ?? [];
 
-                    foreach (IGrouping<(long, long), Building2DCentroid> tile in tiles)
+                    foreach (List<string> references_Tile in tiles)
                     {
-                        List<string> references_Tile = [.. tile.Select(x => x.Reference!).OrderBy(x => x, StringComparer.Ordinal)];
                         for (int offset = 0; offset < references_Tile.Count; offset += batchSize)
                         {
                             cancellationToken.ThrowIfCancellationRequested();
@@ -313,10 +317,12 @@ namespace DiGi.GIS.PostgreSQL.Solar.Classes
                 ProcessedCountyCount++;
                 Serilog.Modify.Log(
                     Serilog.Enums.LogEventLevel.Information,
-                    "{Type}: county part {CountyId} processed - {BuildingCount} buildings solved for, {SolvedCount} results stored, {SolveMilliseconds} ms solving, {AverageMilliseconds} ms per result",
+                    "{Type}: county part {CountyId} processed - {BuildingCount} of {PendingCount} pending buildings solved for, capped {Capped}, {SolvedCount} results stored, {SolveMilliseconds} ms solving, {AverageMilliseconds} ms per result",
                     nameof(PostgreSQLBuildingSolarRadiationSolveTask),
                     countyId,
                     countyBuildingCount,
+                    countyPendingCount,
+                    countyCapped,
                     countySolvedCount,
                     countySolveMilliseconds,
                     countySolvedCount == 0 ? 0 : countySolveMilliseconds / countySolvedCount);

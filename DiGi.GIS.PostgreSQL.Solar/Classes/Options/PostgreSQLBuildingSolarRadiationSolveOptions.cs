@@ -37,6 +37,7 @@ namespace DiGi.GIS.PostgreSQL.Solar.Classes
             if (postgreSQLBuildingSolarRadiationSolveOptions is not null)
             {
                 BatchSize = postgreSQLBuildingSolarRadiationSolveOptions.BatchSize;
+                BuildingCountMax = postgreSQLBuildingSolarRadiationSolveOptions.BuildingCountMax;
                 CasterTriangleCountMax = postgreSQLBuildingSolarRadiationSolveOptions.CasterTriangleCountMax;
                 CommandTimeout = postgreSQLBuildingSolarRadiationSolveOptions.CommandTimeout;
                 CountyIds = postgreSQLBuildingSolarRadiationSolveOptions.CountyIds == null ? null : [.. postgreSQLBuildingSolarRadiationSolveOptions.CountyIds];
@@ -53,6 +54,13 @@ namespace DiGi.GIS.PostgreSQL.Solar.Classes
         /// </summary>
         [JsonInclude, JsonPropertyName(nameof(BatchSize))]
         public int BatchSize { get; set; } = 100;
+
+        /// <summary>
+        /// Gets or sets the largest number of buildings solved per county part. Null solves every pending building of the part; values below 1 are treated as 1.
+        /// <para>The cap applies to the buildings still pending after <see cref="SkipExisting"/>, cut after they are put in solve order (tiles by row, references ordinal within a tile), so a capped run solves a compact cluster with realistic neighbours, and a repeat run with <see cref="SkipExisting"/> takes the next buildings. Meant for a pilot that measures time and storage before a full run (DiGi.GIS.PostgreSQL#137, #138).</para>
+        /// </summary>
+        [JsonInclude, JsonPropertyName(nameof(BuildingCountMax))]
+        public int? BuildingCountMax { get; set; } = null;
 
         /// <summary>
         /// Gets or sets the largest number of shading-only triangles - neighbours and the building's own non-receiving components - one solve is run against; above it the building is skipped for that radius and counted.

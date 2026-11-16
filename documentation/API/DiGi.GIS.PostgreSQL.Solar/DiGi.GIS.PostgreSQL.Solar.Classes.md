@@ -76,6 +76,21 @@ public int BatchSize { get; set; }
 #### Property Value
 [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
 
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveOptions.BuildingCountMax'></a>
+
+## PostgreSQLBuildingSolarRadiationSolveOptions\.BuildingCountMax Property
+
+Gets or sets the largest number of buildings solved per county part\. Null solves every pending building of the part; values below 1 are treated as 1\.
+
+The cap applies to the buildings still pending after [SkipExisting](DiGi.GIS.PostgreSQL.Solar.Classes.md#DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveOptions.SkipExisting 'DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.PostgreSQLBuildingSolarRadiationSolveOptions\.SkipExisting'), cut after they are put in solve order (tiles by row, references ordinal within a tile), so a capped run solves a compact cluster with realistic neighbours, and a repeat run with [SkipExisting](DiGi.GIS.PostgreSQL.Solar.Classes.md#DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveOptions.SkipExisting 'DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.PostgreSQLBuildingSolarRadiationSolveOptions\.SkipExisting') takes the next buildings. Meant for a pilot that measures time and storage before a full run (DiGi.GIS.PostgreSQL#137, #138).
+
+```csharp
+public System.Nullable<int> BuildingCountMax { get; set; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
 <a name='DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveOptions.CasterTriangleCountMax'></a>
 
 ## PostgreSQLBuildingSolarRadiationSolveOptions\.CasterTriangleCountMax Property
@@ -188,6 +203,8 @@ Represents a background task that solves the annual solar radiation of every bui
 Each building is solved exactly as the viewer solves it (DiGi.GIS.WebAPI.UI `SolarController`): the same building model detail level, the same neighbour circle (`DiGi.GIS.Analytical.Solar.Query.SolarNeighbourCircle`), the same nearest EPW station, the same solver options and solver version, and the same stored form - so a result does not depend on which of the two produced it. Radius 0 solves the building alone (`SolarRadiusIsolated`): it still shades and blocks the view of its own surfaces, but no neighbour does.
 
 A county part is solved in square tiles of [TileSize](DiGi.GIS.PostgreSQL.Solar.Classes.md#DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveOptions.TileSize 'DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.PostgreSQLBuildingSolarRadiationSolveOptions\.TileSize'), by the centroid of each building, at most [BatchSize](DiGi.GIS.PostgreSQL.Solar.Classes.md#DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveOptions.BatchSize 'DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.PostgreSQLBuildingSolarRadiationSolveOptions\.BatchSize') buildings at a time: one read of the batch's models, one read of every neighbour any of them can see at the largest radius, and one write of the batch's results. The neighbours of each building and radius are then picked in memory, as `gis/buildingmodel/itemsbycircle` picks them - every model whose bounding box lies within or intersects the building's circle.
+
+[BuildingCountMax](DiGi.GIS.PostgreSQL.Solar.Classes.md#DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveOptions.BuildingCountMax 'DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.PostgreSQLBuildingSolarRadiationSolveOptions\.BuildingCountMax') cuts the walk of each part after its first buildings in that order ([SolarSolveTiles\(this IEnumerable&lt;Building2DCentroid&gt;, double, Nullable&lt;int&gt;\)](DiGi.GIS.PostgreSQL.Solar.md#DiGi.GIS.PostgreSQL.Solar.Query.SolarSolveTiles(thisSystem.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.Building2DCentroid_,double,System.Nullable_int_) 'DiGi\.GIS\.PostgreSQL\.Solar\.Query\.SolarSolveTiles\(this System\.Collections\.Generic\.IEnumerable\<DiGi\.GIS\.PostgreSQL\.Classes\.Building2DCentroid\>, double, System\.Nullable\<int\>\)')), for a pilot that still logs its part and run summaries (DiGi.GIS.PostgreSQL#138).
 
 A building that cannot be solved - no stored model, no location, no closed envelope, no weather, or above a ceiling - is counted and stepped over. A county part whose buildings, models or neighbours cannot be read, or whose results cannot be written, is failed and logged with the exception, and the run keeps going over the other parts; a run with a failed part reports itself as not succeeded. Batch rows carry no user email: no user asked for them.
 
@@ -327,7 +344,7 @@ public DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveOp
 
 ## PostgreSQLBuildingSolarRadiationSolveTask\.ProcessedBuildingCount Property
 
-Gets the number of buildings that were considered during the last run, whatever happened to them; the progress reported\.
+Gets the number of buildings that were considered during the last run, whatever happened to them; the progress reported\. Buildings left out by [BuildingCountMax](DiGi.GIS.PostgreSQL.Solar.Classes.md#DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveOptions.BuildingCountMax 'DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.PostgreSQLBuildingSolarRadiationSolveOptions\.BuildingCountMax') are not counted\.
 
 ```csharp
 public long ProcessedBuildingCount { get; private set; }

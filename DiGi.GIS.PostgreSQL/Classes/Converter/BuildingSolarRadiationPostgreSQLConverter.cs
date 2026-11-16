@@ -618,5 +618,202 @@ namespace DiGi.GIS.PostgreSQL.Classes
             await npgsqlConnection.OpenAsync(cancellationToken);
             return await GetItemsByReferencesAsync(npgsqlConnection, references, countyId, commandTimeout, radius, cancellationToken);
         }
+
+        /// <summary>
+        /// Asynchronously summarises what each of the specified county parts holds per neighbour radius and solver version: how many results, how many of the part's residential buildings they cover, when they were written and how large the part's partition is (DiGi.GIS.PostgreSQL#138).
+        /// <para>Every statement prunes partitions with <c>county_id = ANY(@county_ids)</c>. An unscoped read first lists the parts that hold results and then reads exactly those, so <c>building_data</c> is read only for parts with results (<c>Coding - PostgreSQL.md</c> §3). The partition size is taken from each row's own partition (<c>tableoid</c>), never from a built name.</para>
+        /// <para>The residential counts join <c>building_data</c> on <c>(county_id, reference)</c>; both tables are on the Storage database. The residential column is resolved against the building data column list and quoted (§5); when the building data table or the column is missing the counts are null. The summary describes the database <paramref name="npgsqlConnection"/> points at.</para>
+        /// </summary>
+        /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> used to execute the commands.</param>
+        /// <param name="countyIds">The identifiers of the county parts to summarise. When null every part holding results is summarised.</param>
+        /// <param name="solverVersion">The solver version to summarise; null summarises every version, one row per version.</param>
+        /// <param name="buildingDataPostgreSQLConverter">The building data converter whose table and column list the residential counts are read from; null for <see cref="BuildingDataPostgreSQLConverter"/>.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of each command. A value of 0 disables the timeout. Defaults to 600 seconds.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> to monitor for cancellation requests.</param>
+        /// <returns>A task whose result carries one <see cref="BuildingSolarRadiationCountyResult"/> per county part, radius and solver version holding results, ordered by county part, solver version and radius; empty when nothing is stored or the table is missing; null when the connection is null.</returns>
+        public static async Task<List<BuildingSolarRadiationCountyResult>?> GetSummariesByCountyIdsAsync(NpgsqlConnection? npgsqlConnection, IEnumerable<int>? countyIds, int? solverVersion = null, BuildingDataPostgreSQLConverter? buildingDataPostgreSQLConverter = null, int commandTimeout = 600, CancellationToken cancellationToken = default)
+        {
+            if (npgsqlConnection is null)
+            {
+                return null;
+            }
+
+            if (!await DiGi.PostgreSQL.Query.TableExistsAsync(npgsqlConnection, TableName, commandTimeout, cancellationToken))
+            {
+                return [];
+            }
+
+            List<BuildingSolarRadiationCountyResult> result = [];
+            int[] countyIds_Array = [];
+            try
+            {
+                // The parts to read: the given ones, or every part holding results. Either way the statements below run
+                // with a literal ANY(@county_ids), never "@x IS NULL OR ..." (Coding - PostgreSQL.md §3).
+                if (countyIds is not null)
+                {
+                    countyIds_Array = [.. countyIds.Distinct()];
+                }
+                else
+                {
+                    List<int> countyIds_Stored = [];
+                    await using NpgsqlCommand npgsqlCommand_CountyIds = new($"SELECT DISTINCT county_id FROM {TableName} ORDER BY county_id;", npgsqlConnection);
+                    npgsqlCommand_CountyIds.CommandTimeout = commandTimeout;
+                    await using (NpgsqlDataReader npgsqlDataReader = await npgsqlCommand_CountyIds.ExecuteReaderAsync(cancellationToken))
+                    {
+                        while (await npgsqlDataReader.ReadAsync(cancellationToken))
+                        {
+                            countyIds_Stored.Add(npgsqlDataReader.GetInt32(0));
+                        }
+                    }
+
+                    countyIds_Array = [.. countyIds_Stored];
+                }
+
+                if (countyIds_Array.Length == 0)
+                {
+                    return result;
+                }
+
+                string solverVersionClause = solverVersion is null ? string.Empty : " AND solver_version = @solver_version";
+
+                // One row per part, radius and solver version; a part is one partition, so grouping by tableoid splits nothing.
+                List<(int CountyId, double Radius, int SolverVersion, long RowCount, DateTimeOffset? CreatedAtMin, DateTimeOffset? CreatedAtMax, long PartitionSize)> rows = [];
+                string commandText = $@"
+                    SELECT county_id, radius, solver_version, COUNT(*), MIN(created_at), MAX(created_at), pg_total_relation_size(tableoid)
+                    FROM {TableName}
+                    WHERE county_id = ANY(@county_ids){solverVersionClause}
+                    GROUP BY county_id, radius, solver_version, tableoid
+                    ORDER BY county_id, solver_version, radius;";
+
+                await using (NpgsqlCommand npgsqlCommand = new(commandText, npgsqlConnection))
+                {
+                    npgsqlCommand.CommandTimeout = commandTimeout;
+                    AddParameters(npgsqlCommand);
+
+                    await using NpgsqlDataReader npgsqlDataReader = await npgsqlCommand.ExecuteReaderAsync(cancellationToken);
+                    while (await npgsqlDataReader.ReadAsync(cancellationToken))
+                    {
+                        rows.Add((
+                            npgsqlDataReader.GetInt32(0),
+                            npgsqlDataReader.GetDouble(1),
+                            npgsqlDataReader.GetInt32(2),
+                            npgsqlDataReader.GetInt64(3),
+                            npgsqlDataReader.IsDBNull(4) ? null : npgsqlDataReader.GetFieldValue<DateTimeOffset>(4),
+                            npgsqlDataReader.IsDBNull(5) ? null : npgsqlDataReader.GetFieldValue<DateTimeOffset>(5),
+                            npgsqlDataReader.GetInt64(6)));
+                    }
+                }
+
+                if (rows.Count == 0)
+                {
+                    return result;
+                }
+
+                // The residential column, resolved against the building data column list and quoted (§5).
+                buildingDataPostgreSQLConverter ??= new BuildingDataPostgreSQLConverter(null);
+                string tableName_BuildingData = buildingDataPostgreSQLConverter.TableName;
+                string? uniqueId_IsResidential = Core.IO.Query.UniqueId(IO.Constants.Column.IsResidential);
+
+                bool residential = false;
+                if (!string.IsNullOrWhiteSpace(uniqueId_IsResidential) && await DiGi.PostgreSQL.Query.TableExistsAsync(npgsqlConnection, tableName_BuildingData, commandTimeout, cancellationToken))
+                {
+                    List<Core.IO.Table.Classes.Column>? columns = await buildingDataPostgreSQLConverter.GetColumnsByUniqueIdsAsync(npgsqlConnection, [uniqueId_IsResidential!], commandTimeout, cancellationToken);
+                    residential = columns is not null && columns.Exists(x => x is not null && Core.IO.Query.UniqueId(x) == uniqueId_IsResidential);
+                }
+
+                Dictionary<int, long> residentialBuildingCounts = [];
+                Dictionary<(int, double, int), long> residentialCoveredCounts = [];
+                if (residential)
+                {
+                    NpgsqlCommandBuilder npgsqlCommandBuilder = new();
+                    string tableName_BuildingData_Quoted = npgsqlCommandBuilder.QuoteIdentifier(tableName_BuildingData);
+                    string columnName_IsResidential_Quoted = npgsqlCommandBuilder.QuoteIdentifier(uniqueId_IsResidential!);
+
+                    string commandText_Residential = $@"
+                        SELECT county_id, COUNT(*)
+                        FROM {tableName_BuildingData_Quoted}
+                        WHERE county_id = ANY(@county_ids)
+                          AND {columnName_IsResidential_Quoted} IS TRUE
+                        GROUP BY county_id;";
+
+                    await using (NpgsqlCommand npgsqlCommand = new(commandText_Residential, npgsqlConnection))
+                    {
+                        npgsqlCommand.CommandTimeout = commandTimeout;
+                        AddParameters(npgsqlCommand);
+
+                        await using NpgsqlDataReader npgsqlDataReader = await npgsqlCommand.ExecuteReaderAsync(cancellationToken);
+                        while (await npgsqlDataReader.ReadAsync(cancellationToken))
+                        {
+                            residentialBuildingCounts[npgsqlDataReader.GetInt32(0)] = npgsqlDataReader.GetInt64(1);
+                        }
+                    }
+
+                    string commandText_Covered = $@"
+                        SELECT s.county_id, s.radius, s.solver_version, COUNT(DISTINCT s.reference)
+                        FROM {TableName} s
+                        JOIN {tableName_BuildingData_Quoted} b ON b.county_id = s.county_id AND b.reference = s.reference
+                        WHERE s.county_id = ANY(@county_ids)
+                          AND b.county_id = ANY(@county_ids)
+                          AND b.{columnName_IsResidential_Quoted} IS TRUE{(solverVersion is null ? string.Empty : " AND s.solver_version = @solver_version")}
+                        GROUP BY s.county_id, s.radius, s.solver_version;";
+
+                    await using (NpgsqlCommand npgsqlCommand = new(commandText_Covered, npgsqlConnection))
+                    {
+                        npgsqlCommand.CommandTimeout = commandTimeout;
+                        AddParameters(npgsqlCommand);
+
+                        await using NpgsqlDataReader npgsqlDataReader = await npgsqlCommand.ExecuteReaderAsync(cancellationToken);
+                        while (await npgsqlDataReader.ReadAsync(cancellationToken))
+                        {
+                            residentialCoveredCounts[(npgsqlDataReader.GetInt32(0), npgsqlDataReader.GetDouble(1), npgsqlDataReader.GetInt32(2))] = npgsqlDataReader.GetInt64(3);
+                        }
+                    }
+                }
+
+                foreach ((int countyId, double radius, int solverVersion_Row, long rowCount, DateTimeOffset? createdAtMin, DateTimeOffset? createdAtMax, long partitionSize) in rows)
+                {
+                    long? residentialBuildingCount = residential ? (residentialBuildingCounts.TryGetValue(countyId, out long count_Building) ? count_Building : 0) : null;
+                    long? residentialCoveredCount = residential ? (residentialCoveredCounts.TryGetValue((countyId, radius, solverVersion_Row), out long count_Covered) ? count_Covered : 0) : null;
+
+                    result.Add(new BuildingSolarRadiationCountyResult(countyId, radius, solverVersion_Row, rowCount, residentialBuildingCount, residentialCoveredCount, createdAtMin, createdAtMax, partitionSize));
+                }
+            }
+            catch (PostgresException postgresException) when (postgresException.SqlState == PostgresErrorCodes.UndefinedTable)
+            {
+                return [];
+            }
+
+            return result;
+
+            void AddParameters(NpgsqlCommand npgsqlCommand_Parameters)
+            {
+                npgsqlCommand_Parameters.Parameters.Add(new NpgsqlParameter("county_ids", NpgsqlDbType.Array | NpgsqlDbType.Integer) { Value = countyIds_Array });
+                if (solverVersion is not null)
+                {
+                    npgsqlCommand_Parameters.Parameters.Add(new NpgsqlParameter("solver_version", NpgsqlDbType.Integer) { Value = solverVersion.Value });
+                }
+            }
+        }
+
+        /// <summary>
+        /// Asynchronously summarises what each of the specified county parts holds per neighbour radius and solver version, automatically managing the connection.
+        /// <para>The residential counts are read from <see cref="BuildingDataPostgreSQLConverter"/> on the same database (Storage).</para>
+        /// </summary>
+        /// <param name="countyIds">The identifiers of the county parts to summarise. When null every part holding results is summarised.</param>
+        /// <param name="solverVersion">The solver version to summarise; null summarises every version, one row per version.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of each command. A value of 0 disables the timeout. Defaults to 600 seconds.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> to monitor for cancellation requests.</param>
+        /// <returns>A task whose result carries one <see cref="BuildingSolarRadiationCountyResult"/> per county part, radius and solver version holding results; empty when nothing is stored or the table is missing; null when no connection could be opened.</returns>
+        public async Task<List<BuildingSolarRadiationCountyResult>?> GetSummariesByCountyIdsAsync(IEnumerable<int>? countyIds, int? solverVersion = null, int commandTimeout = 600, CancellationToken cancellationToken = default)
+        {
+            await using NpgsqlConnection? npgsqlConnection = DiGi.PostgreSQL.Create.NpgsqlConnection(ConnectionData);
+            if (npgsqlConnection is null)
+            {
+                return null;
+            }
+
+            await npgsqlConnection.OpenAsync(cancellationToken);
+            return await GetSummariesByCountyIdsAsync(npgsqlConnection, countyIds, solverVersion, buildingDataPostgreSQLConverter: null, commandTimeout: commandTimeout, cancellationToken: cancellationToken);
+        }
     }
 }
