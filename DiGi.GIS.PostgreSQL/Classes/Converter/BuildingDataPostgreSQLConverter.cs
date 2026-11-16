@@ -6,6 +6,7 @@ using DiGi.PostgreSQL.Table.Classes;
 using DiGi.PostgreSQL.Table.Enums;
 using Npgsql;
 using NpgsqlTypes;
+using System;
 using System.Globalization;
 using System.Threading;
 using System.Collections.Generic;
@@ -234,10 +235,11 @@ namespace DiGi.GIS.PostgreSQL.Classes
 
         /// <summary>
         /// Asynchronously retrieves a table based on the specified references, county identifier, and optional column filters.
+        /// <para>Without <paramref name="countyId"/> the rows are read by <c>reference</c> across every partition (no partition pruning) and answered in request order. A reference is unique only per county part, so it may answer several rows; project <c>county_id</c> to tell them apart. A reference stored nowhere answers one row holding only the reference (DiGi.GIS.PostgreSQL#140).</para>
         /// </summary>
         /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> instance used to communicate with the PostgreSQL database; may be null.</param>
         /// <param name="references">An <see cref="IEnumerable{T}"/> of <see cref="string"/> values representing the references to be pulled.</param>
-        /// <param name="countyId">An optional integer identifying the specific county.</param>
+        /// <param name="countyId">An optional integer identifying the county part that holds the references; null reads every partition.</param>
         /// <param name="columnUniqueIds">An optional <see cref="IEnumerable{T}"/> of <see cref="string"/> unique identifiers for columns to include in the operation.</param>
         /// <param name="batchSize">The integer number of records to process per batch. Defaults to 1000.</param>
         /// <param name="fallbackByReference">A boolean value indicating whether to perform a fallback query without county filtering for references not found in the specified county.</param>
@@ -273,7 +275,84 @@ namespace DiGi.GIS.PostgreSQL.Classes
                     return null;
                 }
 
-                Core.IO.Table.Classes.Column? column_CountyId = countyId is null ? null : table.UpdateColumn<Core.IO.Table.Classes.Column>(IO.Constants.Column.CountyId);
+                if (countyId is null)
+                {
+                    // Without a county the rows cannot be seeded and merged: the merge key is (county_id, reference), so a
+                    // seed carrying county_id = NULL matched no stored row and every projected column came back null
+                    // (DiGi.GIS.PostgreSQL#140). The rows are read by reference alone instead - across every partition,
+                    // a separate statement from the county-scoped one - and laid out in request order afterwards.
+                    if (column_Reference.UniqueId() is not string uniqueId_Reference)
+                    {
+                        return null;
+                    }
+
+                    string[] references_Distinct = [.. references.Where(x => x is not null).Distinct(StringComparer.Ordinal)];
+                    int batchSize_Temp = batchSize < 1 ? 1000 : batchSize;
+
+                    Core.IO.Table.Classes.Table table_Read = new(columns);
+                    table_Read.UpdateColumn<Core.IO.Table.Classes.Column>(IO.Constants.Column.Reference);
+
+                    for (int i = 0; i < references_Distinct.Length; i += batchSize_Temp)
+                    {
+                        string[] references_Batch = [.. references_Distinct.Skip(i).Take(batchSize_Temp)];
+                        if (!await PullAsync(npgsqlConnection, table_Read, uniqueId_Reference, references_Batch, commandTimeout, cancellationToken))
+                        {
+                            return null;
+                        }
+                    }
+
+                    // A reference is unique only per county part, so one reference may answer several rows; each is kept.
+                    Dictionary<string, List<Core.IO.Table.Classes.Row>> rows_ByReference = new(StringComparer.Ordinal);
+                    foreach (Core.IO.Table.Classes.Row row in table_Read.Rows)
+                    {
+                        if (row[column_Reference.Index] is not string reference_Read)
+                        {
+                            continue;
+                        }
+
+                        if (!rows_ByReference.TryGetValue(reference_Read, out List<Core.IO.Table.Classes.Row>? rows))
+                        {
+                            rows = [];
+                            rows_ByReference[reference_Read] = rows;
+                        }
+
+                        rows.Add(row);
+                    }
+
+                    foreach (string reference in references_Distinct)
+                    {
+                        if (!rows_ByReference.TryGetValue(reference, out List<Core.IO.Table.Classes.Row>? rows))
+                        {
+                            // Stored nowhere: the reference-only row the seeded read has always answered.
+                            table.AddRow(new Dictionary<int, object?>() { [column_Reference.Index] = reference });
+                            continue;
+                        }
+
+                        foreach (Core.IO.Table.Classes.Row row in rows)
+                        {
+                            Dictionary<int, object?> values = [];
+                            foreach (Core.IO.Table.Classes.Column column in table_Read.Columns)
+                            {
+                                if (column.Name is null)
+                                {
+                                    continue;
+                                }
+
+                                int index = table.GetColumnIndex(column.Name);
+                                if (index != -1)
+                                {
+                                    values[index] = row[column.Index];
+                                }
+                            }
+
+                            table.AddRow(values);
+                        }
+                    }
+
+                    return table;
+                }
+
+                Core.IO.Table.Classes.Column? column_CountyId = table.UpdateColumn<Core.IO.Table.Classes.Column>(IO.Constants.Column.CountyId);
 
                 foreach (string reference in references)
                 {
@@ -481,9 +560,10 @@ namespace DiGi.GIS.PostgreSQL.Classes
 
         /// <summary>
         /// Asynchronously retrieves a table based on the specified references, county identifier, and optional column filters.
+        /// <para>Without <paramref name="countyId"/> the rows are read by <c>reference</c> across every partition and may answer several rows per reference, one per county part holding it (DiGi.GIS.PostgreSQL#140); the overload taking a connection describes the layout.</para>
         /// </summary>
         /// <param name="references">An <see cref="IEnumerable{T}"/> of <see cref="string"/> containing the references to pull.</param>
-        /// <param name="countyId">An optional <see cref="int"/> representing the unique identifier of the county.</param>
+        /// <param name="countyId">An optional <see cref="int"/> identifying the county part that holds the references; null reads every partition.</param>
         /// <param name="columnUniqueIds">An optional <see cref="IEnumerable{T}"/> of <see cref="string"/> specifying the unique identifiers of the columns to retrieve.</param>
         /// <param name="batchSize">An <see cref="int"/> specifying the number of records to process per batch. Defaults to 1000.</param>
         /// <param name="fallbackByReference">A boolean value indicating whether to perform a fallback query without county filtering for references not found in the specified county.</param>

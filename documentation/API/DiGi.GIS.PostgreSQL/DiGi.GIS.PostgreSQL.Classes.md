@@ -12863,6 +12863,8 @@ A task representing the async operation, returning the populated [DiGi\.Core\.IO
 
 Asynchronously retrieves a table based on the specified references, county identifier, and optional column filters\.
 
+Without [countyId](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.PullAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_string_,System.Nullable_int_,System.Collections.Generic.IEnumerable_string_,int,bool,int,System.Threading.CancellationToken).countyId 'DiGi\.GIS\.PostgreSQL\.Classes\.BuildingDataPostgreSQLConverter\.PullAsync\(Npgsql\.NpgsqlConnection, System\.Collections\.Generic\.IEnumerable\<string\>, System\.Nullable\<int\>, System\.Collections\.Generic\.IEnumerable\<string\>, int, bool, int, System\.Threading\.CancellationToken\)\.countyId') the rows are read by `reference` across every partition (no partition pruning) and answered in request order. A reference is unique only per county part, so it may answer several rows; project `county_id` to tell them apart. A reference stored nowhere answers one row holding only the reference (DiGi.GIS.PostgreSQL#140).
+
 ```csharp
 public System.Threading.Tasks.Task<DiGi.Core.IO.Table.Classes.Table?> PullAsync(Npgsql.NpgsqlConnection? npgsqlConnection, System.Collections.Generic.IEnumerable<string> references, System.Nullable<int> countyId, System.Collections.Generic.IEnumerable<string>? columnUniqueIds=null, int batchSize=1000, bool fallbackByReference=false, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
 ```
@@ -12884,7 +12886,7 @@ An [System\.Collections\.Generic\.IEnumerable&lt;&gt;](https://learn.microsoft.c
 
 `countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
-An optional integer identifying the specific county\.
+An optional integer identifying the county part that holds the references; null reads every partition\.
 
 <a name='DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.PullAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_string_,System.Nullable_int_,System.Collections.Generic.IEnumerable_string_,int,bool,int,System.Threading.CancellationToken).columnUniqueIds'></a>
 
@@ -12926,6 +12928,8 @@ A task that represents the asynchronous operation\. The task result contains a [
 
 Asynchronously retrieves a table based on the specified references, county identifier, and optional column filters\.
 
+Without [countyId](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.PullAsync(System.Collections.Generic.IEnumerable_string_,System.Nullable_int_,System.Collections.Generic.IEnumerable_string_,int,bool,int,System.Threading.CancellationToken).countyId 'DiGi\.GIS\.PostgreSQL\.Classes\.BuildingDataPostgreSQLConverter\.PullAsync\(System\.Collections\.Generic\.IEnumerable\<string\>, System\.Nullable\<int\>, System\.Collections\.Generic\.IEnumerable\<string\>, int, bool, int, System\.Threading\.CancellationToken\)\.countyId') the rows are read by `reference` across every partition and may answer several rows per reference, one per county part holding it (DiGi.GIS.PostgreSQL#140); the overload taking a connection describes the layout.
+
 ```csharp
 public System.Threading.Tasks.Task<DiGi.Core.IO.Table.Classes.Table?> PullAsync(System.Collections.Generic.IEnumerable<string> references, System.Nullable<int> countyId, System.Collections.Generic.IEnumerable<string>? columnUniqueIds=null, int batchSize=1000, bool fallbackByReference=false, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
 ```
@@ -12941,7 +12945,7 @@ An [System\.Collections\.Generic\.IEnumerable&lt;&gt;](https://learn.microsoft.c
 
 `countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
-An optional [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32') representing the unique identifier of the county\.
+An optional [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32') identifying the county part that holds the references; null reads every partition\.
 
 <a name='DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.PullAsync(System.Collections.Generic.IEnumerable_string_,System.Nullable_int_,System.Collections.Generic.IEnumerable_string_,int,bool,int,System.Threading.CancellationToken).columnUniqueIds'></a>
 
