@@ -122,16 +122,27 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// <summary>
         /// Asynchronously pulls the building data rows matching a dynamic hierarchical filter group, opening one connection for the whole read.
         /// <para>Prefer this over resolving the columns and pulling in two calls on the converter: each of those opens a connection of its own, and this one resolves the columns and reads the rows over the same connection.</para>
+        /// <para>With <paramref name="orderBy"/> or <paramref name="limit"/> the rows come back ordered (<c>NULLS LAST</c> in both directions) and capped, with a deterministic tie-break on <c>reference</c> appended when the caller does not sort by it — the top-N read of DiGi-Organization/DiGi.GIS.WebAPI#84.</para>
         /// </summary>
         /// <param name="filterGroup">The dynamic hierarchical filters the rows must match. May be null when <paramref name="countyId"/> is given, which then reads the whole county.</param>
         /// <param name="countyId">The optional partition county identifier. If null, the read spans every partition unless <paramref name="filterGroup"/> restricts <c>county_id</c> itself.</param>
         /// <param name="columnUniqueIds">The optional unique identifiers of the columns to return. Null or empty returns every stored column.</param>
         /// <param name="batchSize">The number of records to process per batch. Defaults to 1000.</param>
+        /// <param name="orderBy">The optional sort conditions applied to the read, in order; null or empty reads unordered. A column the stored table does not hold throws <see cref="InvalidFilterException"/>.</param>
+        /// <param name="limit">The optional maximum number of rows to return; null reads every matching row. A value below 1 is refused.</param>
         /// <param name="commandTimeout">The timeout in seconds for the execution of each command. A value of 0 disables the timeout.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the matching rows (a table with no rows when nothing matches), or null when no connection could be built, no requested column is stored, or neither a filter nor a county was given.</returns>
-        /// <exception cref="InvalidFilterException">A filter names a column the stored table does not hold, or carries a value that cannot be converted to the column's type.</exception>
-        public async Task<Core.IO.Table.Classes.Table?> PullByFilterGroupAsync(FilterGroup? filterGroup, int? countyId = null, IEnumerable<string>? columnUniqueIds = null, int batchSize = 1000, int commandTimeout = 30, CancellationToken cancellationToken = default)
+        /// <exception cref="InvalidFilterException">A filter or sort condition names a column the stored table does not hold, or carries a value that cannot be converted to the column's type.</exception>
+        public async Task<Core.IO.Table.Classes.Table?> PullByFilterGroupAsync(
+            FilterGroup? filterGroup,
+            int? countyId = null,
+            IEnumerable<string>? columnUniqueIds = null,
+            int batchSize = 1000,
+            IReadOnlyList<SortCondition>? orderBy = null,
+            int? limit = null,
+            int commandTimeout = 30,
+            CancellationToken cancellationToken = default)
         {
             await using NpgsqlConnection? npgsqlConnection = DiGi.PostgreSQL.Create.NpgsqlConnection(ConnectionData);
             if (npgsqlConnection is null)
@@ -141,23 +152,35 @@ namespace DiGi.GIS.PostgreSQL.Classes
 
             await npgsqlConnection.OpenAsync(cancellationToken);
 
-            return await PullByFilterGroupAsync(npgsqlConnection, filterGroup, countyId, columnUniqueIds, batchSize, commandTimeout, cancellationToken);
+            return await PullByFilterGroupAsync(npgsqlConnection, filterGroup, countyId, columnUniqueIds, batchSize, orderBy: orderBy, limit: limit, commandTimeout: commandTimeout, cancellationToken: cancellationToken);
         }
 
         /// <summary>
         /// Asynchronously pulls the building data rows matching a dynamic hierarchical filter group over an already open connection.
         /// <para>The county is folded into the filters rather than written into the statement, so the read goes through the base pull: it resolves <c>county_id</c> against the stored column list like any other filter column. A <c>county_id</c> condition the caller put in <paramref name="filterGroup"/> is left as it is and ANDed with <paramref name="countyId"/>, so a conflicting pair answers no rows.</para>
+        /// <para>With <paramref name="orderBy"/> or <paramref name="limit"/> the rows come back ordered (<c>NULLS LAST</c> in both directions) and capped, with a deterministic tie-break on <c>reference</c> appended when the caller does not sort by it (DiGi-Organization/DiGi.GIS.WebAPI#84).</para>
         /// </summary>
         /// <param name="npgsqlConnection">The open connection the pull is executed on. This value can be null.</param>
         /// <param name="filterGroup">The dynamic hierarchical filters the rows must match. May be null when <paramref name="countyId"/> is given, which then reads the whole county.</param>
         /// <param name="countyId">The optional partition county identifier. If null, the read spans every partition unless <paramref name="filterGroup"/> restricts <c>county_id</c> itself.</param>
         /// <param name="columnUniqueIds">The optional unique identifiers of the columns to return. Null or empty returns every stored column.</param>
         /// <param name="batchSize">The number of records to process per batch. Defaults to 1000.</param>
+        /// <param name="orderBy">The optional sort conditions applied to the read, in order; null or empty reads unordered. A column the stored table does not hold throws <see cref="InvalidFilterException"/>.</param>
+        /// <param name="limit">The optional maximum number of rows to return; null reads every matching row. A value below 1 is refused.</param>
         /// <param name="commandTimeout">The timeout in seconds for the execution of each command. A value of 0 disables the timeout.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the matching rows (a table with no rows when nothing matches), or null when the connection is null, no requested column is stored, or neither a filter nor a county was given.</returns>
-        /// <exception cref="InvalidFilterException">A filter names a column the stored table does not hold, or carries a value that cannot be converted to the column's type.</exception>
-        public async Task<Core.IO.Table.Classes.Table?> PullByFilterGroupAsync(NpgsqlConnection? npgsqlConnection, FilterGroup? filterGroup, int? countyId = null, IEnumerable<string>? columnUniqueIds = null, int batchSize = 1000, int commandTimeout = 30, CancellationToken cancellationToken = default)
+        /// <exception cref="InvalidFilterException">A filter or sort condition names a column the stored table does not hold, or carries a value that cannot be converted to the column's type.</exception>
+        public async Task<Core.IO.Table.Classes.Table?> PullByFilterGroupAsync(
+            NpgsqlConnection? npgsqlConnection,
+            FilterGroup? filterGroup,
+            int? countyId = null,
+            IEnumerable<string>? columnUniqueIds = null,
+            int batchSize = 1000,
+            IReadOnlyList<SortCondition>? orderBy = null,
+            int? limit = null,
+            int commandTimeout = 30,
+            CancellationToken cancellationToken = default)
         {
             if (npgsqlConnection is null || (filterGroup is null && countyId is null))
             {
@@ -192,7 +215,19 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 };
             }
 
-            bool isSuccess = await PullAsync(npgsqlConnection, table, filterGroup_Combined, batchSize, commandTimeout, cancellationToken);
+            // Equal sort values (and a bare limit) must answer the same rows in the same order on every call, so a
+            // deterministic tie-break on reference is appended whenever the caller orders and does not already sort by
+            // it (DiGi-Organization/DiGi.GIS.WebAPI#84).
+            IReadOnlyList<SortCondition>? sortConditions = orderBy;
+            bool orderingActive = limit is not null || (orderBy?.Any(x => x is not null && !string.IsNullOrWhiteSpace(x.ColumnUniqueId)) ?? false);
+            if (orderingActive && !(orderBy?.Any(x => x is not null && x.ColumnUniqueId == IO.Constants.Column.Reference.UniqueId()) ?? false))
+            {
+                List<SortCondition> sortConditions_Temp = orderBy is null ? [] : [.. orderBy];
+                sortConditions_Temp.Add(new SortCondition() { ColumnUniqueId = IO.Constants.Column.Reference.UniqueId(), Descending = false });
+                sortConditions = sortConditions_Temp;
+            }
+
+            bool isSuccess = await PullAsync(npgsqlConnection, table, filterGroup_Combined, batchSize, orderBy: sortConditions, limit: limit, commandTimeout: commandTimeout, cancellationToken: cancellationToken);
 
             return isSuccess ? table : null;
         }
