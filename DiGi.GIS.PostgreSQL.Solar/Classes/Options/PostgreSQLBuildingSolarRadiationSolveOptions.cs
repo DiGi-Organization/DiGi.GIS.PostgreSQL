@@ -41,6 +41,7 @@ namespace DiGi.GIS.PostgreSQL.Solar.Classes
                 CasterTriangleCountMax = postgreSQLBuildingSolarRadiationSolveOptions.CasterTriangleCountMax;
                 CommandTimeout = postgreSQLBuildingSolarRadiationSolveOptions.CommandTimeout;
                 CountyIds = postgreSQLBuildingSolarRadiationSolveOptions.CountyIds == null ? null : [.. postgreSQLBuildingSolarRadiationSolveOptions.CountyIds];
+                MaxDegreeOfParallelism = postgreSQLBuildingSolarRadiationSolveOptions.MaxDegreeOfParallelism;
                 Radii = postgreSQLBuildingSolarRadiationSolveOptions.Radii == null ? null : [.. postgreSQLBuildingSolarRadiationSolveOptions.Radii];
                 ReceiverCountMax = postgreSQLBuildingSolarRadiationSolveOptions.ReceiverCountMax;
                 SkipExisting = postgreSQLBuildingSolarRadiationSolveOptions.SkipExisting;
@@ -81,6 +82,13 @@ namespace DiGi.GIS.PostgreSQL.Solar.Classes
         /// </summary>
         [JsonInclude, JsonPropertyName(nameof(CountyIds))]
         public HashSet<int>? CountyIds { get; set; } = null;
+
+        /// <summary>
+        /// Gets or sets the largest number of building and radius solves of a batch run at once. 0 or less is automatic - half the logical processors, since the solver also parallelises inside each solve; 1 solves one at a time, as before DiGi.GIS.PostgreSQL#139.
+        /// <para>The stored results do not depend on it: each solve builds its own shading model and only reads the building models.</para>
+        /// </summary>
+        [JsonInclude, JsonPropertyName(nameof(MaxDegreeOfParallelism))]
+        public int MaxDegreeOfParallelism { get; set; } = 0;
 
         /// <summary>
         /// Gets or sets the neighbour radii, in m, every building is solved for. Each is rounded to 0.1 m (<c>DiGi.GIS.Analytical.Solar.Query.SolarRadiusKey</c>), the value it is stored under; a negative or non-finite radius is ignored, and null or empty solves nothing.

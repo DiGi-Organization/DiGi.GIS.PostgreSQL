@@ -7,7 +7,7 @@ using DiGi.GIS.Analytical.Solar;
 using DiGi.GIS.PostgreSQL.Classes;
 using DiGi.GIS.PostgreSQL.Enums;
 using DiGi.GIS.PostgreSQL.Interfaces;
-using DiGi.Solar.Classes;
+using DiGi.GIS.PostgreSQL.Solar.Enums;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -22,6 +22,7 @@ namespace DiGi.GIS.PostgreSQL.Solar.Classes
     /// Represents a background task that solves the annual solar radiation of every building of a county part for one or more neighbour radii and stores it in the building solar radiation table (DiGi.GIS.PostgreSQL#136).
     /// <para>Each building is solved exactly as the viewer solves it (DiGi.GIS.WebAPI.UI <c>SolarController</c>): the same building model detail level, the same neighbour circle (<c>DiGi.GIS.Analytical.Solar.Query.SolarNeighbourCircle</c>), the same nearest EPW station, the same solver options and solver version, and the same stored form - so a result does not depend on which of the two produced it. Radius 0 solves the building alone (<c>SolarRadiusIsolated</c>): it still shades and blocks the view of its own surfaces, but no neighbour does.</para>
     /// <para>A county part is solved in square tiles of <see cref="PostgreSQLBuildingSolarRadiationSolveOptions.TileSize"/>, by the centroid of each building, at most <see cref="PostgreSQLBuildingSolarRadiationSolveOptions.BatchSize"/> buildings at a time: one read of the batch's models, one read of every neighbour any of them can see at the largest radius, and one write of the batch's results. The neighbours of each building and radius are then picked in memory, as <c>gis/buildingmodel/itemsbycircle</c> picks them - every model whose bounding box lies within or intersects the building's circle.</para>
+    /// <para>The jobs of a batch - one per building and pending radius - are solved several at a time (<see cref="PostgreSQLBuildingSolarRadiationSolveOptions.MaxDegreeOfParallelism"/>, <see cref="Query.BuildingSolarRadiationSolveOutcomes"/>), and the next batch is read while they run; the results are still written one batch at a time, in order, and counted in job order, so the counts, failure samples and stored results are those of a sequential run (DiGi.GIS.PostgreSQL#139). Each batch logs the time spent waiting for its read, solving and writing. A cancellation waits for the solves in flight.</para>
     /// <para><see cref="PostgreSQLBuildingSolarRadiationSolveOptions.BuildingCountMax"/> cuts the walk of each part after its first buildings in that order (<see cref="Query.SolarSolveTiles"/>), for a pilot that still logs its part and run summaries (DiGi.GIS.PostgreSQL#138).</para>
     /// <para>A building that cannot be solved - no stored model, no location, no closed envelope, no weather, or above a ceiling - is counted and stepped over. A county part whose buildings, models or neighbours cannot be read, or whose results cannot be written, is failed and logged with the exception, and the run keeps going over the other parts; a run with a failed part reports itself as not succeeded. Batch rows carry no user email: no user asked for them.</para>
     /// </summary>
@@ -183,8 +184,10 @@ namespace DiGi.GIS.PostgreSQL.Solar.Classes
 
             HashSet<int>? countyIds = PostgreSQLBuildingSolarRadiationSolveOptions.CountyIds;
 
+            int maxDegreeOfParallelism = PostgreSQLBuildingSolarRadiationSolveOptions.MaxDegreeOfParallelism > 0 ? PostgreSQLBuildingSolarRadiationSolveOptions.MaxDegreeOfParallelism : Math.Max(1, Core.Query.ProcessorCount(0.5));
+
             Serilog.Modify.Log(
-                "{Type}: starting over {CountyCount} counties, scope {CountyScope}, radii {Radii} m, tile {TileSize} m, batch size {BatchSize}, building cap {BuildingCountMax}, skip existing {SkipExisting}, receiver ceiling {ReceiverCountMax}, caster ceiling {CasterTriangleCountMax}, solver version {SolverVersion}",
+                "{Type}: starting over {CountyCount} counties, scope {CountyScope}, radii {Radii} m, tile {TileSize} m, batch size {BatchSize}, building cap {BuildingCountMax}, skip existing {SkipExisting}, receiver ceiling {ReceiverCountMax}, caster ceiling {CasterTriangleCountMax}, max degree of parallelism {MaxDegreeOfParallelism} (used {DegreeOfParallelism}), solver version {SolverVersion}",
                 nameof(PostgreSQLBuildingSolarRadiationSolveTask),
                 countyReferences.Count,
                 countyIds is null ? "all" : string.Join(", ", countyIds),
@@ -195,6 +198,8 @@ namespace DiGi.GIS.PostgreSQL.Solar.Classes
                 skipExisting,
                 receiverCountMax,
                 casterTriangleCountMax,
+                PostgreSQLBuildingSolarRadiationSolveOptions.MaxDegreeOfParallelism,
+                maxDegreeOfParallelism,
                 solverVersion);
 
             foreach (AdministrativeAreal2DReference? countyReference in countyReferences.OrderBy(x => x?.Id ?? int.MaxValue))
@@ -211,12 +216,19 @@ namespace DiGi.GIS.PostgreSQL.Solar.Classes
                 bool countyFailed = false;
                 long countySolvedCount = 0;
                 long countySolveMilliseconds = 0;
+                long countyReadMilliseconds = 0;
+                long countySolveWallMilliseconds = 0;
+                long countyWriteMilliseconds = 0;
                 long countyBuildingCount = 0;
                 long countyPendingCount = 0;
                 bool countyCapped = false;
 
-                // Weather files read for this part, by station id: a part uses a handful of stations, each read once.
+                // Weather files read for this part, by station id: a part uses a handful of stations, each read once. Only
+                // the read of a batch touches it, and a batch is read only once the previous read has finished.
                 Dictionary<int, EPWFile?> ePWFiles = [];
+
+                // The read of the next batch, started while the current one is solved; awaited before the part is left.
+                Task<BuildingSolarRadiationSolveBatch>? task_Next = null;
 
                 try
                 {
@@ -275,26 +287,95 @@ namespace DiGi.GIS.PostgreSQL.Solar.Classes
                     progress.Report(ProcessedBuildingCount);
 
                     // Tiles in row order, buildings within a tile by reference, so a re-run walks the same batches; the
-                    // cap cuts the walk after ordering, so a capped run solves a compact cluster.
+                    // cap cuts the walk after ordering, so a capped run solves a compact cluster. The batches of every tile
+                    // form one walk, so the read-ahead crosses tile boundaries.
                     countyPendingCount = building2DCentroids_Pending.Count;
                     countyCapped = buildingCountMax is not null && countyPendingCount > buildingCountMax.Value;
                     List<List<string>> tiles = building2DCentroids_Pending.SolarSolveTiles(tileSize, buildingCountMax) ?? [];
 
+                    List<List<string>> references_Batches = [];
                     foreach (List<string> references_Tile in tiles)
                     {
                         for (int offset = 0; offset < references_Tile.Count; offset += batchSize)
                         {
-                            cancellationToken.ThrowIfCancellationRequested();
-
-                            List<string> references_Batch = references_Tile.GetRange(offset, Math.Min(batchSize, references_Tile.Count - offset));
-                            (long solvedCount, long solveMilliseconds) = await SolveBatchAsync(countyId, references_Batch, radii_ByReference);
-
-                            countySolvedCount += solvedCount;
-                            countySolveMilliseconds += solveMilliseconds;
-                            countyBuildingCount += references_Batch.Count;
-                            ProcessedBuildingCount += references_Batch.Count;
-                            progress.Report(ProcessedBuildingCount);
+                            references_Batches.Add(references_Tile.GetRange(offset, Math.Min(batchSize, references_Tile.Count - offset)));
                         }
+                    }
+
+                    if (references_Batches.Count != 0)
+                    {
+                        task_Next = ReadBatchAsync(countyId, references_Batches[0], radii_ByReference);
+                    }
+
+                    for (int batchIndex = 0; batchIndex < references_Batches.Count; batchIndex++)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        Stopwatch stopwatch = Stopwatch.StartNew();
+                        BuildingSolarRadiationSolveBatch buildingSolarRadiationSolveBatch = await task_Next!;
+                        long readMilliseconds = stopwatch.ElapsedMilliseconds;
+
+                        task_Next = batchIndex + 1 < references_Batches.Count ? ReadBatchAsync(countyId, references_Batches[batchIndex + 1], radii_ByReference) : null;
+
+                        // The solve leaves the asynchronous flow, so the next read goes on while the jobs run.
+                        stopwatch.Restart();
+                        List<BuildingSolarRadiationSolveOutcome> buildingSolarRadiationSolveOutcomes = buildingSolarRadiationSolveBatch.BuildingSolarRadiationSolveJobs.Count == 0
+                            ? []
+                            : await Task.Run(() => buildingSolarRadiationSolveBatch.BuildingSolarRadiationSolveJobs.BuildingSolarRadiationSolveOutcomes(buildingSolarRadiationSolveBatch.Neighbours, casterTriangleCountMax, maxDegreeOfParallelism, cancellationToken), cancellationToken);
+                        long solveWallMilliseconds = stopwatch.ElapsedMilliseconds;
+
+                        // The results are collected in job order and written in one statement per batch.
+                        List<GIS.Classes.BuildingSolarRadiationResult> results = [];
+                        long solveMilliseconds = 0;
+                        foreach (BuildingSolarRadiationSolveOutcome buildingSolarRadiationSolveOutcome in buildingSolarRadiationSolveOutcomes)
+                        {
+                            solveMilliseconds += buildingSolarRadiationSolveOutcome.Milliseconds;
+                            if (buildingSolarRadiationSolveOutcome.BuildingSolarRadiationSolveOutcomeType == BuildingSolarRadiationSolveOutcomeType.Solved && buildingSolarRadiationSolveOutcome.BuildingSolarRadiationResult is not null)
+                            {
+                                results.Add(buildingSolarRadiationSolveOutcome.BuildingSolarRadiationResult);
+                            }
+                        }
+
+                        // Counted before the write, as a sequential run counts a building it steps over before it writes.
+                        Aggregate(countyId, buildingSolarRadiationSolveBatch, buildingSolarRadiationSolveOutcomes);
+
+                        stopwatch.Restart();
+                        if (results.Count != 0)
+                        {
+                            int? written = await buildingSolarRadiationPostgreSQLConverter.UpdateAsync(countyId, results, commandTimeout, cancellationToken);
+                            if (written is null)
+                            {
+                                throw new InvalidOperationException(string.Format(CultureInfo.InvariantCulture, "the {0} results of a batch could not be written", results.Count));
+                            }
+                        }
+
+                        long writeMilliseconds = stopwatch.ElapsedMilliseconds;
+
+                        SolvedCount += results.Count;
+                        SolveMilliseconds += solveMilliseconds;
+                        countySolvedCount += results.Count;
+                        countySolveMilliseconds += solveMilliseconds;
+                        countyReadMilliseconds += readMilliseconds;
+                        countySolveWallMilliseconds += solveWallMilliseconds;
+                        countyWriteMilliseconds += writeMilliseconds;
+                        countyBuildingCount += buildingSolarRadiationSolveBatch.BuildingCount;
+                        ProcessedBuildingCount += buildingSolarRadiationSolveBatch.BuildingCount;
+                        progress.Report(ProcessedBuildingCount);
+
+                        Serilog.Modify.Log(
+                            Serilog.Enums.LogEventLevel.Information,
+                            "{Type}: county part {CountyId} batch {BatchNumber} of {BatchCount} - {BuildingCount} buildings, {JobCount} jobs, {ResultCount} results, {ReadMilliseconds} ms waiting for the read, {SolveWallMilliseconds} ms solve wall, {SolveMilliseconds} ms solve summed, {WriteMilliseconds} ms writing",
+                            nameof(PostgreSQLBuildingSolarRadiationSolveTask),
+                            countyId,
+                            batchIndex + 1,
+                            references_Batches.Count,
+                            buildingSolarRadiationSolveBatch.BuildingCount,
+                            buildingSolarRadiationSolveBatch.BuildingSolarRadiationSolveJobs.Count,
+                            results.Count,
+                            readMilliseconds,
+                            solveWallMilliseconds,
+                            solveMilliseconds,
+                            writeMilliseconds);
                     }
                 }
                 catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -307,6 +388,22 @@ namespace DiGi.GIS.PostgreSQL.Solar.Classes
                     AddFailureSample(string.Format(CultureInfo.InvariantCulture, "county {0}: {1}", countyId, exception.Message));
                     Serilog.Modify.Log(exception, "{Type}: county part {CountyId} failed after {SolvedCount} results", nameof(PostgreSQLBuildingSolarRadiationSolveTask), countyId, countySolvedCount);
                 }
+                finally
+                {
+                    // A read still in flight when the part stops is finished and observed before anything else starts; what
+                    // it found is dropped with the part.
+                    if (task_Next is not null)
+                    {
+                        try
+                        {
+                            await task_Next;
+                        }
+                        catch (Exception)
+                        {
+                            // Observed only: the part has already stopped for its own reason.
+                        }
+                    }
+                }
 
                 if (countyFailed)
                 {
@@ -317,7 +414,7 @@ namespace DiGi.GIS.PostgreSQL.Solar.Classes
                 ProcessedCountyCount++;
                 Serilog.Modify.Log(
                     Serilog.Enums.LogEventLevel.Information,
-                    "{Type}: county part {CountyId} processed - {BuildingCount} of {PendingCount} pending buildings solved for, capped {Capped}, {SolvedCount} results stored, {SolveMilliseconds} ms solving, {AverageMilliseconds} ms per result",
+                    "{Type}: county part {CountyId} processed - {BuildingCount} of {PendingCount} pending buildings solved for, capped {Capped}, {SolvedCount} results stored, {SolveMilliseconds} ms solving, {AverageMilliseconds} ms per result, {ReadMilliseconds} ms waiting for reads, {SolveWallMilliseconds} ms solve wall, {WriteMilliseconds} ms writing, degree of parallelism {DegreeOfParallelism}",
                     nameof(PostgreSQLBuildingSolarRadiationSolveTask),
                     countyId,
                     countyBuildingCount,
@@ -325,15 +422,25 @@ namespace DiGi.GIS.PostgreSQL.Solar.Classes
                     countyCapped,
                     countySolvedCount,
                     countySolveMilliseconds,
-                    countySolvedCount == 0 ? 0 : countySolveMilliseconds / countySolvedCount);
+                    countySolvedCount == 0 ? 0 : countySolveMilliseconds / countySolvedCount,
+                    countyReadMilliseconds,
+                    countySolveWallMilliseconds,
+                    countyWriteMilliseconds,
+                    maxDegreeOfParallelism);
 
                 ePWFiles.Clear();
 
-                // Solves one batch of buildings of the part for their pending radii and writes the results in one statement.
-                // Throws when the batch's models or neighbours cannot be read or its results cannot be written; a building
-                // that cannot be solved is counted, not thrown.
-                async Task<(long SolvedCount, long SolveMilliseconds)> SolveBatchAsync(int countyId_Batch, List<string> references_Batch, Dictionary<string, List<double>> radii_ByReference_Batch)
+                // Reads one batch of buildings of the part: the stored models, the neighbours any of them can see at the
+                // largest radius and the weather of each, and turns them into solve jobs. It counts nothing - it runs while
+                // the previous batch is solved - and records the buildings it steps over, in order. Throws when the models or
+                // neighbours cannot be read.
+                async Task<BuildingSolarRadiationSolveBatch> ReadBatchAsync(int countyId_Batch, List<string> references_Batch, Dictionary<string, List<double>> radii_ByReference_Batch)
                 {
+                    List<(string? Reference, BuildingSolarRadiationSolveOutcomeType BuildingSolarRadiationSolveOutcomeType, int Count, string? Reason)> issues = [];
+                    List<(string Reference, int Count, bool HasWeather)> receivers_Batch = [];
+                    List<BuildingSolarRadiationSolveJob> buildingSolarRadiationSolveJobs = [];
+                    List<(DiGi.Analytical.Building.Classes.BuildingModel BuildingModel, double XMin, double YMin, double XMax, double YMax)> neighbours = [];
+
                     List<BuildingModel>? buildingModels_Stored = await buildingModelPostgreSQLConverter.GetItemsByReferencesAsync(references_Batch, countyId_Batch, null, true, commandTimeout: commandTimeout, cancellationToken: cancellationToken);
                     if (buildingModels_Stored is null)
                     {
@@ -357,44 +464,45 @@ namespace DiGi.GIS.PostgreSQL.Solar.Classes
 
                         if (!GIS.Analytical.Modify.UpdateBuildingInformation(buildingModel))
                         {
-                            NotSolvable(reference!, radii_Building.Count, "it cannot be located");
+                            issues.Add((reference, BuildingSolarRadiationSolveOutcomeType.NotSolvable, radii_Building.Count, "it cannot be located"));
                             continue;
                         }
 
                         Dictionary<string, Vector3D>? normals = buildingModel.SolarReceiverNormals();
                         if (normals is null || normals.Count == 0)
                         {
-                            NotSolvable(reference!, radii_Building.Count, "it has no closed external envelope");
+                            issues.Add((reference, BuildingSolarRadiationSolveOutcomeType.NotSolvable, radii_Building.Count, "it has no closed external envelope"));
                             continue;
                         }
 
                         if (normals.Count > receiverCountMax)
                         {
-                            OverCeilingCount += radii_Building.Count;
+                            issues.Add((reference, BuildingSolarRadiationSolveOutcomeType.OverCeiling, radii_Building.Count, null));
                             continue;
                         }
 
                         Circle2D? circle2D = buildingModel.SolarNeighbourCircle(radius_Max);
                         if (circle2D is null)
                         {
-                            NotSolvable(reference!, radii_Building.Count, "it has no bounding box");
+                            issues.Add((reference, BuildingSolarRadiationSolveOutcomeType.NotSolvable, radii_Building.Count, "it has no bounding box"));
                             continue;
                         }
 
                         receivers.Add((buildingModel, reference!, normals, circle2D));
                     }
 
+                    // A building with no stored model is counted without a sample.
                     foreach (string reference in references_Batch)
                     {
                         if (!references_Found.Contains(reference))
                         {
-                            NotSolvableCount += radii_ByReference_Batch[reference].Count;
+                            issues.Add((null, BuildingSolarRadiationSolveOutcomeType.NotSolvable, radii_ByReference_Batch[reference].Count, null));
                         }
                     }
 
                     if (receivers.Count == 0)
                     {
-                        return (0, 0);
+                        return new BuildingSolarRadiationSolveBatch(references_Batch.Count, buildingSolarRadiationSolveJobs, neighbours, issues, receivers_Batch);
                     }
 
                     // Every neighbour any receiver can see at the largest radius, in one read: the smallest circle around the
@@ -412,7 +520,6 @@ namespace DiGi.GIS.PostgreSQL.Solar.Classes
                     }
 
                     // The planar bounding box of each neighbour, computed once for every receiver and radius.
-                    List<(DiGi.Analytical.Building.Classes.BuildingModel BuildingModel, double XMin, double YMin, double XMax, double YMax)> neighbours = [];
                     foreach ((int _, DiGi.Analytical.Building.Classes.BuildingModel buildingModel_Neighbour) in neighbours_Batch)
                     {
                         BoundingBox3D? boundingBox3D = buildingModel_Neighbour.GetBoundingBox();
@@ -424,9 +531,7 @@ namespace DiGi.GIS.PostgreSQL.Solar.Classes
                         }
                     }
 
-                    List<GIS.Classes.BuildingSolarRadiationResult> results = [];
-                    long solveMilliseconds_Batch = 0;
-
+                    // The weather of each receiver, read before the solve and kept for the part.
                     foreach ((DiGi.Analytical.Building.Classes.BuildingModel buildingModel, string reference, Dictionary<string, Vector3D> normals, Circle2D _) in receivers)
                     {
                         Point2D? centre = buildingModel.SolarNeighbourCircle(0)?.Center;
@@ -441,78 +546,18 @@ namespace DiGi.GIS.PostgreSQL.Solar.Classes
                         List<double> radii_Building = radii_ByReference_Batch[reference];
                         if (ePWFileId is null || ePWFile is null)
                         {
-                            NotSolvable(reference, radii_Building.Count, "no weather file could be read for it");
+                            receivers_Batch.Add((reference, radii_Building.Count, false));
                             continue;
                         }
 
+                        receivers_Batch.Add((reference, radii_Building.Count, true));
                         foreach (double radius in radii_Building)
                         {
-                            cancellationToken.ThrowIfCancellationRequested();
-
-                            try
-                            {
-                                Stopwatch stopwatch = Stopwatch.StartNew();
-
-                                List<DiGi.Analytical.Building.Classes.BuildingModel>? buildingModels_Surrounding = null;
-                                if (radius > 0)
-                                {
-                                    Circle2D? circle2D = buildingModel.SolarNeighbourCircle(radius);
-                                    buildingModels_Surrounding = circle2D is null ? [] : [.. neighbours.Where(x => Intersects(circle2D, x.XMin, x.YMin, x.XMax, x.YMax)).Select(x => x.BuildingModel)];
-                                }
-
-                                ShadingModel? shadingModel = buildingModel.ToSolar(buildingModels_Surrounding, x => new GuidReference(x).ToString() is string reference_Component && normals.ContainsKey(reference_Component));
-                                if (shadingModel is null)
-                                {
-                                    NotSolvable(reference, 1, "it cannot be converted into a shading model");
-                                    continue;
-                                }
-
-                                if (shadingModel.CasterTriangleCount() > casterTriangleCountMax)
-                                {
-                                    OverCeilingCount++;
-                                    continue;
-                                }
-
-                                List<GIS.Classes.SurfaceSolarRadiation>? surfaceSolarRadiations = shadingModel.SurfaceSolarRadiations(normals, ePWFile, Analytical.Solar.Create.SolarShadingSolverOptions());
-
-                                stopwatch.Stop();
-                                solveMilliseconds_Batch += stopwatch.ElapsedMilliseconds;
-
-                                GIS.Classes.BuildingSolarRadiationResult? buildingSolarRadiationResult = buildingModel.BuildingSolarRadiationResult(countyId_Batch, radius, ePWFileId.Value, surfaceSolarRadiations);
-                                if (buildingSolarRadiationResult is null)
-                                {
-                                    Failed(reference, radius, "the solve produced no result that can be stored");
-                                    continue;
-                                }
-
-                                results.Add(buildingSolarRadiationResult);
-                            }
-                            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-                            {
-                                throw;
-                            }
-                            catch (Exception exception)
-                            {
-                                Failed(reference, radius, exception.Message);
-                                Serilog.Modify.Log(exception, "{Type}: building {Reference} of county part {CountyId} failed at radius {Radius} m", nameof(PostgreSQLBuildingSolarRadiationSolveTask), reference, countyId_Batch, radius);
-                            }
+                            buildingSolarRadiationSolveJobs.Add(new BuildingSolarRadiationSolveJob(buildingModel, reference, normals, radius, countyId_Batch, ePWFileId.Value, ePWFile));
                         }
                     }
 
-                    if (results.Count == 0)
-                    {
-                        return (0, solveMilliseconds_Batch);
-                    }
-
-                    int? written = await buildingSolarRadiationPostgreSQLConverter.UpdateAsync(countyId_Batch, results, commandTimeout, cancellationToken);
-                    if (written is null)
-                    {
-                        throw new InvalidOperationException(string.Format(CultureInfo.InvariantCulture, "the {0} results of a batch could not be written", results.Count));
-                    }
-
-                    SolvedCount += results.Count;
-                    SolveMilliseconds += solveMilliseconds_Batch;
-                    return (results.Count, solveMilliseconds_Batch);
+                    return new BuildingSolarRadiationSolveBatch(references_Batch.Count, buildingSolarRadiationSolveJobs, neighbours, issues, receivers_Batch);
                 }
             }
 
@@ -530,6 +575,65 @@ namespace DiGi.GIS.PostgreSQL.Solar.Classes
                 SolveMilliseconds);
 
             return FailedCountyCount == 0;
+
+            // Counts a solved and written batch in the order a sequential run met its buildings: the buildings stepped over
+            // while reading, then receiver by receiver its missing weather or its outcomes, radius by radius.
+            void Aggregate(int countyId_Batch, BuildingSolarRadiationSolveBatch buildingSolarRadiationSolveBatch, List<BuildingSolarRadiationSolveOutcome> buildingSolarRadiationSolveOutcomes)
+            {
+                foreach ((string? reference, BuildingSolarRadiationSolveOutcomeType buildingSolarRadiationSolveOutcomeType, int count, string? reason) in buildingSolarRadiationSolveBatch.Issues)
+                {
+                    if (buildingSolarRadiationSolveOutcomeType == BuildingSolarRadiationSolveOutcomeType.OverCeiling)
+                    {
+                        OverCeilingCount += count;
+                    }
+                    else if (reference is null || reason is null)
+                    {
+                        NotSolvableCount += count;
+                    }
+                    else
+                    {
+                        NotSolvable(reference, count, reason);
+                    }
+                }
+
+                int index = 0;
+                foreach ((string reference, int count, bool hasWeather) in buildingSolarRadiationSolveBatch.Receivers)
+                {
+                    if (!hasWeather)
+                    {
+                        NotSolvable(reference, count, "no weather file could be read for it");
+                        continue;
+                    }
+
+                    for (int i = 0; i < count && index < buildingSolarRadiationSolveOutcomes.Count; i++, index++)
+                    {
+                        BuildingSolarRadiationSolveOutcome buildingSolarRadiationSolveOutcome = buildingSolarRadiationSolveOutcomes[index];
+                        double radius = buildingSolarRadiationSolveOutcome.BuildingSolarRadiationSolveJob.Radius;
+                        switch (buildingSolarRadiationSolveOutcome.BuildingSolarRadiationSolveOutcomeType)
+                        {
+                            case BuildingSolarRadiationSolveOutcomeType.Solved:
+                                break;
+
+                            case BuildingSolarRadiationSolveOutcomeType.NotSolvable:
+                                NotSolvable(reference, 1, buildingSolarRadiationSolveOutcome.Reason ?? "it cannot be solved");
+                                break;
+
+                            case BuildingSolarRadiationSolveOutcomeType.OverCeiling:
+                                OverCeilingCount++;
+                                break;
+
+                            default:
+                                Failed(reference, radius, buildingSolarRadiationSolveOutcome.Reason ?? "the solve did not run");
+                                if (buildingSolarRadiationSolveOutcome.Exception is Exception exception)
+                                {
+                                    Serilog.Modify.Log(exception, "{Type}: building {Reference} of county part {CountyId} failed at radius {Radius} m", nameof(PostgreSQLBuildingSolarRadiationSolveTask), reference, countyId_Batch, radius);
+                                }
+
+                                break;
+                        }
+                    }
+                }
+            }
 
             void NotSolvable(string reference, int count, string reason)
             {
@@ -551,23 +655,6 @@ namespace DiGi.GIS.PostgreSQL.Solar.Classes
             {
                 failureSamples.Add(text);
             }
-        }
-
-        // Whether a planar bounding box lies within or intersects a circle, as gis/buildingmodel/itemsbycircle selects a
-        // building by its footprint's bounding box (widened by the default distance tolerance).
-        private static bool Intersects(Circle2D circle2D, double xMin, double yMin, double xMax, double yMax)
-        {
-            Point2D? center = circle2D.Center;
-            if (center is null)
-            {
-                return false;
-            }
-
-            double dx = Math.Max(Math.Max(xMin - center.X, 0), center.X - xMax);
-            double dy = Math.Max(Math.Max(yMin - center.Y, 0), center.Y - yMax);
-            double radius = circle2D.Radius + Core.Constants.Tolerance.Distance;
-
-            return (dx * dx) + (dy * dy) <= radius * radius;
         }
     }
 }
