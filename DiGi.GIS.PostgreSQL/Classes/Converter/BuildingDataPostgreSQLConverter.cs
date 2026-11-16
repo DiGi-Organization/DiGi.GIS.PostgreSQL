@@ -120,6 +120,84 @@ namespace DiGi.GIS.PostgreSQL.Classes
         }
 
         /// <summary>
+        /// Asynchronously pulls the building data rows matching a dynamic hierarchical filter group, opening one connection for the whole read.
+        /// <para>Prefer this over resolving the columns and pulling in two calls on the converter: each of those opens a connection of its own, and this one resolves the columns and reads the rows over the same connection.</para>
+        /// </summary>
+        /// <param name="filterGroup">The dynamic hierarchical filters the rows must match. May be null when <paramref name="countyId"/> is given, which then reads the whole county.</param>
+        /// <param name="countyId">The optional partition county identifier. If null, the read spans every partition unless <paramref name="filterGroup"/> restricts <c>county_id</c> itself.</param>
+        /// <param name="columnUniqueIds">The optional unique identifiers of the columns to return. Null or empty returns every stored column.</param>
+        /// <param name="batchSize">The number of records to process per batch. Defaults to 1000.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of each command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the matching rows (a table with no rows when nothing matches), or null when no connection could be built, no requested column is stored, or neither a filter nor a county was given.</returns>
+        /// <exception cref="InvalidFilterException">A filter names a column the stored table does not hold, or carries a value that cannot be converted to the column's type.</exception>
+        public async Task<Core.IO.Table.Classes.Table?> PullByFilterGroupAsync(FilterGroup? filterGroup, int? countyId = null, IEnumerable<string>? columnUniqueIds = null, int batchSize = 1000, int commandTimeout = 30, CancellationToken cancellationToken = default)
+        {
+            await using NpgsqlConnection? npgsqlConnection = DiGi.PostgreSQL.Create.NpgsqlConnection(ConnectionData);
+            if (npgsqlConnection is null)
+            {
+                return null;
+            }
+
+            await npgsqlConnection.OpenAsync(cancellationToken);
+
+            return await PullByFilterGroupAsync(npgsqlConnection, filterGroup, countyId, columnUniqueIds, batchSize, commandTimeout, cancellationToken);
+        }
+
+        /// <summary>
+        /// Asynchronously pulls the building data rows matching a dynamic hierarchical filter group over an already open connection.
+        /// <para>The county is folded into the filters rather than written into the statement, so the read goes through the base pull: it resolves <c>county_id</c> against the stored column list like any other filter column. A <c>county_id</c> condition the caller put in <paramref name="filterGroup"/> is left as it is and ANDed with <paramref name="countyId"/>, so a conflicting pair answers no rows.</para>
+        /// </summary>
+        /// <param name="npgsqlConnection">The open connection the pull is executed on. This value can be null.</param>
+        /// <param name="filterGroup">The dynamic hierarchical filters the rows must match. May be null when <paramref name="countyId"/> is given, which then reads the whole county.</param>
+        /// <param name="countyId">The optional partition county identifier. If null, the read spans every partition unless <paramref name="filterGroup"/> restricts <c>county_id</c> itself.</param>
+        /// <param name="columnUniqueIds">The optional unique identifiers of the columns to return. Null or empty returns every stored column.</param>
+        /// <param name="batchSize">The number of records to process per batch. Defaults to 1000.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of each command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the matching rows (a table with no rows when nothing matches), or null when the connection is null, no requested column is stored, or neither a filter nor a county was given.</returns>
+        /// <exception cref="InvalidFilterException">A filter names a column the stored table does not hold, or carries a value that cannot be converted to the column's type.</exception>
+        public async Task<Core.IO.Table.Classes.Table?> PullByFilterGroupAsync(NpgsqlConnection? npgsqlConnection, FilterGroup? filterGroup, int? countyId = null, IEnumerable<string>? columnUniqueIds = null, int batchSize = 1000, int commandTimeout = 30, CancellationToken cancellationToken = default)
+        {
+            if (npgsqlConnection is null || (filterGroup is null && countyId is null))
+            {
+                return null;
+            }
+
+            HashSet<string>? columnUniqueIds_Temp = columnUniqueIds == null ? null : [.. columnUniqueIds];
+
+            List<Core.IO.Table.Classes.Column>? columns = await GetColumnsByUniqueIdsAsync(npgsqlConnection, columnUniqueIds_Temp, commandTimeout, cancellationToken);
+            if (columns is null || columns.Count == 0)
+            {
+                return null;
+            }
+
+            Core.IO.Table.Classes.Table table = new(columns);
+
+            FilterGroup filterGroup_Combined = filterGroup!;
+            if (countyId is int countyId_Value)
+            {
+                FilterCondition filterCondition_County = new()
+                {
+                    ColumnUniqueId = IO.Constants.Column.CountyId.UniqueId(),
+                    FilterOperator = FilterOperator.Equals,
+                    Value = countyId_Value
+                };
+
+                filterGroup_Combined = new()
+                {
+                    LogicalOperator = FilterLogicalOperator.And,
+                    FilterConditions = [filterCondition_County],
+                    FilterGroups = filterGroup is null ? [] : [filterGroup]
+                };
+            }
+
+            bool isSuccess = await PullAsync(npgsqlConnection, table, filterGroup_Combined, batchSize, commandTimeout, cancellationToken);
+
+            return isSuccess ? table : null;
+        }
+
+        /// <summary>
         /// Asynchronously retrieves a table based on the specified references, county identifier, and optional column filters.
         /// </summary>
         /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> instance used to communicate with the PostgreSQL database; may be null.</param>

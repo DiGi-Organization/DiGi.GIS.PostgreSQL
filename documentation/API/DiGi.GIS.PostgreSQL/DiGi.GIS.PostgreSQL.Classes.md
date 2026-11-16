@@ -13191,6 +13191,128 @@ The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dot
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[DiGi\.Core\.IO\.Table\.Classes\.Table](https://learn.microsoft.com/en-us/dotnet/api/digi.core.io.table.classes.table 'DiGi\.Core\.IO\.Table\.Classes\.Table')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A task that represents the asynchronous operation\. The task result contains a [DiGi\.Core\.IO\.Table\.Classes\.Table](https://learn.microsoft.com/en-us/dotnet/api/digi.core.io.table.classes.table 'DiGi\.Core\.IO\.Table\.Classes\.Table') instance if data is successfully retrieved; otherwise, null\.
 
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.PullByFilterGroupAsync(DiGi.PostgreSQL.Table.Classes.FilterGroup,System.Nullable_int_,System.Collections.Generic.IEnumerable_string_,int,int,System.Threading.CancellationToken)'></a>
+
+## BuildingDataPostgreSQLConverter\.PullByFilterGroupAsync\(FilterGroup, Nullable\<int\>, IEnumerable\<string\>, int, int, CancellationToken\) Method
+
+Asynchronously pulls the building data rows matching a dynamic hierarchical filter group, opening one connection for the whole read\.
+
+Prefer this over resolving the columns and pulling in two calls on the converter: each of those opens a connection of its own, and this one resolves the columns and reads the rows over the same connection.
+
+```csharp
+public System.Threading.Tasks.Task<DiGi.Core.IO.Table.Classes.Table?> PullByFilterGroupAsync(DiGi.PostgreSQL.Table.Classes.FilterGroup? filterGroup, System.Nullable<int> countyId=null, System.Collections.Generic.IEnumerable<string>? columnUniqueIds=null, int batchSize=1000, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.PullByFilterGroupAsync(DiGi.PostgreSQL.Table.Classes.FilterGroup,System.Nullable_int_,System.Collections.Generic.IEnumerable_string_,int,int,System.Threading.CancellationToken).filterGroup'></a>
+
+`filterGroup` [DiGi\.PostgreSQL\.Table\.Classes\.FilterGroup](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.table.classes.filtergroup 'DiGi\.PostgreSQL\.Table\.Classes\.FilterGroup')
+
+The dynamic hierarchical filters the rows must match\. May be null when [countyId](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.PullByFilterGroupAsync(DiGi.PostgreSQL.Table.Classes.FilterGroup,System.Nullable_int_,System.Collections.Generic.IEnumerable_string_,int,int,System.Threading.CancellationToken).countyId 'DiGi\.GIS\.PostgreSQL\.Classes\.BuildingDataPostgreSQLConverter\.PullByFilterGroupAsync\(DiGi\.PostgreSQL\.Table\.Classes\.FilterGroup, System\.Nullable\<int\>, System\.Collections\.Generic\.IEnumerable\<string\>, int, int, System\.Threading\.CancellationToken\)\.countyId') is given, which then reads the whole county\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.PullByFilterGroupAsync(DiGi.PostgreSQL.Table.Classes.FilterGroup,System.Nullable_int_,System.Collections.Generic.IEnumerable_string_,int,int,System.Threading.CancellationToken).countyId'></a>
+
+`countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The optional partition county identifier\. If null, the read spans every partition unless [filterGroup](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.PullByFilterGroupAsync(DiGi.PostgreSQL.Table.Classes.FilterGroup,System.Nullable_int_,System.Collections.Generic.IEnumerable_string_,int,int,System.Threading.CancellationToken).filterGroup 'DiGi\.GIS\.PostgreSQL\.Classes\.BuildingDataPostgreSQLConverter\.PullByFilterGroupAsync\(DiGi\.PostgreSQL\.Table\.Classes\.FilterGroup, System\.Nullable\<int\>, System\.Collections\.Generic\.IEnumerable\<string\>, int, int, System\.Threading\.CancellationToken\)\.filterGroup') restricts `county_id` itself\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.PullByFilterGroupAsync(DiGi.PostgreSQL.Table.Classes.FilterGroup,System.Nullable_int_,System.Collections.Generic.IEnumerable_string_,int,int,System.Threading.CancellationToken).columnUniqueIds'></a>
+
+`columnUniqueIds` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The optional unique identifiers of the columns to return\. Null or empty returns every stored column\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.PullByFilterGroupAsync(DiGi.PostgreSQL.Table.Classes.FilterGroup,System.Nullable_int_,System.Collections.Generic.IEnumerable_string_,int,int,System.Threading.CancellationToken).batchSize'></a>
+
+`batchSize` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The number of records to process per batch\. Defaults to 1000\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.PullByFilterGroupAsync(DiGi.PostgreSQL.Table.Classes.FilterGroup,System.Nullable_int_,System.Collections.Generic.IEnumerable_string_,int,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of each command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.PullByFilterGroupAsync(DiGi.PostgreSQL.Table.Classes.FilterGroup,System.Nullable_int_,System.Collections.Generic.IEnumerable_string_,int,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken') to observe while waiting for the task to complete\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[DiGi\.Core\.IO\.Table\.Classes\.Table](https://learn.microsoft.com/en-us/dotnet/api/digi.core.io.table.classes.table 'DiGi\.Core\.IO\.Table\.Classes\.Table')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result contains the matching rows \(a table with no rows when nothing matches\), or null when no connection could be built, no requested column is stored, or neither a filter nor a county was given\.
+
+#### Exceptions
+
+[DiGi\.PostgreSQL\.Table\.Classes\.InvalidFilterException](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.table.classes.invalidfilterexception 'DiGi\.PostgreSQL\.Table\.Classes\.InvalidFilterException')  
+A filter names a column the stored table does not hold, or carries a value that cannot be converted to the column's type\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.PullByFilterGroupAsync(Npgsql.NpgsqlConnection,DiGi.PostgreSQL.Table.Classes.FilterGroup,System.Nullable_int_,System.Collections.Generic.IEnumerable_string_,int,int,System.Threading.CancellationToken)'></a>
+
+## BuildingDataPostgreSQLConverter\.PullByFilterGroupAsync\(NpgsqlConnection, FilterGroup, Nullable\<int\>, IEnumerable\<string\>, int, int, CancellationToken\) Method
+
+Asynchronously pulls the building data rows matching a dynamic hierarchical filter group over an already open connection\.
+
+The county is folded into the filters rather than written into the statement, so the read goes through the base pull: it resolves `county_id` against the stored column list like any other filter column. A `county_id` condition the caller put in [filterGroup](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.PullByFilterGroupAsync(Npgsql.NpgsqlConnection,DiGi.PostgreSQL.Table.Classes.FilterGroup,System.Nullable_int_,System.Collections.Generic.IEnumerable_string_,int,int,System.Threading.CancellationToken).filterGroup 'DiGi\.GIS\.PostgreSQL\.Classes\.BuildingDataPostgreSQLConverter\.PullByFilterGroupAsync\(Npgsql\.NpgsqlConnection, DiGi\.PostgreSQL\.Table\.Classes\.FilterGroup, System\.Nullable\<int\>, System\.Collections\.Generic\.IEnumerable\<string\>, int, int, System\.Threading\.CancellationToken\)\.filterGroup') is left as it is and ANDed with [countyId](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.PullByFilterGroupAsync(Npgsql.NpgsqlConnection,DiGi.PostgreSQL.Table.Classes.FilterGroup,System.Nullable_int_,System.Collections.Generic.IEnumerable_string_,int,int,System.Threading.CancellationToken).countyId 'DiGi\.GIS\.PostgreSQL\.Classes\.BuildingDataPostgreSQLConverter\.PullByFilterGroupAsync\(Npgsql\.NpgsqlConnection, DiGi\.PostgreSQL\.Table\.Classes\.FilterGroup, System\.Nullable\<int\>, System\.Collections\.Generic\.IEnumerable\<string\>, int, int, System\.Threading\.CancellationToken\)\.countyId'), so a conflicting pair answers no rows.
+
+```csharp
+public System.Threading.Tasks.Task<DiGi.Core.IO.Table.Classes.Table?> PullByFilterGroupAsync(Npgsql.NpgsqlConnection? npgsqlConnection, DiGi.PostgreSQL.Table.Classes.FilterGroup? filterGroup, System.Nullable<int> countyId=null, System.Collections.Generic.IEnumerable<string>? columnUniqueIds=null, int batchSize=1000, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.PullByFilterGroupAsync(Npgsql.NpgsqlConnection,DiGi.PostgreSQL.Table.Classes.FilterGroup,System.Nullable_int_,System.Collections.Generic.IEnumerable_string_,int,int,System.Threading.CancellationToken).npgsqlConnection'></a>
+
+`npgsqlConnection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
+
+The open connection the pull is executed on\. This value can be null\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.PullByFilterGroupAsync(Npgsql.NpgsqlConnection,DiGi.PostgreSQL.Table.Classes.FilterGroup,System.Nullable_int_,System.Collections.Generic.IEnumerable_string_,int,int,System.Threading.CancellationToken).filterGroup'></a>
+
+`filterGroup` [DiGi\.PostgreSQL\.Table\.Classes\.FilterGroup](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.table.classes.filtergroup 'DiGi\.PostgreSQL\.Table\.Classes\.FilterGroup')
+
+The dynamic hierarchical filters the rows must match\. May be null when [countyId](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.PullByFilterGroupAsync(Npgsql.NpgsqlConnection,DiGi.PostgreSQL.Table.Classes.FilterGroup,System.Nullable_int_,System.Collections.Generic.IEnumerable_string_,int,int,System.Threading.CancellationToken).countyId 'DiGi\.GIS\.PostgreSQL\.Classes\.BuildingDataPostgreSQLConverter\.PullByFilterGroupAsync\(Npgsql\.NpgsqlConnection, DiGi\.PostgreSQL\.Table\.Classes\.FilterGroup, System\.Nullable\<int\>, System\.Collections\.Generic\.IEnumerable\<string\>, int, int, System\.Threading\.CancellationToken\)\.countyId') is given, which then reads the whole county\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.PullByFilterGroupAsync(Npgsql.NpgsqlConnection,DiGi.PostgreSQL.Table.Classes.FilterGroup,System.Nullable_int_,System.Collections.Generic.IEnumerable_string_,int,int,System.Threading.CancellationToken).countyId'></a>
+
+`countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The optional partition county identifier\. If null, the read spans every partition unless [filterGroup](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.PullByFilterGroupAsync(Npgsql.NpgsqlConnection,DiGi.PostgreSQL.Table.Classes.FilterGroup,System.Nullable_int_,System.Collections.Generic.IEnumerable_string_,int,int,System.Threading.CancellationToken).filterGroup 'DiGi\.GIS\.PostgreSQL\.Classes\.BuildingDataPostgreSQLConverter\.PullByFilterGroupAsync\(Npgsql\.NpgsqlConnection, DiGi\.PostgreSQL\.Table\.Classes\.FilterGroup, System\.Nullable\<int\>, System\.Collections\.Generic\.IEnumerable\<string\>, int, int, System\.Threading\.CancellationToken\)\.filterGroup') restricts `county_id` itself\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.PullByFilterGroupAsync(Npgsql.NpgsqlConnection,DiGi.PostgreSQL.Table.Classes.FilterGroup,System.Nullable_int_,System.Collections.Generic.IEnumerable_string_,int,int,System.Threading.CancellationToken).columnUniqueIds'></a>
+
+`columnUniqueIds` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The optional unique identifiers of the columns to return\. Null or empty returns every stored column\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.PullByFilterGroupAsync(Npgsql.NpgsqlConnection,DiGi.PostgreSQL.Table.Classes.FilterGroup,System.Nullable_int_,System.Collections.Generic.IEnumerable_string_,int,int,System.Threading.CancellationToken).batchSize'></a>
+
+`batchSize` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The number of records to process per batch\. Defaults to 1000\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.PullByFilterGroupAsync(Npgsql.NpgsqlConnection,DiGi.PostgreSQL.Table.Classes.FilterGroup,System.Nullable_int_,System.Collections.Generic.IEnumerable_string_,int,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of each command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.PullByFilterGroupAsync(Npgsql.NpgsqlConnection,DiGi.PostgreSQL.Table.Classes.FilterGroup,System.Nullable_int_,System.Collections.Generic.IEnumerable_string_,int,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken') to observe while waiting for the task to complete\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[DiGi\.Core\.IO\.Table\.Classes\.Table](https://learn.microsoft.com/en-us/dotnet/api/digi.core.io.table.classes.table 'DiGi\.Core\.IO\.Table\.Classes\.Table')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result contains the matching rows \(a table with no rows when nothing matches\), or null when the connection is null, no requested column is stored, or neither a filter nor a county was given\.
+
+#### Exceptions
+
+[DiGi\.PostgreSQL\.Table\.Classes\.InvalidFilterException](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.table.classes.invalidfilterexception 'DiGi\.PostgreSQL\.Table\.Classes\.InvalidFilterException')  
+A filter names a column the stored table does not hold, or carries a value that cannot be converted to the column's type\.
+
 <a name='DiGi.GIS.PostgreSQL.Classes.BuildingDataPostgreSQLConverter.PullByPhysicalOrderAsync(int,System.Collections.Generic.IEnumerable_string_,string,int,int,System.Threading.CancellationToken)'></a>
 
 ## BuildingDataPostgreSQLConverter\.PullByPhysicalOrderAsync\(int, IEnumerable\<string\>, string, int, int, CancellationToken\) Method
