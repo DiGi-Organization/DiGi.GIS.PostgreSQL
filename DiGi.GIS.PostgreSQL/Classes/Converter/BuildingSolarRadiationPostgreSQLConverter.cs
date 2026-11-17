@@ -356,6 +356,100 @@ namespace DiGi.GIS.PostgreSQL.Classes
         }
 
         /// <summary>
+        /// Asynchronously stores the solar radiation of buildings of several county parts in one transaction: every result is stored, or none is.
+        /// <para>The all-or-nothing form of <see cref="UpdateAsync(NpgsqlConnection?, int, IEnumerable{GIS.Classes.BuildingSolarRadiationResult?}?, int, CancellationToken)"/>, which stores one part in one multi-row upsert with the same key and the same replacement. That form steps over a result it cannot store and keeps the later of two results with one key; here either case rolls the whole transaction back, so a committed count always equals the count given. A batch write endpoint relies on it: a batch that fails leaves nothing of itself behind (DiGi.GIS.WebAPI#93).</para>
+        /// <para>Every result is filed under the county part it is listed under, whatever its own <see cref="GIS.Classes.BuildingSolarRadiationResult.CountyId"/> says; the caller resolves the parts first (<c>Query.CountyIdsByReferencesWithSiblingFallbackAsync</c>). The table and the partitions are created before the transaction opens. One part's upsert carries 13 parameters per result and Npgsql allows 65 535 per statement, so a part holds at most 5 041 results.</para>
+        /// <para>A database error propagates after the rollback, and so does a requested cancellation.</para>
+        /// </summary>
+        /// <param name="npgsqlConnection">The open <see cref="NpgsqlConnection"/> used to connect to the database, with no transaction in progress.</param>
+        /// <param name="buildingSolarRadiationResults_ByCountyId">The results to store, by the resolved county part each is filed under. Every surface must carry shading factors of one common length.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of each command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The cancellation token to monitor for cancellation requests.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the number of rows written, which is the number of results given (0 when none is given), or null when nothing was written: the connection or the results are null, the table or a partition could not be created, or a result could not be stored.</returns>
+        public static async Task<int?> UpdateAsync(NpgsqlConnection? npgsqlConnection, IReadOnlyDictionary<int, List<GIS.Classes.BuildingSolarRadiationResult>>? buildingSolarRadiationResults_ByCountyId, int commandTimeout = 30, CancellationToken cancellationToken = default)
+        {
+            if (npgsqlConnection is null || buildingSolarRadiationResults_ByCountyId is null)
+            {
+                return null;
+            }
+
+            int count = 0;
+            foreach (List<GIS.Classes.BuildingSolarRadiationResult>? buildingSolarRadiationResults in buildingSolarRadiationResults_ByCountyId.Values)
+            {
+                count += buildingSolarRadiationResults?.Count ?? 0;
+            }
+
+            if (count == 0)
+            {
+                return 0;
+            }
+
+            // Created outside the transaction: the per-part upsert repeats these statements, and they are then no-ops.
+            if (!await Create.TableAsync_BuildingSolarRadiation(npgsqlConnection, commandTimeout, cancellationToken))
+            {
+                return null;
+            }
+
+            foreach (KeyValuePair<int, List<GIS.Classes.BuildingSolarRadiationResult>> keyValuePair in buildingSolarRadiationResults_ByCountyId)
+            {
+                if (keyValuePair.Value is null || keyValuePair.Value.Count == 0)
+                {
+                    continue;
+                }
+
+                if (!await Create.TableAsync_BuildingSolarRadiation_Partition(npgsqlConnection, keyValuePair.Key, commandTimeout, cancellationToken))
+                {
+                    return null;
+                }
+            }
+
+            // Disposed without a commit, the transaction rolls back - which is what an exception or a cancellation leaves.
+            await using NpgsqlTransaction npgsqlTransaction = await npgsqlConnection.BeginTransactionAsync(cancellationToken);
+
+            int written = 0;
+            foreach (KeyValuePair<int, List<GIS.Classes.BuildingSolarRadiationResult>> keyValuePair in buildingSolarRadiationResults_ByCountyId)
+            {
+                if (keyValuePair.Value is null || keyValuePair.Value.Count == 0)
+                {
+                    continue;
+                }
+
+                int? written_CountyId = await UpdateAsync(npgsqlConnection, keyValuePair.Key, keyValuePair.Value, commandTimeout, cancellationToken);
+                if (written_CountyId is null || written_CountyId.Value != keyValuePair.Value.Count)
+                {
+                    await npgsqlTransaction.RollbackAsync(cancellationToken);
+                    Serilog.Modify.Log(Serilog.Enums.LogEventLevel.Warning, "{Type}: county part {CountyId} stored {Written} of {Count} results, so none of the {Total} results was stored", nameof(BuildingSolarRadiationPostgreSQLConverter), keyValuePair.Key, written_CountyId?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "-", keyValuePair.Value.Count, count);
+                    return null;
+                }
+
+                written += written_CountyId.Value;
+            }
+
+            await npgsqlTransaction.CommitAsync(cancellationToken);
+            return written;
+        }
+
+        /// <summary>
+        /// Asynchronously stores the solar radiation of buildings of several county parts in one transaction, automatically managing the connection: every result is stored, or none is.
+        /// <para>See <see cref="UpdateAsync(NpgsqlConnection?, IReadOnlyDictionary{int, List{GIS.Classes.BuildingSolarRadiationResult}}?, int, CancellationToken)"/>.</para>
+        /// </summary>
+        /// <param name="buildingSolarRadiationResults_ByCountyId">The results to store, by the resolved county part each is filed under. Every surface must carry shading factors of one common length.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of each command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The cancellation token to monitor for cancellation requests.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the number of rows written, which is the number of results given, or null when nothing was written.</returns>
+        public async Task<int?> UpdateAsync(IReadOnlyDictionary<int, List<GIS.Classes.BuildingSolarRadiationResult>>? buildingSolarRadiationResults_ByCountyId, int commandTimeout = 30, CancellationToken cancellationToken = default)
+        {
+            await using NpgsqlConnection? npgsqlConnection = DiGi.PostgreSQL.Create.NpgsqlConnection(ConnectionData);
+            if (npgsqlConnection is null)
+            {
+                return null;
+            }
+
+            await npgsqlConnection.OpenAsync(cancellationToken);
+            return await UpdateAsync(npgsqlConnection, buildingSolarRadiationResults_ByCountyId, commandTimeout, cancellationToken);
+        }
+
+        /// <summary>
         /// Asynchronously reads the stored solar radiation of a building model, automatically managing the connection.
         /// </summary>
         /// <param name="countyId">The county part the building is filed under.</param>

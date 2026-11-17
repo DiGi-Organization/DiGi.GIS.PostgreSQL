@@ -16595,6 +16595,86 @@ The cancellation token to monitor for cancellation requests\.
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A task that represents the asynchronous operation\. The task result contains the number of rows written \- 0 when nothing in the batch could be stored \- or null when the connection or the results are null, or the table or partition could not be created\.
 
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationPostgreSQLConverter.UpdateAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IReadOnlyDictionary_int,System.Collections.Generic.List_DiGi.GIS.Classes.BuildingSolarRadiationResult__,int,System.Threading.CancellationToken)'></a>
+
+## BuildingSolarRadiationPostgreSQLConverter\.UpdateAsync\(NpgsqlConnection, IReadOnlyDictionary\<int,List\<BuildingSolarRadiationResult\>\>, int, CancellationToken\) Method
+
+Asynchronously stores the solar radiation of buildings of several county parts in one transaction: every result is stored, or none is\.
+
+The all-or-nothing form of [UpdateAsync\(NpgsqlConnection, int, IEnumerable&lt;BuildingSolarRadiationResult&gt;, int, CancellationToken\)](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationPostgreSQLConverter.UpdateAsync(Npgsql.NpgsqlConnection,int,System.Collections.Generic.IEnumerable_DiGi.GIS.Classes.BuildingSolarRadiationResult_,int,System.Threading.CancellationToken) 'DiGi\.GIS\.PostgreSQL\.Classes\.BuildingSolarRadiationPostgreSQLConverter\.UpdateAsync\(Npgsql\.NpgsqlConnection, int, System\.Collections\.Generic\.IEnumerable\<DiGi\.GIS\.Classes\.BuildingSolarRadiationResult\>, int, System\.Threading\.CancellationToken\)'), which stores one part in one multi-row upsert with the same key and the same replacement. That form steps over a result it cannot store and keeps the later of two results with one key; here either case rolls the whole transaction back, so a committed count always equals the count given. A batch write endpoint relies on it: a batch that fails leaves nothing of itself behind (DiGi.GIS.WebAPI#93).
+
+Every result is filed under the county part it is listed under, whatever its own [DiGi\.GIS\.Classes\.BuildingSolarRadiationResult\.CountyId](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.buildingsolarradiationresult.countyid 'DiGi\.GIS\.Classes\.BuildingSolarRadiationResult\.CountyId') says; the caller resolves the parts first (`Query.CountyIdsByReferencesWithSiblingFallbackAsync`). The table and the partitions are created before the transaction opens. One part's upsert carries 13 parameters per result and Npgsql allows 65 535 per statement, so a part holds at most 5 041 results.
+
+A database error propagates after the rollback, and so does a requested cancellation.
+
+```csharp
+public static System.Threading.Tasks.Task<System.Nullable<int>> UpdateAsync(Npgsql.NpgsqlConnection? npgsqlConnection, System.Collections.Generic.IReadOnlyDictionary<int,System.Collections.Generic.List<DiGi.GIS.Classes.BuildingSolarRadiationResult>>? buildingSolarRadiationResults_ByCountyId, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationPostgreSQLConverter.UpdateAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IReadOnlyDictionary_int,System.Collections.Generic.List_DiGi.GIS.Classes.BuildingSolarRadiationResult__,int,System.Threading.CancellationToken).npgsqlConnection'></a>
+
+`npgsqlConnection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
+
+The open [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection') used to connect to the database, with no transaction in progress\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationPostgreSQLConverter.UpdateAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IReadOnlyDictionary_int,System.Collections.Generic.List_DiGi.GIS.Classes.BuildingSolarRadiationResult__,int,System.Threading.CancellationToken).buildingSolarRadiationResults_ByCountyId'></a>
+
+`buildingSolarRadiationResults_ByCountyId` [System\.Collections\.Generic\.IReadOnlyDictionary&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ireadonlydictionary-2 'System\.Collections\.Generic\.IReadOnlyDictionary\`2')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[,](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ireadonlydictionary-2 'System\.Collections\.Generic\.IReadOnlyDictionary\`2')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[DiGi\.GIS\.Classes\.BuildingSolarRadiationResult](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.buildingsolarradiationresult 'DiGi\.GIS\.Classes\.BuildingSolarRadiationResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ireadonlydictionary-2 'System\.Collections\.Generic\.IReadOnlyDictionary\`2')
+
+The results to store, by the resolved county part each is filed under\. Every surface must carry shading factors of one common length\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationPostgreSQLConverter.UpdateAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IReadOnlyDictionary_int,System.Collections.Generic.List_DiGi.GIS.Classes.BuildingSolarRadiationResult__,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of each command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationPostgreSQLConverter.UpdateAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IReadOnlyDictionary_int,System.Collections.Generic.List_DiGi.GIS.Classes.BuildingSolarRadiationResult__,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The cancellation token to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result contains the number of rows written, which is the number of results given \(0 when none is given\), or null when nothing was written: the connection or the results are null, the table or a partition could not be created, or a result could not be stored\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationPostgreSQLConverter.UpdateAsync(System.Collections.Generic.IReadOnlyDictionary_int,System.Collections.Generic.List_DiGi.GIS.Classes.BuildingSolarRadiationResult__,int,System.Threading.CancellationToken)'></a>
+
+## BuildingSolarRadiationPostgreSQLConverter\.UpdateAsync\(IReadOnlyDictionary\<int,List\<BuildingSolarRadiationResult\>\>, int, CancellationToken\) Method
+
+Asynchronously stores the solar radiation of buildings of several county parts in one transaction, automatically managing the connection: every result is stored, or none is\.
+
+See [UpdateAsync\(NpgsqlConnection, IReadOnlyDictionary&lt;int,List&lt;BuildingSolarRadiationResult&gt;&gt;, int, CancellationToken\)](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationPostgreSQLConverter.UpdateAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IReadOnlyDictionary_int,System.Collections.Generic.List_DiGi.GIS.Classes.BuildingSolarRadiationResult__,int,System.Threading.CancellationToken) 'DiGi\.GIS\.PostgreSQL\.Classes\.BuildingSolarRadiationPostgreSQLConverter\.UpdateAsync\(Npgsql\.NpgsqlConnection, System\.Collections\.Generic\.IReadOnlyDictionary\<int,System\.Collections\.Generic\.List\<DiGi\.GIS\.Classes\.BuildingSolarRadiationResult\>\>, int, System\.Threading\.CancellationToken\)').
+
+```csharp
+public System.Threading.Tasks.Task<System.Nullable<int>> UpdateAsync(System.Collections.Generic.IReadOnlyDictionary<int,System.Collections.Generic.List<DiGi.GIS.Classes.BuildingSolarRadiationResult>>? buildingSolarRadiationResults_ByCountyId, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationPostgreSQLConverter.UpdateAsync(System.Collections.Generic.IReadOnlyDictionary_int,System.Collections.Generic.List_DiGi.GIS.Classes.BuildingSolarRadiationResult__,int,System.Threading.CancellationToken).buildingSolarRadiationResults_ByCountyId'></a>
+
+`buildingSolarRadiationResults_ByCountyId` [System\.Collections\.Generic\.IReadOnlyDictionary&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ireadonlydictionary-2 'System\.Collections\.Generic\.IReadOnlyDictionary\`2')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[,](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ireadonlydictionary-2 'System\.Collections\.Generic\.IReadOnlyDictionary\`2')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[DiGi\.GIS\.Classes\.BuildingSolarRadiationResult](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.buildingsolarradiationresult 'DiGi\.GIS\.Classes\.BuildingSolarRadiationResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ireadonlydictionary-2 'System\.Collections\.Generic\.IReadOnlyDictionary\`2')
+
+The results to store, by the resolved county part each is filed under\. Every surface must carry shading factors of one common length\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationPostgreSQLConverter.UpdateAsync(System.Collections.Generic.IReadOnlyDictionary_int,System.Collections.Generic.List_DiGi.GIS.Classes.BuildingSolarRadiationResult__,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of each command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingSolarRadiationPostgreSQLConverter.UpdateAsync(System.Collections.Generic.IReadOnlyDictionary_int,System.Collections.Generic.List_DiGi.GIS.Classes.BuildingSolarRadiationResult__,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The cancellation token to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result contains the number of rows written, which is the number of results given, or null when nothing was written\.
+
 <a name='DiGi.GIS.PostgreSQL.Classes.EPWFilePostgreSQLConverter'></a>
 
 ## EPWFilePostgreSQLConverter Class
