@@ -1800,12 +1800,12 @@ namespace DiGi.GIS.PostgreSQL.Classes
 
         /// <summary>
         /// Asynchronously retrieves the buildings of a <see cref="AdministrativeArealType.Subdivision"/> by geometry - those whose bounding-box centre lies inside the subdivision's polygon.
-        /// <para>The subdivision layer is nested - a city, its districts and their neighbourhoods are all subdivisions of one municipality - so a building is returned for <b>every</b> container that holds it, not just the one it is filed under in <c>subdivision_id</c>. This is the geometry path of <see cref="GetBuilding2DReferencesByCountyIdAsync(int, int?, IEnumerable{string}?, int, CancellationToken)"/> and nothing is filtered by that column; the read itself is <see cref="GetBuilding2DReferencesByPolygonalFace2DAsync"/>.</para>
+        /// <para>The subdivision layer is nested - a city, its districts and their neighbourhoods are all subdivisions of one municipality - so a building is returned for <b>every</b> container that holds it, not just the one it is filed under in <c>subdivision_id</c>. The row type decides what is a Subdivision, so a district stored as an <see cref="AdministrativeDivision"/> resolves by its polygon too (DiGi-Organization/DiGi.GIS.WebAPI#89). This is the geometry path of <see cref="GetBuilding2DReferencesByCountyIdAsync(int, int?, IEnumerable{string}?, int, CancellationToken)"/> and nothing is filtered by that column; the read itself is <see cref="GetBuilding2DReferencesByPolygonalFace2DAsync"/>.</para>
         /// </summary>
         /// <param name="subdivisionId">The identifier of the subdivision to read.</param>
         /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains the buildings inside the subdivision, empty when the identifier is missing, is not a <see cref="AdministrativeArealType.Subdivision"/>, or holds no building, or null when the connection could not be created.</returns>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the buildings inside the subdivision, empty when the identifier is missing, its row is not of the <see cref="AdministrativeArealType.Subdivision"/> type, or it holds no building, or null when the connection could not be created.</returns>
         public async Task<List<Building2DReference>?> GetBuilding2DReferencesBySubdivisionIdAsync(int subdivisionId, int commandTimeout = 30, CancellationToken cancellationToken = default)
         {
             // 1. Check early if cancellation was already requested to avoid unnecessary allocations
@@ -1831,11 +1831,12 @@ namespace DiGi.GIS.PostgreSQL.Classes
 
         /// <summary>
         /// Resolves a <see cref="AdministrativeArealType.Subdivision"/> identifier to the polygon its buildings are read by.
+        /// <para>The <b>row type</b> decides what is a Subdivision, as it does in <see cref="ResolveSubdivisionPolygonalFace2DsAsync"/>, not the class of the stored object: a Subdivision row holds an <see cref="AdministrativeSubdivision"/> or an <see cref="AdministrativeDivision"/> of a type mapped to <see cref="AdministrativeArealType.Subdivision"/> - <see cref="GIS.Enums.AdministrativeDivisionType.district_or_delegation"/> (Warsaw's districts) or <see cref="GIS.Enums.AdministrativeDivisionType.town_in_urban_rural_municipality"/> - and its polygon is read from either. See https://github.com/DiGi-Organization/DiGi.GIS.WebAPI/issues/89.</para>
         /// </summary>
         /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> used to connect to the database.</param>
         /// <param name="subdivisionId">The identifier to resolve.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains the subdivision's polygon, or null when the identifier is missing, is not a <see cref="AdministrativeArealType.Subdivision"/>, or carries no polygon.</returns>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the subdivision's polygon, or null when the identifier is missing, its row is not of the <see cref="AdministrativeArealType.Subdivision"/> type, or it carries no polygon.</returns>
         private static async Task<PolygonalFace2D?> GetSubdivisionPolygonalFace2DAsync(NpgsqlConnection npgsqlConnection, int subdivisionId, CancellationToken cancellationToken)
         {
             List<AdministrativeAreal2D>? administrativeAreal2Ds = await AdministrativeAreal2DPostgreSQLConverter.GetAdministrativeAreal2DsByIdsAsync(npgsqlConnection, [subdivisionId], cancellationToken: cancellationToken);
@@ -1844,12 +1845,13 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 return null;
             }
 
-            if (administrativeAreal2Ds[0]?.ToDiGi() is not AdministrativeSubdivision administrativeSubdivision)
+            AdministrativeAreal2D? administrativeAreal2D = administrativeAreal2Ds[0];
+            if (administrativeAreal2D is null || administrativeAreal2D.AdministrativeArealType != AdministrativeArealType.Subdivision)
             {
                 return null;
             }
 
-            return administrativeSubdivision.PolygonalFace2D;
+            return administrativeAreal2D.ToDiGi()?.PolygonalFace2D;
         }
 
         /// <summary>
