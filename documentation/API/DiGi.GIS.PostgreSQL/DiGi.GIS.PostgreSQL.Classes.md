@@ -16675,6 +16675,126 @@ The cancellation token to monitor for cancellation requests\.
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A task that represents the asynchronous operation\. The task result contains the number of rows written, which is the number of results given, or null when nothing was written\.
 
+<a name='DiGi.GIS.PostgreSQL.Classes.EPWFileLocationResult'></a>
+
+## EPWFileLocationResult Class
+
+The id and location of one `epw_file` row, without the weather file itself\.
+
+What a client positioning many buildings needs to pick each one's station in memory, as the server-side solar solve does with [DiGi\.GIS\.PostgreSQL\.Query\.NearestEPWFileId\(System\.Collections\.Generic\.IEnumerable\{System\.ValueTuple\{System\.Int32,System\.Double,System\.Double\}\},System\.Double,System\.Double\)](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.postgresql.query.nearestepwfileid#digi-gis-postgresql-query-nearestepwfileid(system-collections-generic-ienumerable{system-valuetuple{system-int32-system-double-system-double}}-system-double-system-double) 'DiGi\.GIS\.PostgreSQL\.Query\.NearestEPWFileId\(System\.Collections\.Generic\.IEnumerable\{System\.ValueTuple\{System\.Int32,System\.Double,System\.Double\}\},System\.Double,System\.Double\)'), and then to read only the stations it uses by id (DiGi.GIS.WebAPI#93).
+
+```csharp
+public class EPWFileLocationResult : DiGi.Core.Classes.SerializableResult, DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLSerializableObject, DiGi.Core.Interfaces.ISerializableObject, DiGi.Core.Interfaces.ICloneableObject<DiGi.Core.Interfaces.ISerializableObject>, DiGi.Core.Interfaces.ICloneableObject, DiGi.Core.Interfaces.IObject
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [DiGi\.Core\.Classes\.Object](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.object 'DiGi\.Core\.Classes\.Object') → [DiGi\.Core\.Classes\.SerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.serializableobject 'DiGi\.Core\.Classes\.SerializableObject') → [DiGi\.Core\.Classes\.SerializableResult](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.serializableresult 'DiGi\.Core\.Classes\.SerializableResult') → EPWFileLocationResult
+
+Implements [IGISPostgreSQLSerializableObject](DiGi.GIS.PostgreSQL.Interfaces.md#DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLSerializableObject 'DiGi\.GIS\.PostgreSQL\.Interfaces\.IGISPostgreSQLSerializableObject'), [DiGi\.Core\.Interfaces\.ISerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iserializableobject 'DiGi\.Core\.Interfaces\.ISerializableObject'), [DiGi\.Core\.Interfaces\.ICloneableObject&lt;](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject-1 'DiGi\.Core\.Interfaces\.ICloneableObject\`1')[DiGi\.Core\.Interfaces\.ISerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iserializableobject 'DiGi\.Core\.Interfaces\.ISerializableObject')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject-1 'DiGi\.Core\.Interfaces\.ICloneableObject\`1'), [DiGi\.Core\.Interfaces\.ICloneableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject 'DiGi\.Core\.Interfaces\.ICloneableObject'), [DiGi\.Core\.Interfaces\.IObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iobject 'DiGi\.Core\.Interfaces\.IObject')
+### Constructors
+
+<a name='DiGi.GIS.PostgreSQL.Classes.EPWFileLocationResult.EPWFileLocationResult(DiGi.GIS.PostgreSQL.Classes.EPWFileLocationResult)'></a>
+
+## EPWFileLocationResult\(EPWFileLocationResult\) Constructor
+
+Initializes a new instance of the [EPWFileLocationResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.EPWFileLocationResult 'DiGi\.GIS\.PostgreSQL\.Classes\.EPWFileLocationResult') class by copying an existing one\.
+
+```csharp
+public EPWFileLocationResult(DiGi.GIS.PostgreSQL.Classes.EPWFileLocationResult? ePWFileLocationResult);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.EPWFileLocationResult.EPWFileLocationResult(DiGi.GIS.PostgreSQL.Classes.EPWFileLocationResult).ePWFileLocationResult'></a>
+
+`ePWFileLocationResult` [EPWFileLocationResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.EPWFileLocationResult 'DiGi\.GIS\.PostgreSQL\.Classes\.EPWFileLocationResult')
+
+The [EPWFileLocationResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.EPWFileLocationResult 'DiGi\.GIS\.PostgreSQL\.Classes\.EPWFileLocationResult') to copy from\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.EPWFileLocationResult.EPWFileLocationResult(int,double,double)'></a>
+
+## EPWFileLocationResult\(int, double, double\) Constructor
+
+Initializes a new instance of the [EPWFileLocationResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.EPWFileLocationResult 'DiGi\.GIS\.PostgreSQL\.Classes\.EPWFileLocationResult') class\.
+
+```csharp
+public EPWFileLocationResult(int id, double x, double y);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.EPWFileLocationResult.EPWFileLocationResult(int,double,double).id'></a>
+
+`id` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The id of the `epw_file` row\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.EPWFileLocationResult.EPWFileLocationResult(int,double,double).x'></a>
+
+`x` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The X coordinate of the station, EPSG:2180\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.EPWFileLocationResult.EPWFileLocationResult(int,double,double).y'></a>
+
+`y` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The Y coordinate of the station, EPSG:2180\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.EPWFileLocationResult.EPWFileLocationResult(System.Text.Json.Nodes.JsonObject)'></a>
+
+## EPWFileLocationResult\(JsonObject\) Constructor
+
+Initializes a new instance of the [EPWFileLocationResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.EPWFileLocationResult 'DiGi\.GIS\.PostgreSQL\.Classes\.EPWFileLocationResult') class from a [System\.Text\.Json\.Nodes\.JsonObject](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.nodes.jsonobject 'System\.Text\.Json\.Nodes\.JsonObject')\.
+
+```csharp
+public EPWFileLocationResult(System.Text.Json.Nodes.JsonObject? jsonObject);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.EPWFileLocationResult.EPWFileLocationResult(System.Text.Json.Nodes.JsonObject).jsonObject'></a>
+
+`jsonObject` [System\.Text\.Json\.Nodes\.JsonObject](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.nodes.jsonobject 'System\.Text\.Json\.Nodes\.JsonObject')
+
+The [System\.Text\.Json\.Nodes\.JsonObject](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.nodes.jsonobject 'System\.Text\.Json\.Nodes\.JsonObject') containing the serialized data\.
+### Properties
+
+<a name='DiGi.GIS.PostgreSQL.Classes.EPWFileLocationResult.Id'></a>
+
+## EPWFileLocationResult\.Id Property
+
+Gets the id of the `epw_file` row\.
+
+```csharp
+public int Id { get; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.EPWFileLocationResult.X'></a>
+
+## EPWFileLocationResult\.X Property
+
+Gets the X coordinate of the station, EPSG:2180\.
+
+```csharp
+public double X { get; }
+```
+
+#### Property Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.EPWFileLocationResult.Y'></a>
+
+## EPWFileLocationResult\.Y Property
+
+Gets the Y coordinate of the station, EPSG:2180\.
+
+```csharp
+public double Y { get; }
+```
+
+#### Property Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
 <a name='DiGi.GIS.PostgreSQL.Classes.EPWFilePostgreSQLConverter'></a>
 
 ## EPWFilePostgreSQLConverter Class
