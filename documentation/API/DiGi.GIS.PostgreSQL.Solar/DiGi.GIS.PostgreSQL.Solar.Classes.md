@@ -382,6 +382,509 @@ public string? Reason { get; }
 #### Property Value
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask'></a>
+
+## BuildingSolarRadiationSolveTask Class
+
+Represents a background task that solves the annual solar radiation of every building of a county part for one or more neighbour radii and stores it, whatever the inputs are read from and the results written to \(DiGi\.GIS\.PostgreSQL\#136, DiGi\.GIS\.PostgreSQL\.UI\#48\)\.
+
+Every read and the write is a protected hook: [PostgreSQLBuildingSolarRadiationSolveTask](DiGi.GIS.PostgreSQL.Solar.Classes.md#DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask 'DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.PostgreSQLBuildingSolarRadiationSolveTask') implements them with the storage database converters, a client implements them with the GIS Web API. The walk, the skip of stored results, the tiling, the batching and read-ahead, the parallel solve, the counting and the logging are this class's alone, so a result and every count do not depend on the transport.
+
+Each building is solved exactly as the viewer solves it (DiGi.GIS.WebAPI.UI `SolarController`): the same building model detail level, the same neighbour circle (`DiGi.GIS.Analytical.Solar.Query.SolarNeighbourCircle`), the same nearest EPW station, the same solver options and solver version, and the same stored form - so a result does not depend on which of the two produced it. Radius 0 solves the building alone (`SolarRadiusIsolated`): it still shades and blocks the view of its own surfaces, but no neighbour does.
+
+A county part is solved in square tiles of [TileSize](DiGi.GIS.PostgreSQL.Solar.Classes.md#DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveOptions.TileSize 'DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.PostgreSQLBuildingSolarRadiationSolveOptions\.TileSize'), by the centroid of each building, at most [BatchSize](DiGi.GIS.PostgreSQL.Solar.Classes.md#DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveOptions.BatchSize 'DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.PostgreSQLBuildingSolarRadiationSolveOptions\.BatchSize') buildings at a time: one read of the batch's models, one read of every neighbour any of them can see at the largest radius, and one write of the batch's results. The neighbours of each building and radius are then picked in memory, as `gis/buildingmodel/itemsbycircle` picks them - every model whose bounding box lies within or intersects the building's circle.
+
+The jobs of a batch - one per building and pending radius - are solved several at a time ([MaxDegreeOfParallelism](DiGi.GIS.PostgreSQL.Solar.Classes.md#DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveOptions.MaxDegreeOfParallelism 'DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.PostgreSQLBuildingSolarRadiationSolveOptions\.MaxDegreeOfParallelism'), [DiGi\.GIS\.PostgreSQL\.Solar\.Query\.BuildingSolarRadiationSolveOutcomes\(System\.Collections\.Generic\.IList\{DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.BuildingSolarRadiationSolveJob\},System\.Collections\.Generic\.IList\{System\.ValueTuple\{DiGi\.Analytical\.Building\.Classes\.BuildingModel,System\.Double,System\.Double,System\.Double,System\.Double\}\},System\.Int32,System\.Int32,System\.Threading\.CancellationToken\)](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.postgresql.solar.query.buildingsolarradiationsolveoutcomes#digi-gis-postgresql-solar-query-buildingsolarradiationsolveoutcomes(system-collections-generic-ilist{digi-gis-postgresql-solar-classes-buildingsolarradiationsolvejob}-system-collections-generic-ilist{system-valuetuple{digi-analytical-building-classes-buildingmodel-system-double-system-double-system-double-system-double}}-system-int32-system-int32-system-threading-cancellationtoken) 'DiGi\.GIS\.PostgreSQL\.Solar\.Query\.BuildingSolarRadiationSolveOutcomes\(System\.Collections\.Generic\.IList\{DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.BuildingSolarRadiationSolveJob\},System\.Collections\.Generic\.IList\{System\.ValueTuple\{DiGi\.Analytical\.Building\.Classes\.BuildingModel,System\.Double,System\.Double,System\.Double,System\.Double\}\},System\.Int32,System\.Int32,System\.Threading\.CancellationToken\)')), and the next batch is read while they run; the results are still written one batch at a time, in order, and counted in job order, so the counts, failure samples and stored results are those of a sequential run (DiGi.GIS.PostgreSQL#139). Each batch logs the time spent waiting for its read, solving and writing. A cancellation waits for the solves in flight.
+
+[BuildingCountMax](DiGi.GIS.PostgreSQL.Solar.Classes.md#DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveOptions.BuildingCountMax 'DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.PostgreSQLBuildingSolarRadiationSolveOptions\.BuildingCountMax') cuts the walk of each part after its first buildings in that order ([SolarSolveTiles\(this IEnumerable&lt;Building2DCentroid&gt;, double, Nullable&lt;int&gt;\)](DiGi.GIS.PostgreSQL.Solar.md#DiGi.GIS.PostgreSQL.Solar.Query.SolarSolveTiles(thisSystem.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.Building2DCentroid_,double,System.Nullable_int_) 'DiGi\.GIS\.PostgreSQL\.Solar\.Query\.SolarSolveTiles\(this System\.Collections\.Generic\.IEnumerable\<DiGi\.GIS\.PostgreSQL\.Classes\.Building2DCentroid\>, double, System\.Nullable\<int\>\)')), for a pilot that still logs its part and run summaries (DiGi.GIS.PostgreSQL#138).
+
+A building that cannot be solved - no stored model, no location, no closed envelope, no weather, or above a ceiling - is counted and stepped over. A county part whose buildings, models or neighbours cannot be read, or whose results cannot be written, is failed and logged with the exception, and the run keeps going over the other parts; a run with a failed part reports itself as not succeeded.
+
+```csharp
+public abstract class BuildingSolarRadiationSolveTask : DiGi.Core.Classes.ReportableBackgroundTask<long>
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [DiGi\.Core\.Classes\.BackgroundTask](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.backgroundtask 'DiGi\.Core\.Classes\.BackgroundTask') → [DiGi\.Core\.Classes\.CancelableBackgroundTask](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.cancelablebackgroundtask 'DiGi\.Core\.Classes\.CancelableBackgroundTask') → [DiGi\.Core\.Classes\.ReportableBackgroundTask&lt;](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.reportablebackgroundtask-1 'DiGi\.Core\.Classes\.ReportableBackgroundTask\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.reportablebackgroundtask-1 'DiGi\.Core\.Classes\.ReportableBackgroundTask\`1') → BuildingSolarRadiationSolveTask
+
+Derived  
+↳ [PostgreSQLBuildingSolarRadiationSolveTask](DiGi.GIS.PostgreSQL.Solar.Classes.md#DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask 'DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.PostgreSQLBuildingSolarRadiationSolveTask')
+### Fields
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask.failureSampleCountMax'></a>
+
+## BuildingSolarRadiationSolveTask\.failureSampleCountMax Field
+
+The largest number of failure descriptions kept in [FailureSamples](DiGi.GIS.PostgreSQL.Solar.Classes.md#DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask.FailureSamples 'DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.BuildingSolarRadiationSolveTask\.FailureSamples'); the counts are never capped\.
+
+```csharp
+private const int failureSampleCountMax = 50;
+```
+
+#### Field Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+### Properties
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask.FailedCount'></a>
+
+## BuildingSolarRadiationSolveTask\.FailedCount Property
+
+Gets the number of building and radius solves that failed with an exception or produced a result that cannot be stored during the last run\.
+
+```csharp
+public long FailedCount { get; private set; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask.FailedCountyCount'></a>
+
+## BuildingSolarRadiationSolveTask\.FailedCountyCount Property
+
+Gets the number of county parts that failed outright and were stepped over during the last run\.
+
+```csharp
+public long FailedCountyCount { get; private set; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask.FailureSamples'></a>
+
+## BuildingSolarRadiationSolveTask\.FailureSamples Property
+
+Gets a bounded sample of the failures of the last run, at most 50 descriptions; [FailedCount](DiGi.GIS.PostgreSQL.Solar.Classes.md#DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask.FailedCount 'DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.BuildingSolarRadiationSolveTask\.FailedCount') and [FailedCountyCount](DiGi.GIS.PostgreSQL.Solar.Classes.md#DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask.FailedCountyCount 'DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.BuildingSolarRadiationSolveTask\.FailedCountyCount') are the full counts\.
+
+```csharp
+public System.Collections.Generic.IReadOnlyList<string> FailureSamples { get; }
+```
+
+#### Property Value
+[System\.Collections\.Generic\.IReadOnlyList&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ireadonlylist-1 'System\.Collections\.Generic\.IReadOnlyList\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ireadonlylist-1 'System\.Collections\.Generic\.IReadOnlyList\`1')
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask.NotSolvableCount'></a>
+
+## BuildingSolarRadiationSolveTask\.NotSolvableCount Property
+
+Gets the number of building and radius solves stepped over during the last run because the building has no stored model, cannot be located, has no closed external envelope or has no weather\.
+
+```csharp
+public long NotSolvableCount { get; private set; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask.OverCeilingCount'></a>
+
+## BuildingSolarRadiationSolveTask\.OverCeilingCount Property
+
+Gets the number of building and radius solves stepped over during the last run because a ceiling was exceeded: more receiving surfaces than [ReceiverCountMax](DiGi.GIS.PostgreSQL.Solar.Classes.md#DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveOptions.ReceiverCountMax 'DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.PostgreSQLBuildingSolarRadiationSolveOptions\.ReceiverCountMax') \(counted once per radius\) or more caster triangles than [CasterTriangleCountMax](DiGi.GIS.PostgreSQL.Solar.Classes.md#DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveOptions.CasterTriangleCountMax 'DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.PostgreSQLBuildingSolarRadiationSolveOptions\.CasterTriangleCountMax')\.
+
+```csharp
+public long OverCeilingCount { get; private set; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask.PostgreSQLBuildingSolarRadiationSolveOptions'></a>
+
+## BuildingSolarRadiationSolveTask\.PostgreSQLBuildingSolarRadiationSolveOptions Property
+
+Gets or sets the options used to configure the run\.
+
+```csharp
+public DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveOptions PostgreSQLBuildingSolarRadiationSolveOptions { get; set; }
+```
+
+#### Property Value
+[PostgreSQLBuildingSolarRadiationSolveOptions](DiGi.GIS.PostgreSQL.Solar.Classes.md#DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveOptions 'DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.PostgreSQLBuildingSolarRadiationSolveOptions')
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask.ProcessedBuildingCount'></a>
+
+## BuildingSolarRadiationSolveTask\.ProcessedBuildingCount Property
+
+Gets the number of buildings that were considered during the last run, whatever happened to them; the progress reported\. Buildings left out by [BuildingCountMax](DiGi.GIS.PostgreSQL.Solar.Classes.md#DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveOptions.BuildingCountMax 'DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.PostgreSQLBuildingSolarRadiationSolveOptions\.BuildingCountMax') are not counted\.
+
+```csharp
+public long ProcessedBuildingCount { get; private set; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask.ProcessedCountyCount'></a>
+
+## BuildingSolarRadiationSolveTask\.ProcessedCountyCount Property
+
+Gets the number of county parts that were processed during the last run\.
+
+```csharp
+public long ProcessedCountyCount { get; private set; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask.SkippedExistingCount'></a>
+
+## BuildingSolarRadiationSolveTask\.SkippedExistingCount Property
+
+Gets the number of building and radius solves stepped over during the last run because a result of the current solver version was already stored \([SkipExisting](DiGi.GIS.PostgreSQL.Solar.Classes.md#DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveOptions.SkipExisting 'DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.PostgreSQLBuildingSolarRadiationSolveOptions\.SkipExisting')\)\.
+
+```csharp
+public long SkippedExistingCount { get; private set; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask.SolvedCount'></a>
+
+## BuildingSolarRadiationSolveTask\.SolvedCount Property
+
+Gets the number of building and radius results solved and stored during the last run\.
+
+```csharp
+public long SolvedCount { get; private set; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask.SolveMilliseconds'></a>
+
+## BuildingSolarRadiationSolveTask\.SolveMilliseconds Property
+
+Gets the total time, in milliseconds, spent building shading models and solving during the last run \- not reading or writing\. Divided by [SolvedCount](DiGi.GIS.PostgreSQL.Solar.Classes.md#DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask.SolvedCount 'DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.BuildingSolarRadiationSolveTask\.SolvedCount') it is the solve time per building and radius the runtime evidence of a run is reported from\.
+
+```csharp
+public long SolveMilliseconds { get; private set; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+### Methods
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask.ExecuteAsync(System.IProgress_long_,System.Threading.CancellationToken)'></a>
+
+## BuildingSolarRadiationSolveTask\.ExecuteAsync\(IProgress\<long\>, CancellationToken\) Method
+
+Executes the background task that solves and stores the annual solar radiation of every building of the county parts in scope\.
+
+```csharp
+protected override System.Threading.Tasks.Task<bool> ExecuteAsync(System.IProgress<long> progress, System.Threading.CancellationToken cancellationToken);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask.ExecuteAsync(System.IProgress_long_,System.Threading.CancellationToken).progress'></a>
+
+`progress` [System\.IProgress&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.iprogress-1 'System\.IProgress\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.iprogress-1 'System\.IProgress\`1')
+
+A progress reporter for reporting the number of buildings considered\.
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask.ExecuteAsync(System.IProgress_long_,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used to cancel the operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task representing the asynchronous operation\. Returns true when every county part in scope was processed without error; otherwise, false\.
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask.ReadBuilding2DCentroidsAsync(int,int,System.Threading.CancellationToken)'></a>
+
+## BuildingSolarRadiationSolveTask\.ReadBuilding2DCentroidsAsync\(int, int, CancellationToken\) Method
+
+Reads the centroid of every building filed under one county part, which the part is tiled and scoped by\.
+
+```csharp
+protected abstract System.Threading.Tasks.Task<System.Collections.Generic.List<DiGi.GIS.PostgreSQL.Classes.Building2DCentroid>?> ReadBuilding2DCentroidsAsync(int countyId, int commandTimeout, System.Threading.CancellationToken cancellationToken);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask.ReadBuilding2DCentroidsAsync(int,int,System.Threading.CancellationToken).countyId'></a>
+
+`countyId` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The identifier of the county part; only buildings filed under this part may be returned\.
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask.ReadBuilding2DCentroidsAsync(int,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds of the read; 0 disables it\.
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask.ReadBuilding2DCentroidsAsync(int,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used to cancel the operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[DiGi\.GIS\.PostgreSQL\.Classes\.Building2DCentroid](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.postgresql.classes.building2dcentroid 'DiGi\.GIS\.PostgreSQL\.Classes\.Building2DCentroid')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task whose result contains the centroids \(empty when the part has no building\), or null when the read failed\.
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask.ReadBuildingModelsAsync(int,System.Collections.Generic.List_string_,int,System.Threading.CancellationToken)'></a>
+
+## BuildingSolarRadiationSolveTask\.ReadBuildingModelsAsync\(int, List\<string\>, int, CancellationToken\) Method
+
+Reads the stored building models of the given references of one county part \- the receivers of a batch\.
+
+```csharp
+protected abstract System.Threading.Tasks.Task<System.Collections.Generic.List<DiGi.Analytical.Building.Classes.BuildingModel?>?> ReadBuildingModelsAsync(int countyId, System.Collections.Generic.List<string> references, int commandTimeout, System.Threading.CancellationToken cancellationToken);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask.ReadBuildingModelsAsync(int,System.Collections.Generic.List_string_,int,System.Threading.CancellationToken).countyId'></a>
+
+`countyId` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The identifier of the county part the references are filed under\.
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask.ReadBuildingModelsAsync(int,System.Collections.Generic.List_string_,int,System.Threading.CancellationToken).references'></a>
+
+`references` [System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')
+
+The `building_2d` references of the batch, at most [BatchSize](DiGi.GIS.PostgreSQL.Solar.Classes.md#DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveOptions.BatchSize 'DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.PostgreSQLBuildingSolarRadiationSolveOptions\.BatchSize')\.
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask.ReadBuildingModelsAsync(int,System.Collections.Generic.List_string_,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds of the read; 0 disables it\.
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask.ReadBuildingModelsAsync(int,System.Collections.Generic.List_string_,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used to cancel the operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task whose result contains the latest stored model of each reference found, stamped with its reference \(a reference with no model is simply absent, an entry that cannot be converted may be null\), or null when the read failed\.
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask.ReadCountyReferencesAsync(int,System.Threading.CancellationToken)'></a>
+
+## BuildingSolarRadiationSolveTask\.ReadCountyReferencesAsync\(int, CancellationToken\) Method
+
+Reads every county part the run may walk; [CountyIds](DiGi.GIS.PostgreSQL.Solar.Classes.md#DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveOptions.CountyIds 'DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.PostgreSQLBuildingSolarRadiationSolveOptions\.CountyIds') then narrows them\.
+
+```csharp
+protected abstract System.Threading.Tasks.Task<System.Collections.Generic.List<DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DReference>?> ReadCountyReferencesAsync(int commandTimeout, System.Threading.CancellationToken cancellationToken);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask.ReadCountyReferencesAsync(int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds of the read; 0 disables it\.
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask.ReadCountyReferencesAsync(int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used to cancel the operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[DiGi\.GIS\.PostgreSQL\.Classes\.AdministrativeAreal2DReference](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.postgresql.classes.administrativeareal2dreference 'DiGi\.GIS\.PostgreSQL\.Classes\.AdministrativeAreal2DReference')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task whose result contains every county part \- one per part, not one per code \- or null when the read failed\.
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask.ReadEPWFileAsync(int,int,System.Threading.CancellationToken)'></a>
+
+## BuildingSolarRadiationSolveTask\.ReadEPWFileAsync\(int, int, CancellationToken\) Method
+
+Reads one weather file by its station identifier; each station a county part uses is read once\.
+
+```csharp
+protected abstract System.Threading.Tasks.Task<DiGi.EPW.Classes.EPWFile?> ReadEPWFileAsync(int id, int commandTimeout, System.Threading.CancellationToken cancellationToken);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask.ReadEPWFileAsync(int,int,System.Threading.CancellationToken).id'></a>
+
+`id` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The identifier of the EPW file, from [ReadEPWFileLocationsAsync\(int, CancellationToken\)](DiGi.GIS.PostgreSQL.Solar.Classes.md#DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask.ReadEPWFileLocationsAsync(int,System.Threading.CancellationToken) 'DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.BuildingSolarRadiationSolveTask\.ReadEPWFileLocationsAsync\(int, System\.Threading\.CancellationToken\)')\.
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask.ReadEPWFileAsync(int,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds of the read; 0 disables it\.
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask.ReadEPWFileAsync(int,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used to cancel the operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[DiGi\.EPW\.Classes\.EPWFile](https://learn.microsoft.com/en-us/dotnet/api/digi.epw.classes.epwfile 'DiGi\.EPW\.Classes\.EPWFile')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task whose result contains the EPW file, or null when it cannot be read \- the buildings that need it are then counted as not solvable\.
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask.ReadEPWFileLocationsAsync(int,System.Threading.CancellationToken)'></a>
+
+## BuildingSolarRadiationSolveTask\.ReadEPWFileLocationsAsync\(int, CancellationToken\) Method
+
+Reads the identifier and location of every stored EPW station, from which each building is given its nearest one\.
+
+```csharp
+protected abstract System.Threading.Tasks.Task<System.Collections.Generic.List<(int Id,double X,double Y)>?> ReadEPWFileLocationsAsync(int commandTimeout, System.Threading.CancellationToken cancellationToken);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask.ReadEPWFileLocationsAsync(int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds of the read; 0 disables it\.
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask.ReadEPWFileLocationsAsync(int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used to cancel the operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.valuetuple 'System\.ValueTuple')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[,](https://learn.microsoft.com/en-us/dotnet/api/system.valuetuple 'System\.ValueTuple')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[,](https://learn.microsoft.com/en-us/dotnet/api/system.valuetuple 'System\.ValueTuple')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.valuetuple 'System\.ValueTuple')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task whose result contains the stations, or null when the read failed\.
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask.ReadNeighbourBuildingModelsAsync(DiGi.Geometry.Planar.Classes.Circle2D,int,System.Threading.CancellationToken)'></a>
+
+## BuildingSolarRadiationSolveTask\.ReadNeighbourBuildingModelsAsync\(Circle2D, int, CancellationToken\) Method
+
+Reads the stored building models of every building whose footprint lies within or intersects a circle, across county borders \- the neighbours of a batch\.
+
+```csharp
+protected abstract System.Threading.Tasks.Task<System.Collections.Generic.List<DiGi.Analytical.Building.Classes.BuildingModel?>?> ReadNeighbourBuildingModelsAsync(DiGi.Geometry.Planar.Classes.Circle2D circle2D, int commandTimeout, System.Threading.CancellationToken cancellationToken);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask.ReadNeighbourBuildingModelsAsync(DiGi.Geometry.Planar.Classes.Circle2D,int,System.Threading.CancellationToken).circle2D'></a>
+
+`circle2D` [DiGi\.Geometry\.Planar\.Classes\.Circle2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.circle2d 'DiGi\.Geometry\.Planar\.Classes\.Circle2D')
+
+The circle around the batch that holds every receiver's circle at the largest radius\.
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask.ReadNeighbourBuildingModelsAsync(DiGi.Geometry.Planar.Classes.Circle2D,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds of the read; 0 disables it\.
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask.ReadNeighbourBuildingModelsAsync(DiGi.Geometry.Planar.Classes.Circle2D,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used to cancel the operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task whose result contains the models \(empty when the circle holds no building\), or null when the read failed \- never read a failure as no neighbour\.
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask.ReadSolvedReferencesAsync(int,double,int,int,System.Threading.CancellationToken)'></a>
+
+## BuildingSolarRadiationSolveTask\.ReadSolvedReferencesAsync\(int, double, int, int, CancellationToken\) Method
+
+Reads the references of the buildings of one county part that already carry a result for a radius and solver version\.
+
+```csharp
+protected abstract System.Threading.Tasks.Task<System.Collections.Generic.HashSet<string>?> ReadSolvedReferencesAsync(int countyId, double radius, int solverVersion, int commandTimeout, System.Threading.CancellationToken cancellationToken);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask.ReadSolvedReferencesAsync(int,double,int,int,System.Threading.CancellationToken).countyId'></a>
+
+`countyId` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The identifier of the county part\.
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask.ReadSolvedReferencesAsync(int,double,int,int,System.Threading.CancellationToken).radius'></a>
+
+`radius` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The radius key, in m, as stored \(`SolarRadiusKey`\)\.
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask.ReadSolvedReferencesAsync(int,double,int,int,System.Threading.CancellationToken).solverVersion'></a>
+
+`solverVersion` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The solver version a stored result must carry to count\.
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask.ReadSolvedReferencesAsync(int,double,int,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds of the read; 0 disables it\.
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask.ReadSolvedReferencesAsync(int,double,int,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used to cancel the operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.HashSet&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.hashset-1 'System\.Collections\.Generic\.HashSet\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.hashset-1 'System\.Collections\.Generic\.HashSet\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task whose result contains the references \(empty when none is stored\), or null when the read failed \- never read a failure as nothing solved\.
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask.TryInitialize()'></a>
+
+## BuildingSolarRadiationSolveTask\.TryInitialize\(\) Method
+
+Checks, before anything is read, that the transport has what the run needs, logging the reason at Error level when it has not\.
+
+```csharp
+protected virtual bool TryInitialize();
+```
+
+#### Returns
+[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')  
+True when the run can start; otherwise, false, and the run ends without reading anything\.
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask.WriteAsync(int,System.Collections.Generic.List_DiGi.GIS.Classes.BuildingSolarRadiationResult_,int,System.Threading.CancellationToken)'></a>
+
+## BuildingSolarRadiationSolveTask\.WriteAsync\(int, List\<BuildingSolarRadiationResult\>, int, CancellationToken\) Method
+
+Writes the results of one batch of one county part\.
+
+```csharp
+protected abstract System.Threading.Tasks.Task<System.Nullable<int>> WriteAsync(int countyId, System.Collections.Generic.List<DiGi.GIS.Classes.BuildingSolarRadiationResult> buildingSolarRadiationResults, int commandTimeout, System.Threading.CancellationToken cancellationToken);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask.WriteAsync(int,System.Collections.Generic.List_DiGi.GIS.Classes.BuildingSolarRadiationResult_,int,System.Threading.CancellationToken).countyId'></a>
+
+`countyId` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The identifier of the county part every result is filed under\.
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask.WriteAsync(int,System.Collections.Generic.List_DiGi.GIS.Classes.BuildingSolarRadiationResult_,int,System.Threading.CancellationToken).buildingSolarRadiationResults'></a>
+
+`buildingSolarRadiationResults` [System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[DiGi\.GIS\.Classes\.BuildingSolarRadiationResult](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.buildingsolarradiationresult 'DiGi\.GIS\.Classes\.BuildingSolarRadiationResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')
+
+The results of the batch, in job order; never empty\.
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask.WriteAsync(int,System.Collections.Generic.List_DiGi.GIS.Classes.BuildingSolarRadiationResult_,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds of the write; 0 disables it\.
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask.WriteAsync(int,System.Collections.Generic.List_DiGi.GIS.Classes.BuildingSolarRadiationResult_,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used to cancel the operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task whose result contains the number of results written, or null when the write failed \- the part is then failed\.
+
 <a name='DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveOptions'></a>
 
 ## PostgreSQLBuildingSolarRadiationSolveOptions Class
@@ -592,23 +1095,15 @@ public double TileSize { get; set; }
 
 ## PostgreSQLBuildingSolarRadiationSolveTask Class
 
-Represents a background task that solves the annual solar radiation of every building of a county part for one or more neighbour radii and stores it in the building solar radiation table \(DiGi\.GIS\.PostgreSQL\#136\)\.
+Represents a background task that solves the annual solar radiation of every building of a county part for one or more neighbour radii and stores it in the building solar radiation table, reading and writing the storage database directly through its converters \(DiGi\.GIS\.PostgreSQL\#136\)\.
 
-Each building is solved exactly as the viewer solves it (DiGi.GIS.WebAPI.UI `SolarController`): the same building model detail level, the same neighbour circle (`DiGi.GIS.Analytical.Solar.Query.SolarNeighbourCircle`), the same nearest EPW station, the same solver options and solver version, and the same stored form - so a result does not depend on which of the two produced it. Radius 0 solves the building alone (`SolarRadiusIsolated`): it still shades and blocks the view of its own surfaces, but no neighbour does.
-
-A county part is solved in square tiles of [TileSize](DiGi.GIS.PostgreSQL.Solar.Classes.md#DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveOptions.TileSize 'DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.PostgreSQLBuildingSolarRadiationSolveOptions\.TileSize'), by the centroid of each building, at most [BatchSize](DiGi.GIS.PostgreSQL.Solar.Classes.md#DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveOptions.BatchSize 'DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.PostgreSQLBuildingSolarRadiationSolveOptions\.BatchSize') buildings at a time: one read of the batch's models, one read of every neighbour any of them can see at the largest radius, and one write of the batch's results. The neighbours of each building and radius are then picked in memory, as `gis/buildingmodel/itemsbycircle` picks them - every model whose bounding box lies within or intersects the building's circle.
-
-The jobs of a batch - one per building and pending radius - are solved several at a time ([MaxDegreeOfParallelism](DiGi.GIS.PostgreSQL.Solar.Classes.md#DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveOptions.MaxDegreeOfParallelism 'DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.PostgreSQLBuildingSolarRadiationSolveOptions\.MaxDegreeOfParallelism'), [DiGi\.GIS\.PostgreSQL\.Solar\.Query\.BuildingSolarRadiationSolveOutcomes\(System\.Collections\.Generic\.IList\{DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.BuildingSolarRadiationSolveJob\},System\.Collections\.Generic\.IList\{System\.ValueTuple\{DiGi\.Analytical\.Building\.Classes\.BuildingModel,System\.Double,System\.Double,System\.Double,System\.Double\}\},System\.Int32,System\.Int32,System\.Threading\.CancellationToken\)](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.postgresql.solar.query.buildingsolarradiationsolveoutcomes#digi-gis-postgresql-solar-query-buildingsolarradiationsolveoutcomes(system-collections-generic-ilist{digi-gis-postgresql-solar-classes-buildingsolarradiationsolvejob}-system-collections-generic-ilist{system-valuetuple{digi-analytical-building-classes-buildingmodel-system-double-system-double-system-double-system-double}}-system-int32-system-int32-system-threading-cancellationtoken) 'DiGi\.GIS\.PostgreSQL\.Solar\.Query\.BuildingSolarRadiationSolveOutcomes\(System\.Collections\.Generic\.IList\{DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.BuildingSolarRadiationSolveJob\},System\.Collections\.Generic\.IList\{System\.ValueTuple\{DiGi\.Analytical\.Building\.Classes\.BuildingModel,System\.Double,System\.Double,System\.Double,System\.Double\}\},System\.Int32,System\.Int32,System\.Threading\.CancellationToken\)')), and the next batch is read while they run; the results are still written one batch at a time, in order, and counted in job order, so the counts, failure samples and stored results are those of a sequential run (DiGi.GIS.PostgreSQL#139). Each batch logs the time spent waiting for its read, solving and writing. A cancellation waits for the solves in flight.
-
-[BuildingCountMax](DiGi.GIS.PostgreSQL.Solar.Classes.md#DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveOptions.BuildingCountMax 'DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.PostgreSQLBuildingSolarRadiationSolveOptions\.BuildingCountMax') cuts the walk of each part after its first buildings in that order ([SolarSolveTiles\(this IEnumerable&lt;Building2DCentroid&gt;, double, Nullable&lt;int&gt;\)](DiGi.GIS.PostgreSQL.Solar.md#DiGi.GIS.PostgreSQL.Solar.Query.SolarSolveTiles(thisSystem.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.Building2DCentroid_,double,System.Nullable_int_) 'DiGi\.GIS\.PostgreSQL\.Solar\.Query\.SolarSolveTiles\(this System\.Collections\.Generic\.IEnumerable\<DiGi\.GIS\.PostgreSQL\.Classes\.Building2DCentroid\>, double, System\.Nullable\<int\>\)')), for a pilot that still logs its part and run summaries (DiGi.GIS.PostgreSQL#138).
-
-A building that cannot be solved - no stored model, no location, no closed envelope, no weather, or above a ceiling - is counted and stepped over. A county part whose buildings, models or neighbours cannot be read, or whose results cannot be written, is failed and logged with the exception, and the run keeps going over the other parts; a run with a failed part reports itself as not succeeded. Batch rows carry no user email: no user asked for them.
+The run itself - scope, tiling, batching, parallel solve, counting and logging - is [BuildingSolarRadiationSolveTask](DiGi.GIS.PostgreSQL.Solar.Classes.md#DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask 'DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.BuildingSolarRadiationSolveTask')'s; this class only supplies its reads and its write. Batch rows carry no user email: no user asked for them.
 
 ```csharp
-public class PostgreSQLBuildingSolarRadiationSolveTask : DiGi.Core.Classes.ReportableBackgroundTask<long>, DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLObject, DiGi.Core.Interfaces.IObject
+public class PostgreSQLBuildingSolarRadiationSolveTask : DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask, DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLObject, DiGi.Core.Interfaces.IObject
 ```
 
-Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [DiGi\.Core\.Classes\.BackgroundTask](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.backgroundtask 'DiGi\.Core\.Classes\.BackgroundTask') → [DiGi\.Core\.Classes\.CancelableBackgroundTask](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.cancelablebackgroundtask 'DiGi\.Core\.Classes\.CancelableBackgroundTask') → [DiGi\.Core\.Classes\.ReportableBackgroundTask&lt;](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.reportablebackgroundtask-1 'DiGi\.Core\.Classes\.ReportableBackgroundTask\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.reportablebackgroundtask-1 'DiGi\.Core\.Classes\.ReportableBackgroundTask\`1') → PostgreSQLBuildingSolarRadiationSolveTask
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [DiGi\.Core\.Classes\.BackgroundTask](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.backgroundtask 'DiGi\.Core\.Classes\.BackgroundTask') → [DiGi\.Core\.Classes\.CancelableBackgroundTask](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.cancelablebackgroundtask 'DiGi\.Core\.Classes\.CancelableBackgroundTask') → [DiGi\.Core\.Classes\.ReportableBackgroundTask&lt;](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.reportablebackgroundtask-1 'DiGi\.Core\.Classes\.ReportableBackgroundTask\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.reportablebackgroundtask-1 'DiGi\.Core\.Classes\.ReportableBackgroundTask\`1') → [BuildingSolarRadiationSolveTask](DiGi.GIS.PostgreSQL.Solar.Classes.md#DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask 'DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.BuildingSolarRadiationSolveTask') → PostgreSQLBuildingSolarRadiationSolveTask
 
 Implements [DiGi\.GIS\.PostgreSQL\.Interfaces\.IGISPostgreSQLObject](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.postgresql.interfaces.igispostgresqlobject 'DiGi\.GIS\.PostgreSQL\.Interfaces\.IGISPostgreSQLObject'), [DiGi\.Core\.Interfaces\.IObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iobject 'DiGi\.Core\.Interfaces\.IObject')
 ### Constructors
@@ -631,19 +1126,6 @@ public PostgreSQLBuildingSolarRadiationSolveTask(DiGi.GIS.PostgreSQL.Classes.GIS
 The GIS PostgreSQL converter manager used to retrieve converters and execute operations\.
 ### Fields
 
-<a name='DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask.failureSampleCountMax'></a>
-
-## PostgreSQLBuildingSolarRadiationSolveTask\.failureSampleCountMax Field
-
-The largest number of failure descriptions kept in [FailureSamples](DiGi.GIS.PostgreSQL.Solar.Classes.md#DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask.FailureSamples 'DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.PostgreSQLBuildingSolarRadiationSolveTask\.FailureSamples'); the counts are never capped\.
-
-```csharp
-private const int failureSampleCountMax = 50;
-```
-
-#### Field Value
-[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
-
 <a name='DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask.gISPostgreSQLConverterManager'></a>
 
 ## PostgreSQLBuildingSolarRadiationSolveTask\.gISPostgreSQLConverterManager Field
@@ -656,175 +1138,294 @@ protected readonly GISPostgreSQLConverterManager gISPostgreSQLConverterManager;
 
 #### Field Value
 [DiGi\.GIS\.PostgreSQL\.Classes\.GISPostgreSQLConverterManager](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.postgresql.classes.gispostgresqlconvertermanager 'DiGi\.GIS\.PostgreSQL\.Classes\.GISPostgreSQLConverterManager')
-### Properties
-
-<a name='DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask.FailedCount'></a>
-
-## PostgreSQLBuildingSolarRadiationSolveTask\.FailedCount Property
-
-Gets the number of building and radius solves that failed with an exception or produced a result that cannot be stored during the last run\.
-
-```csharp
-public long FailedCount { get; private set; }
-```
-
-#### Property Value
-[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
-
-<a name='DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask.FailedCountyCount'></a>
-
-## PostgreSQLBuildingSolarRadiationSolveTask\.FailedCountyCount Property
-
-Gets the number of county parts that failed outright and were stepped over during the last run\.
-
-```csharp
-public long FailedCountyCount { get; private set; }
-```
-
-#### Property Value
-[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
-
-<a name='DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask.FailureSamples'></a>
-
-## PostgreSQLBuildingSolarRadiationSolveTask\.FailureSamples Property
-
-Gets a bounded sample of the failures of the last run, at most 50 descriptions; [FailedCount](DiGi.GIS.PostgreSQL.Solar.Classes.md#DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask.FailedCount 'DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.PostgreSQLBuildingSolarRadiationSolveTask\.FailedCount') and [FailedCountyCount](DiGi.GIS.PostgreSQL.Solar.Classes.md#DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask.FailedCountyCount 'DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.PostgreSQLBuildingSolarRadiationSolveTask\.FailedCountyCount') are the full counts\.
-
-```csharp
-public System.Collections.Generic.IReadOnlyList<string> FailureSamples { get; }
-```
-
-#### Property Value
-[System\.Collections\.Generic\.IReadOnlyList&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ireadonlylist-1 'System\.Collections\.Generic\.IReadOnlyList\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ireadonlylist-1 'System\.Collections\.Generic\.IReadOnlyList\`1')
-
-<a name='DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask.NotSolvableCount'></a>
-
-## PostgreSQLBuildingSolarRadiationSolveTask\.NotSolvableCount Property
-
-Gets the number of building and radius solves stepped over during the last run because the building has no stored model, cannot be located, has no closed external envelope or has no weather\.
-
-```csharp
-public long NotSolvableCount { get; private set; }
-```
-
-#### Property Value
-[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
-
-<a name='DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask.OverCeilingCount'></a>
-
-## PostgreSQLBuildingSolarRadiationSolveTask\.OverCeilingCount Property
-
-Gets the number of building and radius solves stepped over during the last run because a ceiling was exceeded: more receiving surfaces than [ReceiverCountMax](DiGi.GIS.PostgreSQL.Solar.Classes.md#DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveOptions.ReceiverCountMax 'DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.PostgreSQLBuildingSolarRadiationSolveOptions\.ReceiverCountMax') \(counted once per radius\) or more caster triangles than [CasterTriangleCountMax](DiGi.GIS.PostgreSQL.Solar.Classes.md#DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveOptions.CasterTriangleCountMax 'DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.PostgreSQLBuildingSolarRadiationSolveOptions\.CasterTriangleCountMax')\.
-
-```csharp
-public long OverCeilingCount { get; private set; }
-```
-
-#### Property Value
-[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
-
-<a name='DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask.PostgreSQLBuildingSolarRadiationSolveOptions'></a>
-
-## PostgreSQLBuildingSolarRadiationSolveTask\.PostgreSQLBuildingSolarRadiationSolveOptions Property
-
-Gets or sets the options used to configure the run\.
-
-```csharp
-public DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveOptions PostgreSQLBuildingSolarRadiationSolveOptions { get; set; }
-```
-
-#### Property Value
-[PostgreSQLBuildingSolarRadiationSolveOptions](DiGi.GIS.PostgreSQL.Solar.Classes.md#DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveOptions 'DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.PostgreSQLBuildingSolarRadiationSolveOptions')
-
-<a name='DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask.ProcessedBuildingCount'></a>
-
-## PostgreSQLBuildingSolarRadiationSolveTask\.ProcessedBuildingCount Property
-
-Gets the number of buildings that were considered during the last run, whatever happened to them; the progress reported\. Buildings left out by [BuildingCountMax](DiGi.GIS.PostgreSQL.Solar.Classes.md#DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveOptions.BuildingCountMax 'DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.PostgreSQLBuildingSolarRadiationSolveOptions\.BuildingCountMax') are not counted\.
-
-```csharp
-public long ProcessedBuildingCount { get; private set; }
-```
-
-#### Property Value
-[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
-
-<a name='DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask.ProcessedCountyCount'></a>
-
-## PostgreSQLBuildingSolarRadiationSolveTask\.ProcessedCountyCount Property
-
-Gets the number of county parts that were processed during the last run\.
-
-```csharp
-public long ProcessedCountyCount { get; private set; }
-```
-
-#### Property Value
-[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
-
-<a name='DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask.SkippedExistingCount'></a>
-
-## PostgreSQLBuildingSolarRadiationSolveTask\.SkippedExistingCount Property
-
-Gets the number of building and radius solves stepped over during the last run because a result of the current solver version was already stored \([SkipExisting](DiGi.GIS.PostgreSQL.Solar.Classes.md#DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveOptions.SkipExisting 'DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.PostgreSQLBuildingSolarRadiationSolveOptions\.SkipExisting')\)\.
-
-```csharp
-public long SkippedExistingCount { get; private set; }
-```
-
-#### Property Value
-[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
-
-<a name='DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask.SolvedCount'></a>
-
-## PostgreSQLBuildingSolarRadiationSolveTask\.SolvedCount Property
-
-Gets the number of building and radius results solved and stored during the last run\.
-
-```csharp
-public long SolvedCount { get; private set; }
-```
-
-#### Property Value
-[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
-
-<a name='DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask.SolveMilliseconds'></a>
-
-## PostgreSQLBuildingSolarRadiationSolveTask\.SolveMilliseconds Property
-
-Gets the total time, in milliseconds, spent building shading models and solving during the last run \- not reading or writing\. Divided by [SolvedCount](DiGi.GIS.PostgreSQL.Solar.Classes.md#DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask.SolvedCount 'DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.PostgreSQLBuildingSolarRadiationSolveTask\.SolvedCount') it is the solve time per building and radius the runtime evidence of a run is reported from\.
-
-```csharp
-public long SolveMilliseconds { get; private set; }
-```
-
-#### Property Value
-[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
 ### Methods
 
-<a name='DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask.ExecuteAsync(System.IProgress_long_,System.Threading.CancellationToken)'></a>
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask.ReadBuilding2DCentroidsAsync(int,int,System.Threading.CancellationToken)'></a>
 
-## PostgreSQLBuildingSolarRadiationSolveTask\.ExecuteAsync\(IProgress\<long\>, CancellationToken\) Method
+## PostgreSQLBuildingSolarRadiationSolveTask\.ReadBuilding2DCentroidsAsync\(int, int, CancellationToken\) Method
 
-Executes the background task that solves and stores the annual solar radiation of every building of the county parts in scope\.
+Reads the centroid of every building filed under one county part, which the part is tiled and scoped by\.
 
 ```csharp
-protected override System.Threading.Tasks.Task<bool> ExecuteAsync(System.IProgress<long> progress, System.Threading.CancellationToken cancellationToken);
+protected override System.Threading.Tasks.Task<System.Collections.Generic.List<DiGi.GIS.PostgreSQL.Classes.Building2DCentroid>?> ReadBuilding2DCentroidsAsync(int countyId, int commandTimeout, System.Threading.CancellationToken cancellationToken);
 ```
 #### Parameters
 
-<a name='DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask.ExecuteAsync(System.IProgress_long_,System.Threading.CancellationToken).progress'></a>
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask.ReadBuilding2DCentroidsAsync(int,int,System.Threading.CancellationToken).countyId'></a>
 
-`progress` [System\.IProgress&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.iprogress-1 'System\.IProgress\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.iprogress-1 'System\.IProgress\`1')
+`countyId` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
 
-A progress reporter for reporting the number of buildings considered\.
+The identifier of the county part; only buildings filed under this part may be returned\.
 
-<a name='DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask.ExecuteAsync(System.IProgress_long_,System.Threading.CancellationToken).cancellationToken'></a>
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask.ReadBuilding2DCentroidsAsync(int,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds of the read; 0 disables it\.
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask.ReadBuilding2DCentroidsAsync(int,int,System.Threading.CancellationToken).cancellationToken'></a>
 
 `cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
 
 A cancellation token that can be used to cancel the operation\.
 
 #### Returns
-[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
-A task representing the asynchronous operation\. Returns true when every county part in scope was processed without error; otherwise, false\.
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[DiGi\.GIS\.PostgreSQL\.Classes\.Building2DCentroid](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.postgresql.classes.building2dcentroid 'DiGi\.GIS\.PostgreSQL\.Classes\.Building2DCentroid')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task whose result contains the centroids \(empty when the part has no building\), or null when the read failed\.
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask.ReadBuildingModelsAsync(int,System.Collections.Generic.List_string_,int,System.Threading.CancellationToken)'></a>
+
+## PostgreSQLBuildingSolarRadiationSolveTask\.ReadBuildingModelsAsync\(int, List\<string\>, int, CancellationToken\) Method
+
+Reads the stored building models of the given references of one county part \- the receivers of a batch\.
+
+```csharp
+protected override System.Threading.Tasks.Task<System.Collections.Generic.List<DiGi.Analytical.Building.Classes.BuildingModel?>?> ReadBuildingModelsAsync(int countyId, System.Collections.Generic.List<string> references, int commandTimeout, System.Threading.CancellationToken cancellationToken);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask.ReadBuildingModelsAsync(int,System.Collections.Generic.List_string_,int,System.Threading.CancellationToken).countyId'></a>
+
+`countyId` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The identifier of the county part the references are filed under\.
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask.ReadBuildingModelsAsync(int,System.Collections.Generic.List_string_,int,System.Threading.CancellationToken).references'></a>
+
+`references` [System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')
+
+The `building_2d` references of the batch, at most [BatchSize](DiGi.GIS.PostgreSQL.Solar.Classes.md#DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveOptions.BatchSize 'DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.PostgreSQLBuildingSolarRadiationSolveOptions\.BatchSize')\.
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask.ReadBuildingModelsAsync(int,System.Collections.Generic.List_string_,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds of the read; 0 disables it\.
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask.ReadBuildingModelsAsync(int,System.Collections.Generic.List_string_,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used to cancel the operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task whose result contains the latest stored model of each reference found, stamped with its reference \(a reference with no model is simply absent, an entry that cannot be converted may be null\), or null when the read failed\.
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask.ReadCountyReferencesAsync(int,System.Threading.CancellationToken)'></a>
+
+## PostgreSQLBuildingSolarRadiationSolveTask\.ReadCountyReferencesAsync\(int, CancellationToken\) Method
+
+Reads every county part the run may walk; [CountyIds](DiGi.GIS.PostgreSQL.Solar.Classes.md#DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveOptions.CountyIds 'DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.PostgreSQLBuildingSolarRadiationSolveOptions\.CountyIds') then narrows them\.
+
+```csharp
+protected override System.Threading.Tasks.Task<System.Collections.Generic.List<DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DReference>?> ReadCountyReferencesAsync(int commandTimeout, System.Threading.CancellationToken cancellationToken);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask.ReadCountyReferencesAsync(int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds of the read; 0 disables it\.
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask.ReadCountyReferencesAsync(int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used to cancel the operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[DiGi\.GIS\.PostgreSQL\.Classes\.AdministrativeAreal2DReference](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.postgresql.classes.administrativeareal2dreference 'DiGi\.GIS\.PostgreSQL\.Classes\.AdministrativeAreal2DReference')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task whose result contains every county part \- one per part, not one per code \- or null when the read failed\.
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask.ReadEPWFileAsync(int,int,System.Threading.CancellationToken)'></a>
+
+## PostgreSQLBuildingSolarRadiationSolveTask\.ReadEPWFileAsync\(int, int, CancellationToken\) Method
+
+Reads one weather file by its station identifier; each station a county part uses is read once\.
+
+```csharp
+protected override System.Threading.Tasks.Task<DiGi.EPW.Classes.EPWFile?> ReadEPWFileAsync(int id, int commandTimeout, System.Threading.CancellationToken cancellationToken);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask.ReadEPWFileAsync(int,int,System.Threading.CancellationToken).id'></a>
+
+`id` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The identifier of the EPW file, from [ReadEPWFileLocationsAsync\(int, CancellationToken\)](DiGi.GIS.PostgreSQL.Solar.Classes.md#DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveTask.ReadEPWFileLocationsAsync(int,System.Threading.CancellationToken) 'DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.BuildingSolarRadiationSolveTask\.ReadEPWFileLocationsAsync\(int, System\.Threading\.CancellationToken\)')\.
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask.ReadEPWFileAsync(int,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds of the read; 0 disables it\.
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask.ReadEPWFileAsync(int,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used to cancel the operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[DiGi\.EPW\.Classes\.EPWFile](https://learn.microsoft.com/en-us/dotnet/api/digi.epw.classes.epwfile 'DiGi\.EPW\.Classes\.EPWFile')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task whose result contains the EPW file, or null when it cannot be read \- the buildings that need it are then counted as not solvable\.
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask.ReadEPWFileLocationsAsync(int,System.Threading.CancellationToken)'></a>
+
+## PostgreSQLBuildingSolarRadiationSolveTask\.ReadEPWFileLocationsAsync\(int, CancellationToken\) Method
+
+Reads the identifier and location of every stored EPW station, from which each building is given its nearest one\.
+
+```csharp
+protected override System.Threading.Tasks.Task<System.Collections.Generic.List<(int Id,double X,double Y)>?> ReadEPWFileLocationsAsync(int commandTimeout, System.Threading.CancellationToken cancellationToken);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask.ReadEPWFileLocationsAsync(int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds of the read; 0 disables it\.
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask.ReadEPWFileLocationsAsync(int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used to cancel the operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.valuetuple 'System\.ValueTuple')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[,](https://learn.microsoft.com/en-us/dotnet/api/system.valuetuple 'System\.ValueTuple')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[,](https://learn.microsoft.com/en-us/dotnet/api/system.valuetuple 'System\.ValueTuple')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.valuetuple 'System\.ValueTuple')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task whose result contains the stations, or null when the read failed\.
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask.ReadNeighbourBuildingModelsAsync(DiGi.Geometry.Planar.Classes.Circle2D,int,System.Threading.CancellationToken)'></a>
+
+## PostgreSQLBuildingSolarRadiationSolveTask\.ReadNeighbourBuildingModelsAsync\(Circle2D, int, CancellationToken\) Method
+
+Reads the stored building models of every building whose footprint lies within or intersects a circle, across county borders \- the neighbours of a batch\.
+
+```csharp
+protected override System.Threading.Tasks.Task<System.Collections.Generic.List<DiGi.Analytical.Building.Classes.BuildingModel?>?> ReadNeighbourBuildingModelsAsync(DiGi.Geometry.Planar.Classes.Circle2D circle2D, int commandTimeout, System.Threading.CancellationToken cancellationToken);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask.ReadNeighbourBuildingModelsAsync(DiGi.Geometry.Planar.Classes.Circle2D,int,System.Threading.CancellationToken).circle2D'></a>
+
+`circle2D` [DiGi\.Geometry\.Planar\.Classes\.Circle2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.circle2d 'DiGi\.Geometry\.Planar\.Classes\.Circle2D')
+
+The circle around the batch that holds every receiver's circle at the largest radius\.
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask.ReadNeighbourBuildingModelsAsync(DiGi.Geometry.Planar.Classes.Circle2D,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds of the read; 0 disables it\.
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask.ReadNeighbourBuildingModelsAsync(DiGi.Geometry.Planar.Classes.Circle2D,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used to cancel the operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task whose result contains the models \(empty when the circle holds no building\), or null when the read failed \- never read a failure as no neighbour\.
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask.ReadSolvedReferencesAsync(int,double,int,int,System.Threading.CancellationToken)'></a>
+
+## PostgreSQLBuildingSolarRadiationSolveTask\.ReadSolvedReferencesAsync\(int, double, int, int, CancellationToken\) Method
+
+Reads the references of the buildings of one county part that already carry a result for a radius and solver version\.
+
+```csharp
+protected override System.Threading.Tasks.Task<System.Collections.Generic.HashSet<string>?> ReadSolvedReferencesAsync(int countyId, double radius, int solverVersion, int commandTimeout, System.Threading.CancellationToken cancellationToken);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask.ReadSolvedReferencesAsync(int,double,int,int,System.Threading.CancellationToken).countyId'></a>
+
+`countyId` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The identifier of the county part\.
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask.ReadSolvedReferencesAsync(int,double,int,int,System.Threading.CancellationToken).radius'></a>
+
+`radius` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The radius key, in m, as stored \(`SolarRadiusKey`\)\.
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask.ReadSolvedReferencesAsync(int,double,int,int,System.Threading.CancellationToken).solverVersion'></a>
+
+`solverVersion` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The solver version a stored result must carry to count\.
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask.ReadSolvedReferencesAsync(int,double,int,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds of the read; 0 disables it\.
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask.ReadSolvedReferencesAsync(int,double,int,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used to cancel the operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.HashSet&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.hashset-1 'System\.Collections\.Generic\.HashSet\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.hashset-1 'System\.Collections\.Generic\.HashSet\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task whose result contains the references \(empty when none is stored\), or null when the read failed \- never read a failure as nothing solved\.
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask.TryInitialize()'></a>
+
+## PostgreSQLBuildingSolarRadiationSolveTask\.TryInitialize\(\) Method
+
+Checks, before anything is read, that the transport has what the run needs, logging the reason at Error level when it has not\.
+
+```csharp
+protected override bool TryInitialize();
+```
+
+#### Returns
+[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')  
+True when the run can start; otherwise, false, and the run ends without reading anything\.
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask.WriteAsync(int,System.Collections.Generic.List_DiGi.GIS.Classes.BuildingSolarRadiationResult_,int,System.Threading.CancellationToken)'></a>
+
+## PostgreSQLBuildingSolarRadiationSolveTask\.WriteAsync\(int, List\<BuildingSolarRadiationResult\>, int, CancellationToken\) Method
+
+Writes the results of one batch of one county part\.
+
+```csharp
+protected override System.Threading.Tasks.Task<System.Nullable<int>> WriteAsync(int countyId, System.Collections.Generic.List<DiGi.GIS.Classes.BuildingSolarRadiationResult> buildingSolarRadiationResults, int commandTimeout, System.Threading.CancellationToken cancellationToken);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask.WriteAsync(int,System.Collections.Generic.List_DiGi.GIS.Classes.BuildingSolarRadiationResult_,int,System.Threading.CancellationToken).countyId'></a>
+
+`countyId` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The identifier of the county part every result is filed under\.
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask.WriteAsync(int,System.Collections.Generic.List_DiGi.GIS.Classes.BuildingSolarRadiationResult_,int,System.Threading.CancellationToken).buildingSolarRadiationResults'></a>
+
+`buildingSolarRadiationResults` [System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[DiGi\.GIS\.Classes\.BuildingSolarRadiationResult](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.buildingsolarradiationresult 'DiGi\.GIS\.Classes\.BuildingSolarRadiationResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')
+
+The results of the batch, in job order; never empty\.
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask.WriteAsync(int,System.Collections.Generic.List_DiGi.GIS.Classes.BuildingSolarRadiationResult_,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds of the write; 0 disables it\.
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveTask.WriteAsync(int,System.Collections.Generic.List_DiGi.GIS.Classes.BuildingSolarRadiationResult_,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used to cancel the operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task whose result contains the number of results written, or null when the write failed \- the part is then failed\.
