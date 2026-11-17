@@ -3314,6 +3314,29 @@ The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dot
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[OrtoDatasCoverageResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoDatasCoverageResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoDatasCoverageResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A task that represents the asynchronous operation\. The task result contains one [OrtoDatasCoverageResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoDatasCoverageResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoDatasCoverageResult') per polygon that holds at least one of the county's buildings, in identifier order, plus one carrying a null [AdministrativeAreal2DId](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoDatasCoverageResult.AdministrativeAreal2DId 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoDatasCoverageResult\.AdministrativeAreal2DId') for the buildings inside none of them when there are any; or null when either converter or the polygon map is missing, either side could not be read, or the county holds no orthophoto row at all\.
 
+<a name='DiGi.GIS.PostgreSQL.Query.HasImages(thisDiGi.GIS.PostgreSQL.Classes.OrtoDatas)'></a>
+
+## Query\.HasImages\(this OrtoDatas\) Method
+
+Decides whether a stored orthophoto series holds at least one image\.
+
+Read from the serialized `Values` array of [Object](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.TableSerializableObject_TSerializableObject_.Object 'DiGi\.GIS\.PostgreSQL\.Classes\.TableSerializableObject\<TSerializableObject\>\.Object') - the same key the SQL reads as `object->'Values'` - so the series is not deserialized. A series with no images is a fetch in which every request failed, not data (DiGi.GIS.WebAPI#81); [UpdateAsync\(IEnumerable&lt;OrtoDatas&gt;, IEnumerable&lt;int&gt;, AdministrativeAreal2DPostgreSQLConverter, double, int, CancellationToken\)](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoDatasPostgreSQLConverter.UpdateAsync(System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OrtoDatas_,System.Collections.Generic.IEnumerable_int_,DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DPostgreSQLConverter,double,int,System.Threading.CancellationToken) 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoDatasPostgreSQLConverter\.UpdateAsync\(System\.Collections\.Generic\.IEnumerable\<DiGi\.GIS\.PostgreSQL\.Classes\.OrtoDatas\>, System\.Collections\.Generic\.IEnumerable\<int\>, DiGi\.GIS\.PostgreSQL\.Classes\.AdministrativeAreal2DPostgreSQLConverter, double, int, System\.Threading\.CancellationToken\)') refuses to store one.
+
+```csharp
+public static bool HasImages(this DiGi.GIS.PostgreSQL.Classes.OrtoDatas? ortoDatas);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Query.HasImages(thisDiGi.GIS.PostgreSQL.Classes.OrtoDatas).ortoDatas'></a>
+
+`ortoDatas` [OrtoDatas](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoDatas 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoDatas')
+
+The stored series\.
+
+#### Returns
+[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')  
+True when the series holds at least one image; false when it is null, carries no object, or its `Values` array is missing or empty\.
+
 <a name='DiGi.GIS.PostgreSQL.Query.IdColumnName(thisDiGi.GIS.PostgreSQL.Enums.AdministrativeArealType)'></a>
 
 ## Query\.IdColumnName\(this AdministrativeArealType\) Method

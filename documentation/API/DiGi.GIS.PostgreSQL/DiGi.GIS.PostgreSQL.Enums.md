@@ -192,3 +192,9 @@ The caller did not state a county identifier, and the row carries no geometry fr
 `GeometryRejected` 5
 
 The row carries a coordinate reference system the reprojection does not support, or a transformation of its geometry failed \(a null input, a non\-finite vertex, a ring shorter than four ordinates, or a result outside the EPSG:2180 domain\)\. The footprint is counted and never written \- a partially reprojected ring is not a row \(DiGi\.GIS\.PostgreSQL\#125\)\.
+
+<a name='DiGi.GIS.PostgreSQL.Enums.UpdateRejectionReason.NoImages'></a>
+
+`NoImages` 6
+
+The orthophoto series holds no image\. Geoportal answers an image even outside its coverage, so a series with none is a fetch in which every request failed; storing it would record that failure as data and let its queue claim be acknowledged, so a transient outage became permanent \(DiGi\.GIS\.WebAPI\#81\)\. The row is never written, which leaves the claim open for a retry\.

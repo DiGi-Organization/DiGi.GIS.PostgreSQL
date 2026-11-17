@@ -1384,6 +1384,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// <para>1. the entry's own county identifier - already names the row, nothing to infer.</para>
         /// <para>2. <paramref name="countyIds"/> - a county code names one row per polygon part, so the caller can state the county without stating the part. A single candidate resolves outright; several only narrow the field and are handed to tier 3.</para>
         /// <para>3. geometry - <see cref="Query.CountyId(IDictionary{int, Geometry.Planar.Interfaces.IPolygonal2D}, Geometry.Planar.Interfaces.IPolygonal2D, double)"/> decides which candidate the entry lies in, is nearest to, or overlaps most. With no candidates the field is every county its bounding box overlaps, which is both slower and wider than narrowing first.</para>
+        /// <para>A series holding no image (<see cref="Query.HasImages(OrtoDatas)"/>) is rejected with <see cref="Enums.UpdateRejectionReason.NoImages"/> before any tier runs: it is a fetch in which every request failed, and storing it let the download queue acknowledge a failure as finished work (DiGi.GIS.WebAPI#81).</para>
         /// <para>Every series written drops the <see cref="TableName.OrtoDataAcquisition"/> rows of its reference in its county part: the images, and the run-end years they were dated against, may have changed, so the series is undated until the next acquisition backfill (<see cref="Modify.UpdateOrtoDatasAcquisitionAsync"/>) dates it again.</para>
         /// <para>Tier 3 reads <c>administrative_areal_2d</c>, which lives in the main database, while <c>orto_datas</c> lives in the storage database - so the county polygons are read through <paramref name="administrativeAreal2DPostgreSQLConverter"/>, never through this converter's own connection, and only once an entry actually reaches tier 3.</para>
         /// </summary>
@@ -1448,6 +1449,16 @@ namespace DiGi.GIS.PostgreSQL.Classes
                     // Recorded rather than skipped in silence, so the rejection count stays an exact
                     // account of the rows that never reached the database.
                     rejections.Add(new Rejection(null, Enums.UpdateRejectionReason.Undefined));
+                    continue;
+                }
+
+                if (!ortoDatas_Temp.HasImages())
+                {
+                    // Geoportal answers an image even outside its coverage, so no image at all means every
+                    // request of the fetch failed. Written, it would read as data and its queue claim would be
+                    // acknowledged - the 407 image-less series of DiGi.GIS.WebAPI#81. Rejected, the claim stays
+                    // open and the reference is fetched again.
+                    rejections.Add(new Rejection(ortoDatas_Temp.Reference, Enums.UpdateRejectionReason.NoImages));
                     continue;
                 }
 
