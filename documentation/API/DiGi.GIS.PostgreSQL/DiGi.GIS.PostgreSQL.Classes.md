@@ -3036,6 +3036,106 @@ The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dot
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[AdministrativeAreal2D](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2D 'DiGi\.GIS\.PostgreSQL\.Classes\.AdministrativeAreal2D')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A task that represents the asynchronous operation\. The task result contains a list of [AdministrativeAreal2D](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2D 'DiGi\.GIS\.PostgreSQL\.Classes\.AdministrativeAreal2D') objects if successful; otherwise, null\.
 
+<a name='DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DPostgreSQLConverter.GetAdministrativeAreal2DsByParentIdsAsync(DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType,System.Collections.Generic.IEnumerable_int_,int,int,System.Threading.CancellationToken)'></a>
+
+## AdministrativeAreal2DPostgreSQLConverter\.GetAdministrativeAreal2DsByParentIdsAsync\(AdministrativeArealType, IEnumerable\<int\>, int, int, CancellationToken\) Method
+
+Asynchronously retrieves the administrative areal 2D entities of the specified type under each of many parents, grouped by the parent identifier requested, over one connection\.
+
+See [GetAdministrativeAreal2DsByParentIdsAsync\(NpgsqlConnection, AdministrativeArealType, IEnumerable&lt;int&gt;, int, int, CancellationToken\)](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DPostgreSQLConverter.GetAdministrativeAreal2DsByParentIdsAsync(Npgsql.NpgsqlConnection,DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType,System.Collections.Generic.IEnumerable_int_,int,int,System.Threading.CancellationToken) 'DiGi\.GIS\.PostgreSQL\.Classes\.AdministrativeAreal2DPostgreSQLConverter\.GetAdministrativeAreal2DsByParentIdsAsync\(Npgsql\.NpgsqlConnection, DiGi\.GIS\.PostgreSQL\.Enums\.AdministrativeArealType, System\.Collections\.Generic\.IEnumerable\<int\>, int, int, System\.Threading\.CancellationToken\)').
+
+```csharp
+public System.Threading.Tasks.Task<System.Collections.Generic.Dictionary<int,System.Collections.Generic.List<DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2D>>?> GetAdministrativeAreal2DsByParentIdsAsync(DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType administrativeArealType, System.Collections.Generic.IEnumerable<int>? parentIds, int batchSize=1000, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DPostgreSQLConverter.GetAdministrativeAreal2DsByParentIdsAsync(DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType,System.Collections.Generic.IEnumerable_int_,int,int,System.Threading.CancellationToken).administrativeArealType'></a>
+
+`administrativeArealType` [AdministrativeArealType](DiGi.GIS.PostgreSQL.Enums.md#DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType 'DiGi\.GIS\.PostgreSQL\.Enums\.AdministrativeArealType')
+
+The [AdministrativeArealType](DiGi.GIS.PostgreSQL.Enums.md#DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType 'DiGi\.GIS\.PostgreSQL\.Enums\.AdministrativeArealType') of the entities to be retrieved\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DPostgreSQLConverter.GetAdministrativeAreal2DsByParentIdsAsync(DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType,System.Collections.Generic.IEnumerable_int_,int,int,System.Threading.CancellationToken).parentIds'></a>
+
+`parentIds` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The identifiers of the parent administrative areal entities\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DPostgreSQLConverter.GetAdministrativeAreal2DsByParentIdsAsync(DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType,System.Collections.Generic.IEnumerable_int_,int,int,System.Threading.CancellationToken).batchSize'></a>
+
+`batchSize` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The largest number of identifiers or codes sent in one statement\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DPostgreSQLConverter.GetAdministrativeAreal2DsByParentIdsAsync(DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType,System.Collections.Generic.IEnumerable_int_,int,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of each command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DPostgreSQLConverter.GetAdministrativeAreal2DsByParentIdsAsync(DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType,System.Collections.Generic.IEnumerable_int_,int,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken') used to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.Dictionary&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.dictionary-2 'System\.Collections\.Generic\.Dictionary\`2')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[,](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.dictionary-2 'System\.Collections\.Generic\.Dictionary\`2')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[AdministrativeAreal2D](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2D 'DiGi\.GIS\.PostgreSQL\.Classes\.AdministrativeAreal2D')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.dictionary-2 'System\.Collections\.Generic\.Dictionary\`2')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+The entities keyed by the parent identifier requested, ordered by identifier, with an empty list for a parent that has none; a parent that does not exist or is not above [administrativeArealType](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DPostgreSQLConverter.GetAdministrativeAreal2DsByParentIdsAsync(DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType,System.Collections.Generic.IEnumerable_int_,int,int,System.Threading.CancellationToken).administrativeArealType 'DiGi\.GIS\.PostgreSQL\.Classes\.AdministrativeAreal2DPostgreSQLConverter\.GetAdministrativeAreal2DsByParentIdsAsync\(DiGi\.GIS\.PostgreSQL\.Enums\.AdministrativeArealType, System\.Collections\.Generic\.IEnumerable\<int\>, int, int, System\.Threading\.CancellationToken\)\.administrativeArealType') has no entry\. Null when no connection could be created or the type cannot have a parent\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DPostgreSQLConverter.GetAdministrativeAreal2DsByParentIdsAsync(Npgsql.NpgsqlConnection,DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType,System.Collections.Generic.IEnumerable_int_,int,int,System.Threading.CancellationToken)'></a>
+
+## AdministrativeAreal2DPostgreSQLConverter\.GetAdministrativeAreal2DsByParentIdsAsync\(NpgsqlConnection, AdministrativeArealType, IEnumerable\<int\>, int, int, CancellationToken\) Method
+
+Asynchronously retrieves the administrative areal 2D entities of the specified type under each of many parents, grouped by the parent identifier requested\.
+
+The batched form of [GetAdministrativeAreal2DsByAdministrativeArealType\(NpgsqlConnection, AdministrativeArealType, Nullable&lt;int&gt;, int, CancellationToken\)](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DPostgreSQLConverter.GetAdministrativeAreal2DsByAdministrativeArealType(Npgsql.NpgsqlConnection,DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType,System.Nullable_int_,int,System.Threading.CancellationToken) 'DiGi\.GIS\.PostgreSQL\.Classes\.AdministrativeAreal2DPostgreSQLConverter\.GetAdministrativeAreal2DsByAdministrativeArealType\(Npgsql\.NpgsqlConnection, DiGi\.GIS\.PostgreSQL\.Enums\.AdministrativeArealType, System\.Nullable\<int\>, int, System\.Threading\.CancellationToken\)') with the same answer per parent: a parent is widened to every part sharing its code and type, so a multi-part county yields the children of all its parts. It runs a fixed number of statements whatever the parent count - the parent references, the sibling parts by code and the children, each by `= ANY` in chunks of [batchSize](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DPostgreSQLConverter.GetAdministrativeAreal2DsByParentIdsAsync(Npgsql.NpgsqlConnection,DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType,System.Collections.Generic.IEnumerable_int_,int,int,System.Threading.CancellationToken).batchSize 'DiGi\.GIS\.PostgreSQL\.Classes\.AdministrativeAreal2DPostgreSQLConverter\.GetAdministrativeAreal2DsByParentIdsAsync\(Npgsql\.NpgsqlConnection, DiGi\.GIS\.PostgreSQL\.Enums\.AdministrativeArealType, System\.Collections\.Generic\.IEnumerable\<int\>, int, int, System\.Threading\.CancellationToken\)\.batchSize') - where the per-parent form costs three statements per parent (DiGi.GIS.WebAPI#95).
+
+```csharp
+public static System.Threading.Tasks.Task<System.Collections.Generic.Dictionary<int,System.Collections.Generic.List<DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2D>>?> GetAdministrativeAreal2DsByParentIdsAsync(Npgsql.NpgsqlConnection? npgsqlConnection, DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType administrativeArealType, System.Collections.Generic.IEnumerable<int>? parentIds, int batchSize=1000, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DPostgreSQLConverter.GetAdministrativeAreal2DsByParentIdsAsync(Npgsql.NpgsqlConnection,DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType,System.Collections.Generic.IEnumerable_int_,int,int,System.Threading.CancellationToken).npgsqlConnection'></a>
+
+`npgsqlConnection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
+
+The open [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection') used to query the database\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DPostgreSQLConverter.GetAdministrativeAreal2DsByParentIdsAsync(Npgsql.NpgsqlConnection,DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType,System.Collections.Generic.IEnumerable_int_,int,int,System.Threading.CancellationToken).administrativeArealType'></a>
+
+`administrativeArealType` [AdministrativeArealType](DiGi.GIS.PostgreSQL.Enums.md#DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType 'DiGi\.GIS\.PostgreSQL\.Enums\.AdministrativeArealType')
+
+The [AdministrativeArealType](DiGi.GIS.PostgreSQL.Enums.md#DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType 'DiGi\.GIS\.PostgreSQL\.Enums\.AdministrativeArealType') of the entities to be retrieved\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DPostgreSQLConverter.GetAdministrativeAreal2DsByParentIdsAsync(Npgsql.NpgsqlConnection,DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType,System.Collections.Generic.IEnumerable_int_,int,int,System.Threading.CancellationToken).parentIds'></a>
+
+`parentIds` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The identifiers of the parent administrative areal entities\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DPostgreSQLConverter.GetAdministrativeAreal2DsByParentIdsAsync(Npgsql.NpgsqlConnection,DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType,System.Collections.Generic.IEnumerable_int_,int,int,System.Threading.CancellationToken).batchSize'></a>
+
+`batchSize` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The largest number of identifiers or codes sent in one statement\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DPostgreSQLConverter.GetAdministrativeAreal2DsByParentIdsAsync(Npgsql.NpgsqlConnection,DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType,System.Collections.Generic.IEnumerable_int_,int,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of each command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DPostgreSQLConverter.GetAdministrativeAreal2DsByParentIdsAsync(Npgsql.NpgsqlConnection,DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType,System.Collections.Generic.IEnumerable_int_,int,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken') used to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.Dictionary&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.dictionary-2 'System\.Collections\.Generic\.Dictionary\`2')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[,](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.dictionary-2 'System\.Collections\.Generic\.Dictionary\`2')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[AdministrativeAreal2D](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2D 'DiGi\.GIS\.PostgreSQL\.Classes\.AdministrativeAreal2D')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.dictionary-2 'System\.Collections\.Generic\.Dictionary\`2')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+The entities keyed by the parent identifier requested, ordered by identifier, with an empty list for a parent that has none; a parent that does not exist or is not above [administrativeArealType](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DPostgreSQLConverter.GetAdministrativeAreal2DsByParentIdsAsync(Npgsql.NpgsqlConnection,DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType,System.Collections.Generic.IEnumerable_int_,int,int,System.Threading.CancellationToken).administrativeArealType 'DiGi\.GIS\.PostgreSQL\.Classes\.AdministrativeAreal2DPostgreSQLConverter\.GetAdministrativeAreal2DsByParentIdsAsync\(Npgsql\.NpgsqlConnection, DiGi\.GIS\.PostgreSQL\.Enums\.AdministrativeArealType, System\.Collections\.Generic\.IEnumerable\<int\>, int, int, System\.Threading\.CancellationToken\)\.administrativeArealType') has no entry\. Null when the connection is null or the type cannot have a parent\.
+
 <a name='DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DPostgreSQLConverter.GetAdministrativeAreal2DsByPoint2DAsync(DiGi.Geometry.Planar.Classes.Point2D,DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType,double,int,System.Threading.CancellationToken)'></a>
 
 ## AdministrativeAreal2DPostgreSQLConverter\.GetAdministrativeAreal2DsByPoint2DAsync\(Point2D, AdministrativeArealType, double, int, CancellationToken\) Method

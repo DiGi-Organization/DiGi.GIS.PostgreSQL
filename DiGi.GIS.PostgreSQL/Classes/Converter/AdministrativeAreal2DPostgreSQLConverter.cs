@@ -693,6 +693,177 @@ namespace DiGi.GIS.PostgreSQL.Classes
         }
 
         /// <summary>
+        /// Asynchronously retrieves the administrative areal 2D entities of the specified type under each of many parents, grouped by the parent identifier requested.
+        /// <para>The batched form of <see cref="GetAdministrativeAreal2DsByAdministrativeArealType(NpgsqlConnection, AdministrativeArealType, int?, int, CancellationToken)"/> with the same answer per parent: a parent is widened to every part sharing its code and type, so a multi-part county yields the children of all its parts. It runs a fixed number of statements whatever the parent count - the parent references, the sibling parts by code and the children, each by <c>= ANY</c> in chunks of <paramref name="batchSize"/> - where the per-parent form costs three statements per parent (DiGi.GIS.WebAPI#95).</para>
+        /// </summary>
+        /// <param name="npgsqlConnection">The open <see cref="NpgsqlConnection"/> used to query the database.</param>
+        /// <param name="administrativeArealType">The <see cref="AdministrativeArealType"/> of the entities to be retrieved.</param>
+        /// <param name="parentIds">The identifiers of the parent administrative areal entities.</param>
+        /// <param name="batchSize">The largest number of identifiers or codes sent in one statement.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of each command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to cancel the asynchronous operation.</param>
+        /// <returns>The entities keyed by the parent identifier requested, ordered by identifier, with an empty list for a parent that has none; a parent that does not exist or is not above <paramref name="administrativeArealType"/> has no entry. Null when the connection is null or the type cannot have a parent.</returns>
+        public static async Task<Dictionary<int, List<AdministrativeAreal2D>>?> GetAdministrativeAreal2DsByParentIdsAsync(NpgsqlConnection? npgsqlConnection, AdministrativeArealType administrativeArealType, IEnumerable<int>? parentIds, int batchSize = 1000, int commandTimeout = 30, CancellationToken cancellationToken = default)
+        {
+            if (npgsqlConnection is null || parentIds is null || administrativeArealType == AdministrativeArealType.Undefined || administrativeArealType == AdministrativeArealType.Country || batchSize < 1)
+            {
+                return null;
+            }
+
+            List<int> parentIds_List = [.. parentIds.Distinct()];
+
+            Dictionary<int, List<AdministrativeAreal2D>> result = [];
+            if (parentIds_List.Count == 0)
+            {
+                return result;
+            }
+
+            List<AdministrativeAreal2DReference> administrativeAreal2DReferences = [];
+            for (int i = 0; i < parentIds_List.Count; i += batchSize)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                List<AdministrativeAreal2DReference>? administrativeAreal2DReferences_Chunk = await GetAdministrativeAreal2DReferencesByIdsAsync(npgsqlConnection, parentIds_List.Skip(i).Take(batchSize), commandTimeout, cancellationToken);
+                if (administrativeAreal2DReferences_Chunk is not null)
+                {
+                    administrativeAreal2DReferences.AddRange(administrativeAreal2DReferences_Chunk);
+                }
+            }
+
+            // The parents are grouped by their own level, which decides the column a child names them in -
+            // the same switch the per-parent read makes. A level without such a column filters nothing there
+            // either, so its parents take every child of the type.
+            foreach (IGrouping<AdministrativeArealType, AdministrativeAreal2DReference> grouping in administrativeAreal2DReferences.Where(x => x.AdministrativeArealType < administrativeArealType).GroupBy(x => x.AdministrativeArealType))
+            {
+                AdministrativeArealType administrativeArealType_Parent = grouping.Key;
+                List<AdministrativeAreal2DReference> administrativeAreal2DReferences_Parent = [.. grouping];
+
+                string? columnName = administrativeArealType_Parent switch
+                {
+                    AdministrativeArealType.Country => "country_id",
+                    AdministrativeArealType.Voivodeship => "voivodeship_id",
+                    AdministrativeArealType.County => "county_id",
+                    AdministrativeArealType.Municipality => "municipality_id",
+                    _ => null
+                };
+
+                Func<AdministrativeAreal2D, int?>? parentIdFunc = administrativeArealType_Parent switch
+                {
+                    AdministrativeArealType.Country => x => x.CountryId,
+                    AdministrativeArealType.Voivodeship => x => x.VoivodeshipId,
+                    AdministrativeArealType.County => x => x.CountyId,
+                    AdministrativeArealType.Municipality => x => x.MunicipalityId,
+                    _ => null
+                };
+
+                if (columnName is null || parentIdFunc is null)
+                {
+                    List<AdministrativeAreal2D>? administrativeAreal2Ds_All = await GetAdministrativeAreal2DsByAdministrativeArealType(npgsqlConnection, administrativeArealType, null, commandTimeout, cancellationToken);
+                    foreach (AdministrativeAreal2DReference administrativeAreal2DReference in administrativeAreal2DReferences_Parent)
+                    {
+                        result[administrativeAreal2DReference.Id] = [.. administrativeAreal2Ds_All ?? []];
+                    }
+
+                    continue;
+                }
+
+                List<string> codes = [.. administrativeAreal2DReferences_Parent.Select(x => x.Code).OfType<string>().Where(x => !string.IsNullOrWhiteSpace(x)).Distinct()];
+
+                Dictionary<string, HashSet<int>> ids_ByCode = [];
+                for (int i = 0; i < codes.Count; i += batchSize)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    Dictionary<string, HashSet<int>>? ids_ByCode_Chunk = await GetIdsByCodesAsync(npgsqlConnection, codes.Skip(i).Take(batchSize), administrativeArealType_Parent, commandTimeout, cancellationToken);
+                    if (ids_ByCode_Chunk is null)
+                    {
+                        continue;
+                    }
+
+                    foreach (KeyValuePair<string, HashSet<int>> keyValuePair in ids_ByCode_Chunk)
+                    {
+                        ids_ByCode[keyValuePair.Key] = keyValuePair.Value;
+                    }
+                }
+
+                // The requested parents each column value stands for: a part names one row, and every
+                // requested part sharing its code claims the children of all of them.
+                Dictionary<int, List<int>> parentIds_ByColumnValue = [];
+                foreach (AdministrativeAreal2DReference administrativeAreal2DReference in administrativeAreal2DReferences_Parent)
+                {
+                    result[administrativeAreal2DReference.Id] = [];
+
+                    HashSet<int>? ids_Sibling = null;
+                    if (!string.IsNullOrWhiteSpace(administrativeAreal2DReference.Code))
+                    {
+                        ids_ByCode.TryGetValue(administrativeAreal2DReference.Code!, out ids_Sibling);
+                    }
+
+                    if (ids_Sibling is null || ids_Sibling.Count == 0)
+                    {
+                        ids_Sibling = [administrativeAreal2DReference.Id];
+                    }
+
+                    foreach (int id_Sibling in ids_Sibling)
+                    {
+                        if (!parentIds_ByColumnValue.TryGetValue(id_Sibling, out List<int>? parentIds_Requested))
+                        {
+                            parentIds_Requested = [];
+                            parentIds_ByColumnValue[id_Sibling] = parentIds_Requested;
+                        }
+
+                        parentIds_Requested.Add(administrativeAreal2DReference.Id);
+                    }
+                }
+
+                string commandText = $@"
+                    SELECT id, reference, code, name, type_id, min_x, min_y, max_x, max_y, country_id, voivodeship_id, county_id, municipality_id, object, created_at
+                    FROM {TableName.AdministrativeAreal2D}
+                    WHERE type_id = @typeId AND {columnName} = ANY(@parentIds)
+                    ORDER BY id ASC;";
+
+                List<int> columnValues = [.. parentIds_ByColumnValue.Keys];
+                for (int i = 0; i < columnValues.Count; i += batchSize)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    await using NpgsqlCommand npgsqlCommand = new(commandText, npgsqlConnection);
+                    npgsqlCommand.CommandTimeout = commandTimeout;
+                    npgsqlCommand.Parameters.Add(new NpgsqlParameter("typeId", NpgsqlDbType.Smallint) { Value = (short)administrativeArealType });
+                    npgsqlCommand.Parameters.Add(new NpgsqlParameter("parentIds", NpgsqlDbType.Array | NpgsqlDbType.Integer) { Value = columnValues.Skip(i).Take(batchSize).ToArray() });
+
+                    List<AdministrativeAreal2D>? administrativeAreal2Ds = await ReadAsync_AdministrativeAreal2D(npgsqlCommand, cancellationToken);
+                    if (administrativeAreal2Ds is null)
+                    {
+                        continue;
+                    }
+
+                    foreach (AdministrativeAreal2D administrativeAreal2D in administrativeAreal2Ds)
+                    {
+                        int? columnValue = parentIdFunc(administrativeAreal2D);
+                        if (columnValue is null || !parentIds_ByColumnValue.TryGetValue(columnValue.Value, out List<int>? parentIds_Requested))
+                        {
+                            continue;
+                        }
+
+                        foreach (int parentId_Requested in parentIds_Requested)
+                        {
+                            result[parentId_Requested].Add(administrativeAreal2D);
+                        }
+                    }
+                }
+            }
+
+            // A parent whose parts fell into different chunks collects its children out of order.
+            foreach (List<AdministrativeAreal2D> administrativeAreal2Ds in result.Values)
+            {
+                administrativeAreal2Ds.Sort((x, y) => x.Id.CompareTo(y.Id));
+            }
+
+            return result;
+        }
+
+        /// <summary>
         /// Gets AdministrativeAreal2D for given AdministrativeArealType (not iterative way). It will check all records with given AdministrativeArealType
         /// </summary>
         /// <param name="npgsqlConnection">NpgsqlConnection</param>
@@ -1765,6 +1936,34 @@ namespace DiGi.GIS.PostgreSQL.Classes
             await npgsqlConnection.OpenAsync(cancellationToken);
 
             return await GetAdministrativeAreal2DsByAdministrativeArealType(npgsqlConnection, administrativeArealType, parentId, commandTimeout, cancellationToken);
+        }
+
+        /// <summary>
+        /// Asynchronously retrieves the administrative areal 2D entities of the specified type under each of many parents, grouped by the parent identifier requested, over one connection.
+        /// <para>See <see cref="GetAdministrativeAreal2DsByParentIdsAsync(NpgsqlConnection, AdministrativeArealType, IEnumerable{int}, int, int, CancellationToken)"/>.</para>
+        /// </summary>
+        /// <param name="administrativeArealType">The <see cref="AdministrativeArealType"/> of the entities to be retrieved.</param>
+        /// <param name="parentIds">The identifiers of the parent administrative areal entities.</param>
+        /// <param name="batchSize">The largest number of identifiers or codes sent in one statement.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of each command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to cancel the asynchronous operation.</param>
+        /// <returns>The entities keyed by the parent identifier requested, ordered by identifier, with an empty list for a parent that has none; a parent that does not exist or is not above <paramref name="administrativeArealType"/> has no entry. Null when no connection could be created or the type cannot have a parent.</returns>
+        public async Task<Dictionary<int, List<AdministrativeAreal2D>>?> GetAdministrativeAreal2DsByParentIdsAsync(AdministrativeArealType administrativeArealType, IEnumerable<int>? parentIds, int batchSize = 1000, int commandTimeout = 30, CancellationToken cancellationToken = default)
+        {
+            if (parentIds is null || administrativeArealType == AdministrativeArealType.Undefined || administrativeArealType == AdministrativeArealType.Country)
+            {
+                return null;
+            }
+
+            await using NpgsqlConnection? npgsqlConnection = DiGi.PostgreSQL.Create.NpgsqlConnection(ConnectionData);
+            if (npgsqlConnection is null)
+            {
+                return null;
+            }
+
+            await npgsqlConnection.OpenAsync(cancellationToken);
+
+            return await GetAdministrativeAreal2DsByParentIdsAsync(npgsqlConnection, administrativeArealType, parentIds, batchSize, commandTimeout, cancellationToken);
         }
 
         /// <summary>
