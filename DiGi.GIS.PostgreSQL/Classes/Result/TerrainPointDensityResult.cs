@@ -98,7 +98,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
 
         /// <summary>
         /// Gets the area the points were meant to cover, in square model units.
-        /// <para>Summed from the subdivisions of the county rather than taken from the county outline, because the subdivisions are what a sampling run tests its points against - a point in none of them is discarded as outside the county's land. Measuring against the outline instead would put an area under the ratio that was never sampled.</para>
+        /// <para>The partition's own outline, holes excluded, as far as the county's subdivisions cover it. A sampling run keeps a point only inside a subdivision - a point in none of them is discarded as outside the county's land - and files it under the part whose outline contains it, so this is the territory the count belongs to. Summing the subdivisions instead counts nested ones twice and, for a multi-part county, every sibling part; the outline alone counts water and land outside every subdivision, which no run samples (DiGi.GIS.WebAPI#98).</para>
         /// </summary>
         [JsonIgnore]
         public double Area => area;

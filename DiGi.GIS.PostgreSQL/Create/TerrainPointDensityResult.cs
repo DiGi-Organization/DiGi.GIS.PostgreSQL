@@ -12,7 +12,7 @@ namespace DiGi.GIS.PostgreSQL
         /// </summary>
         /// <param name="countyId">The identifier of the county partition.</param>
         /// <param name="count">The number of points stored for the county.</param>
-        /// <param name="area">The area the points were meant to cover, in square model units - summed from the county's subdivisions, which is what a sampling run tests its points against.</param>
+        /// <param name="area">The area the points were meant to cover, in square model units - the partition's own outline as far as the county's subdivisions cover it, which is the territory a sampling run files under it.</param>
         /// <param name="gridSize">The spacing a sampling run used, when it is known. Supplying it is what fills in <see cref="TerrainPointDensityResult.ExpectedDensity"/> and <see cref="TerrainPointDensityResult.Completeness"/>.</param>
         /// <returns>The <see cref="TerrainPointDensityResult"/>, or null when the count is negative or the area is not a usable measurement.</returns>
         public static TerrainPointDensityResult? TerrainPointDensityResult(int countyId, long count, double area, double? gridSize = null)

@@ -1833,7 +1833,7 @@ The number of points stored for the county\.
 
 `area` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
 
-The area the points were meant to cover, in square model units \- summed from the county's subdivisions, which is what a sampling run tests its points against\.
+The area the points were meant to cover, in square model units \- the partition's own outline as far as the county's subdivisions cover it, which is the territory a sampling run files under it\.
 
 <a name='DiGi.GIS.PostgreSQL.Create.TerrainPointDensityResult(int,long,double,System.Nullable_double_).gridSize'></a>
 
