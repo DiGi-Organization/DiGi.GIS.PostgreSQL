@@ -580,7 +580,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
 
         /// <summary>
         /// Asynchronously reads the latest stored solar radiation of each of the given references in the given county part.
-        /// <para>For a reference with several stored results (several solver versions), the one with the highest solver version wins, a tie broken by the newest creation time. The read is scoped to <paramref name="countyId"/>: a reference the county does not hold is simply absent from the result, not answered out of some other county. The shading factors are not read - the summary never needs them.</para>
+        /// <para>For a reference with several stored results (several solver versions), the one with the highest solver version wins, a tie broken by the newest creation time. The read is scoped to <paramref name="countyId"/>: a reference the county does not hold is simply absent from the result, not answered out of some other county. The shading factors are read only with <paramref name="includeShadingFactors"/> - the summary never needs them, the monthly heat demand does (DiGi.GIS.PostgreSQL#143) - and a row whose packed factors do not unpack to one entry per surface is then left out, as <c>GetAsync</c> leaves it.</para>
         /// <para>With <paramref name="radius"/> the read is limited to the results stored for that neighbour radius - one variant, such as the isolated building (radius 0). Without it every radius competes, so once a building carries several variants the one written last wins, building by building (DiGi.GIS.PostgreSQL#107).</para>
         /// </summary>
         /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> used to connect to the database.</param>
@@ -588,6 +588,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// <param name="countyId">The county part to scope the read.</param>
         /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
         /// <param name="radius">The neighbour radius, in m, exactly as stored, to read; null to read the latest result of any radius.</param>
+        /// <param name="includeShadingFactors">True to read and unpack the shading factors of every surface; false to leave them null, which skips reading the <c>bytea</c> column.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A task that represents the asynchronous operation. The task result holds the latest result of each reference, one entry per reference, or null when the connection is null or the table is missing.</returns>
         public static async Task<List<GIS.Classes.BuildingSolarRadiationResult>?> GetItemsByReferencesAsync(
@@ -596,6 +597,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             int countyId,
             int commandTimeout = 30,
             double? radius = null,
+            bool includeShadingFactors = false,
             CancellationToken cancellationToken = default)
         {
             if (npgsqlConnection is null || references is null)
@@ -617,16 +619,18 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 return [];
             }
 
+            string columns = includeShadingFactors ? "object, reference, shading_factors" : "object, reference";
+
             // Two texts rather than "@radius IS NULL OR radius = @radius", which defeats the plan (Coding - PostgreSQL.md §3).
             string commandText = radius is null
                 ? $@"
-                SELECT object, reference
+                SELECT {columns}
                 FROM {TableName}
                 WHERE county_id = @county_id
                   AND reference = ANY(@references)
                 ORDER BY reference, solver_version DESC, created_at DESC"
                 : $@"
-                SELECT object, reference
+                SELECT {columns}
                 FROM {TableName}
                 WHERE county_id = @county_id
                   AND reference = ANY(@references)
@@ -660,7 +664,18 @@ namespace DiGi.GIS.PostgreSQL.Classes
                         continue;
                     }
 
-                    results.Add(new GIS.Classes.BuildingSolarRadiationResult(jsonObject));
+                    GIS.Classes.BuildingSolarRadiationResult buildingSolarRadiationResult = new(jsonObject);
+                    if (!includeShadingFactors)
+                    {
+                        results.Add(buildingSolarRadiationResult);
+                        continue;
+                    }
+
+                    List<byte[]>? shadingFactors = Convert.ToSystem_ByteArrays(npgsqlDataReader.GetFieldValue<byte[]>(2));
+                    if (shadingFactors is not null && Create.BuildingSolarRadiationResult(buildingSolarRadiationResult, buildingSolarRadiationResult.CountyId, [.. shadingFactors]) is GIS.Classes.BuildingSolarRadiationResult buildingSolarRadiationResult_Factors)
+                    {
+                        results.Add(buildingSolarRadiationResult_Factors);
+                    }
                 }
             }
             catch (PostgresException postgresException) when (postgresException.SqlState == PostgresErrorCodes.UndefinedTable)
@@ -699,9 +714,10 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// <param name="countyId">The county part to scope the read.</param>
         /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
         /// <param name="radius">The neighbour radius, in m, exactly as stored, to read; null to read the latest result of any radius.</param>
+        /// <param name="includeShadingFactors">True to read and unpack the shading factors of every surface; false to leave them null.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A task that represents the asynchronous operation. The task result holds the latest result of each reference, one entry per reference, or null when the connection is null or the table is missing.</returns>
-        public async Task<List<GIS.Classes.BuildingSolarRadiationResult>?> GetItemsByReferencesAsync(IEnumerable<string>? references, int countyId, int commandTimeout = 30, double? radius = null, CancellationToken cancellationToken = default)
+        public async Task<List<GIS.Classes.BuildingSolarRadiationResult>?> GetItemsByReferencesAsync(IEnumerable<string>? references, int countyId, int commandTimeout = 30, double? radius = null, bool includeShadingFactors = false, CancellationToken cancellationToken = default)
         {
             await using NpgsqlConnection? npgsqlConnection = DiGi.PostgreSQL.Create.NpgsqlConnection(ConnectionData);
             if (npgsqlConnection is null)
@@ -710,7 +726,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             }
 
             await npgsqlConnection.OpenAsync(cancellationToken);
-            return await GetItemsByReferencesAsync(npgsqlConnection, references, countyId, commandTimeout, radius, cancellationToken);
+            return await GetItemsByReferencesAsync(npgsqlConnection, references, countyId, commandTimeout, radius, includeShadingFactors, cancellationToken);
         }
 
         /// <summary>

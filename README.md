@@ -9,6 +9,7 @@
 The repository contains the following core components and assemblies:
 * **[DiGi.GIS.PostgreSQL](DiGi.GIS.PostgreSQL)** (Path: `DiGi.GIS.PostgreSQL\DiGi.GIS.PostgreSQL`)
 * **[DiGi.GIS.PostgreSQL.Solar](DiGi.GIS.PostgreSQL.Solar)** (Path: `DiGi.GIS.PostgreSQL\DiGi.GIS.PostgreSQL.Solar`) — the batch solar radiation solve (`PostgreSQLBuildingSolarRadiationSolveTask`), kept apart so that `DiGi.Solar` and its `SolarCalculator` package reach only the hosts that run it.
+* **[DiGi.GIS.PostgreSQL.Energy](DiGi.GIS.PostgreSQL.Energy)** (Path: `DiGi.GIS.PostgreSQL\DiGi.GIS.PostgreSQL.Energy`) — the monthly heat demand of stored buildings: the `building_heat_demand` table on the Storage database, its converter (`BuildingHeatDemandPostgreSQLConverter`, registered by `Modify.AddBuildingHeatDemandPostgreSQLConverter`), the `building_data` columns (`Modify.Update_HeatDemand`) and the batch run (`PostgreSQLBuildingHeatDemandSolveTask`). Kept apart so that `DiGi.Analytical.Building.Energy` and the solar stack reach only the hosts that run it.
 
 ---
 

@@ -5,6 +5,7 @@
     <File Path="Directory.Build.props" />
     <File Path="Directory.Build.targets" />
   </Folder>
+  <Project Path="DiGi.GIS.PostgreSQL.Energy/DiGi.GIS.PostgreSQL.Energy.csproj" />
   <Project Path="DiGi.GIS.PostgreSQL.Solar/DiGi.GIS.PostgreSQL.Solar.csproj" />
   <Project Path="DiGi.GIS.PostgreSQL/DiGi.GIS.PostgreSQL.csproj" />
 </Solution>
