@@ -24177,6 +24177,8 @@ Rows are atomically claimed by updating `claimed_at` to the current timestamp ra
 
 Never-claimed rows are handed out before rows whose claim expired, and each group in the order it was queued. Ordering on the queuing time alone put an expired claim back at the head of the queue, ahead of everything that had never been attempted, so a run failing on the rows it reached first could re-attempt those forever without ever seeing the rest. The ordering matches the index the table carries for it.
 
+Poison rows at the attempt ceiling are retired by a DELETE that runs before the claim. When that retirement fails, the failure is logged at Error and the claim still runs: retirement is cleanup, and the claim excludes the same rows through its own ceiling. The null return therefore keeps its meaning for every caller - the queue itself could not be reached.
+
 ```csharp
 public static System.Threading.Tasks.Task<System.Collections.Generic.List<DiGi.GIS.PostgreSQL.Classes.Building2DReference>?> GetNextBuilding2DReferencesAsync(Npgsql.NpgsqlConnection? npgsqlConnection, int count=100, int claimTimeoutMinutes=30, int maxAttempts=5, int commandTimeout=60, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
 ```

@@ -758,6 +758,8 @@ A task that represents the asynchronous operation\. The task result is true if t
 
 Asynchronously creates the Building 2D reference table in the PostgreSQL database\.
 
+The queue table carries four indexes: the unique `(county_id, reference)` that keeps a refresh from enqueuing duplicates, `created_at` and `(claimed_at ASC NULLS FIRST, created_at ASC)` serving the claim's ordering, and `attempts`, which serves the poison-row retirement run at the start of every claim (DiGi.GIS.PostgreSQL#145). Every statement is idempotent, so the index migrates a table created before it existed the next time any queue path runs.
+
 ```csharp
 public static System.Threading.Tasks.Task<bool> TableAsync_Building2DReference(this Npgsql.NpgsqlConnection? npgsqlConnection, string? tableName, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
 ```
@@ -4317,6 +4319,31 @@ The identifier of the county row\.
 #### Returns
 [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')  
 The seed to draw that county's sample with\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.RetirePoisonReferencesCommandText(string)'></a>
+
+## Query\.RetirePoisonReferencesCommandText\(string\) Method
+
+Builds the poison\-row retirement statement of an update queue: deletes every entry that reached the attempt ceiling and returns what was discarded, so the caller can log each retired entry at Error\.
+
+The predicate is a plain `attempts >= @maxAttempts` rather than `COALESCE(attempts, 0) >= @maxAttempts`. The column is `INT NOT NULL DEFAULT 0` and `ADD COLUMN IF NOT EXISTS attempts INT NOT NULL DEFAULT 0` backfills the rows that predate it, so it can never be null - and wrapping it in `COALESCE` is what made the predicate unsargable: the statement walked every row of the queue at the start of every claim, until the walk outlasted the command timeout and the claim returned nothing at all (DiGi.GIS.PostgreSQL#145). The table carries a plain btree on `attempts` for it, because a partial index cannot follow a parameterized ceiling (see [TableAsync\_Building2DReference\(this NpgsqlConnection, string, int, CancellationToken\)](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Create.TableAsync_Building2DReference(thisNpgsql.NpgsqlConnection,string,int,System.Threading.CancellationToken) 'DiGi\.GIS\.PostgreSQL\.Create\.TableAsync\_Building2DReference\(this Npgsql\.NpgsqlConnection, string, int, System\.Threading\.CancellationToken\)')).
+
+Parameters: `@maxAttempts`, integer.
+
+```csharp
+public static string RetirePoisonReferencesCommandText(string tableName);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Query.RetirePoisonReferencesCommandText(string).tableName'></a>
+
+`tableName` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The queue table to retire from\. An identifier, interpolated at the call site from the whitelisted constants \- a parameter cannot name a table\.
+
+#### Returns
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')  
+The statement\.
 
 <a name='DiGi.GIS.PostgreSQL.Query.RowsByCountyIdAndReference(thisDiGi.Core.IO.Table.Classes.Table,DiGi.Core.IO.Table.Classes.Column,DiGi.Core.IO.Table.Classes.Column)'></a>
 

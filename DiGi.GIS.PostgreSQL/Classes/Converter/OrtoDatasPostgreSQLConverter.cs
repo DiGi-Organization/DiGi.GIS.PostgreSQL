@@ -680,6 +680,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// Asynchronously retrieves and claims a batch of building 2D references from the update queue.
         /// <para>Rows are atomically claimed by updating <c>claimed_at</c> to the current timestamp rather than deleting them immediately. If the claim is not acknowledged within <paramref name="claimTimeoutMinutes"/> minutes, the rows automatically become available for subsequent claims.</para>
         /// <para>Never-claimed rows are handed out before rows whose claim expired, and each group in the order it was queued. Ordering on the queuing time alone put an expired claim back at the head of the queue, ahead of everything that had never been attempted, so a run failing on the rows it reached first could re-attempt those forever without ever seeing the rest. The ordering matches the index the table carries for it.</para>
+        /// <para>Poison rows at the attempt ceiling are retired by a DELETE that runs before the claim. When that retirement fails, the failure is logged at Error and the claim still runs: retirement is cleanup, and the claim excludes the same rows through its own ceiling. The null return therefore keeps its meaning for every caller - the queue itself could not be reached.</para>
         /// </summary>
         /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> instance used to execute the command.</param>
         /// <param name="count">The maximum number of <see cref="Building2DReference"/> objects to retrieve.</param>
@@ -711,10 +712,11 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 return null;
             }
 
-            string retireCommandText = $@"
-                DELETE FROM {TableName.OrtoDatas_Building2DReference_Update}
-                WHERE COALESCE(attempts, 0) >= @maxAttempts
-                RETURNING id, county_id, reference;";
+            // DiGi.GIS.PostgreSQL#145: the predicate is sargable (attempts is INT NOT NULL, so COALESCE
+            // only ever hid the column from an index) and the table carries an index on attempts, because
+            // this DELETE runs at the start of every claim and walking the whole queue here timed out,
+            // returned null and left the claim round with nothing.
+            string retireCommandText = Query.RetirePoisonReferencesCommandText(TableName.OrtoDatas_Building2DReference_Update);
 
             try
             {
@@ -740,8 +742,12 @@ namespace DiGi.GIS.PostgreSQL.Classes
             }
             catch (NpgsqlException npgsqlException)
             {
+                // Retirement is cleanup, not the claim: a row at the ceiling is excluded by the claim's own
+                // ceiling whether or not this DELETE ran, so a failed retire must not abort the round and
+                // read as an unreachable queue - that is what turned one slow statement into a claim that
+                // fetched nothing at all (DiGi.GIS.PostgreSQL#145). The Error log stays visible, and the
+                // claim below is what decides whether the queue can be reached.
                 Serilog.Modify.Log(npgsqlException, "{Method} failed while retiring poison references", nameof(GetNextBuilding2DReferencesAsync));
-                return null;
             }
 
             string commandText = $@"

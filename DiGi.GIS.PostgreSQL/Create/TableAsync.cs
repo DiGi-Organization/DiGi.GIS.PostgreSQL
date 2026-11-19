@@ -380,6 +380,7 @@ namespace DiGi.GIS.PostgreSQL
 
         /// <summary>
         /// Asynchronously creates the Building 2D reference table in the PostgreSQL database.
+        /// <para>The queue table carries four indexes: the unique <c>(county_id, reference)</c> that keeps a refresh from enqueuing duplicates, <c>created_at</c> and <c>(claimed_at ASC NULLS FIRST, created_at ASC)</c> serving the claim's ordering, and <c>attempts</c>, which serves the poison-row retirement run at the start of every claim (DiGi.GIS.PostgreSQL#145). Every statement is idempotent, so the index migrates a table created before it existed the next time any queue path runs.</para>
         /// </summary>
         /// <param name="npgsqlConnection">The PostgreSQL connection instance used to execute the command.</param>
         /// <param name="tableName">The name of the table to be created for Building 2D references.</param>
@@ -416,6 +417,15 @@ namespace DiGi.GIS.PostgreSQL
 
                 CREATE INDEX IF NOT EXISTS idx_{tableName}_claimed_at
                     ON {tableName} (claimed_at ASC NULLS FIRST, created_at ASC);
+
+                -- Serves the poison-row retirement predicate 'attempts >= @maxAttempts', which otherwise
+                -- walks every row of the queue at the start of every claim and outlasts the command
+                -- timeout as the queue grows (DiGi.GIS.PostgreSQL#145). A partial index on a fixed
+                -- ceiling could not follow the parameterized @maxAttempts, so the index is on the plain
+                -- column: nearly every row sits at 0, and the search for the exhausted few begins at the
+                -- key the statement asks for.
+                CREATE INDEX IF NOT EXISTS idx_{tableName}_attempts
+                    ON {tableName} (attempts ASC);
                 ";
 
             try
