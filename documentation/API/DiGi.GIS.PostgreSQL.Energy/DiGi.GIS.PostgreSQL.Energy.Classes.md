@@ -1039,6 +1039,8 @@ A task whose result holds the occupancy of each reference that has one, or null 
 
 Reads the year built of the given references of one county part, with its source: the user's year when there is one, else the predicted year\.
 
+The year is returned as stored. The task replaces a prediction that only bounds the year by `GIS.Analytical.Query.CalculationYearBuilt` before calculating (DiGi-Organization/DiGi.GIS.Analytical#16), so an override does not apply that rule itself.
+
 ```csharp
 protected abstract System.Threading.Tasks.Task<System.Collections.Generic.Dictionary<string,(System.Nullable<short> YearBuilt,System.Nullable<DiGi.GIS.Enums.YearBuiltSource> YearBuiltSource)>?> ReadYearBuiltsAsync(int countyId, System.Collections.Generic.List<string> references, int commandTimeout, System.Threading.CancellationToken cancellationToken);
 ```
@@ -1773,6 +1775,8 @@ A task whose result holds the occupancy of each reference that has one, or null 
 ## PostgreSQLBuildingHeatDemandSolveTask\.ReadYearBuiltsAsync\(int, List\<string\>, int, CancellationToken\) Method
 
 Reads the year built of the given references of one county part, with its source: the user's year when there is one, else the predicted year\.
+
+The year is returned as stored. The task replaces a prediction that only bounds the year by `GIS.Analytical.Query.CalculationYearBuilt` before calculating (DiGi-Organization/DiGi.GIS.Analytical#16), so an override does not apply that rule itself.
 
 ```csharp
 protected override System.Threading.Tasks.Task<System.Collections.Generic.Dictionary<string,(System.Nullable<short> YearBuilt,System.Nullable<DiGi.GIS.Enums.YearBuiltSource> YearBuiltSource)>?> ReadYearBuiltsAsync(int countyId, System.Collections.Generic.List<string> references, int commandTimeout, System.Threading.CancellationToken cancellationToken);

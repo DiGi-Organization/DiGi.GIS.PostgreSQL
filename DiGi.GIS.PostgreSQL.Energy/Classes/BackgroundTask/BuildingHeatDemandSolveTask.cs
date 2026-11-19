@@ -475,7 +475,10 @@ namespace DiGi.GIS.PostgreSQL.Energy.Classes
                             }
                         }
 
-                        yearBuilts.TryGetValue(reference, out (short? YearBuilt, YearBuiltSource? YearBuiltSource) yearBuilt);
+                        yearBuilts.TryGetValue(reference, out (short? YearBuilt, YearBuiltSource? YearBuiltSource) yearBuilt_Stored);
+
+                        // A prediction that only bounds the year built is replaced by the fallback year before it selects the regime, as the generator does (DiGi-Organization/DiGi.GIS.Analytical#16).
+                        (short? YearBuilt, YearBuiltSource? YearBuiltSource) yearBuilt = GIS.Analytical.Query.CalculationYearBuilt(yearBuilt_Stored.YearBuilt, yearBuilt_Stored.YearBuiltSource);
                         occupancyDatas.TryGetValue(reference, out OccupancyData? occupancyData);
                         addressPoints.TryGetValue(reference, out Point2D? addressPoint);
 
@@ -626,6 +629,7 @@ namespace DiGi.GIS.PostgreSQL.Energy.Classes
 
         /// <summary>
         /// Reads the year built of the given references of one county part, with its source: the user's year when there is one, else the predicted year.
+        /// <para>The year is returned as stored. The task replaces a prediction that only bounds the year by <c>GIS.Analytical.Query.CalculationYearBuilt</c> before calculating (DiGi-Organization/DiGi.GIS.Analytical#16), so an override does not apply that rule itself.</para>
         /// </summary>
         /// <param name="countyId">The id of the county part the references are filed under.</param>
         /// <param name="references">The references to read.</param>
