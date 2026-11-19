@@ -1,4 +1,5 @@
 using DiGi.GIS.Analytical.Energy.Classes;
+using DiGi.GIS.PostgreSQL.Classes;
 using DiGi.GIS.PostgreSQL.Interfaces;
 using DiGi.PostgreSQL.Classes;
 using Npgsql;
@@ -353,72 +354,31 @@ namespace DiGi.GIS.PostgreSQL.Energy.Classes
         }
 
         /// <summary>
-        /// Asynchronously summarises what each of the given county parts holds per method version: the number of buildings, their total and mean energy need for space heating, and when they were written.
+        /// Asynchronously summarises the stored heat demand of the given county parts, one row per county part, method version, building type and year-built band: the buildings, shaded and unshaded, the quality counts of their calculation, their energy need - total, mean and quantiles per area - and design heat load, and when they were written.
+        /// <para>Delegates to <see cref="PostgreSQL.Query.BuildingHeatDemandCountyResultsAsync(NpgsqlConnection?, IEnumerable{int}?, int?, IEnumerable{short}?, int, CancellationToken)"/> of the main assembly, which reads no engine type, so the API host can serve the same summary without this assembly (DiGi.GIS.PostgreSQL#146).</para>
         /// </summary>
         /// <param name="npgsqlConnection">The open <see cref="NpgsqlConnection"/> of the Storage database. This value can be null.</param>
         /// <param name="countyIds">The county parts to summarise; null for every part that holds results.</param>
+        /// <param name="methodVersion">The method version to summarise; null for every version, one row each.</param>
+        /// <param name="yearBuiltBounds">The bounds of the year-built bands; null or empty for one band of every year.</param>
         /// <param name="commandTimeout">The timeout in seconds for the command. A value of 0 disables the timeout.</param>
         /// <param name="cancellationToken">The cancellation token to monitor for cancellation requests.</param>
-        /// <returns>A task whose result holds one summary per county part and method version, ordered by both; empty when the table is missing, or null when the connection is null.</returns>
-        public static async Task<List<BuildingHeatDemandCountyResult>?> GetSummariesByCountyIdsAsync(NpgsqlConnection? npgsqlConnection, IEnumerable<int>? countyIds, int commandTimeout = 600, CancellationToken cancellationToken = default)
+        /// <returns>A task whose result holds the summaries; empty when the table is missing, or null when the connection is null.</returns>
+        public static Task<List<BuildingHeatDemandCountyResult>?> GetSummariesByCountyIdsAsync(NpgsqlConnection? npgsqlConnection, IEnumerable<int>? countyIds, int? methodVersion = null, IEnumerable<short>? yearBuiltBounds = null, int commandTimeout = 600, CancellationToken cancellationToken = default)
         {
-            if (npgsqlConnection is null)
-            {
-                return null;
-            }
-
-            // Two texts rather than "@county_ids IS NULL OR …", so a scoped summary prunes to its partitions.
-            string commandText = countyIds is null
-                ? $@"
-                    SELECT county_id, method_version, COUNT(*), SUM(heating_energy_need), AVG(heating_energy_need_per_area), MIN(created_at), MAX(created_at)
-                    FROM {TableName}
-                    GROUP BY county_id, method_version
-                    ORDER BY county_id, method_version;"
-                : $@"
-                    SELECT county_id, method_version, COUNT(*), SUM(heating_energy_need), AVG(heating_energy_need_per_area), MIN(created_at), MAX(created_at)
-                    FROM {TableName}
-                    WHERE county_id = ANY(@county_ids)
-                    GROUP BY county_id, method_version
-                    ORDER BY county_id, method_version;";
-
-            List<BuildingHeatDemandCountyResult> result = [];
-            try
-            {
-                await using NpgsqlCommand npgsqlCommand = new(commandText, npgsqlConnection) { CommandTimeout = commandTimeout };
-                if (countyIds is not null)
-                {
-                    npgsqlCommand.Parameters.Add(new NpgsqlParameter("county_ids", NpgsqlDbType.Array | NpgsqlDbType.Integer) { Value = new List<int>(countyIds).ToArray() });
-                }
-
-                await using NpgsqlDataReader npgsqlDataReader = await npgsqlCommand.ExecuteReaderAsync(cancellationToken);
-                while (await npgsqlDataReader.ReadAsync(cancellationToken))
-                {
-                    result.Add(new BuildingHeatDemandCountyResult(
-                        npgsqlDataReader.GetInt32(0),
-                        npgsqlDataReader.GetInt32(1),
-                        npgsqlDataReader.GetInt64(2),
-                        npgsqlDataReader.IsDBNull(3) ? double.NaN : npgsqlDataReader.GetDouble(3),
-                        npgsqlDataReader.IsDBNull(4) ? double.NaN : npgsqlDataReader.GetDouble(4),
-                        npgsqlDataReader.IsDBNull(5) ? null : npgsqlDataReader.GetFieldValue<DateTimeOffset>(5),
-                        npgsqlDataReader.IsDBNull(6) ? null : npgsqlDataReader.GetFieldValue<DateTimeOffset>(6)));
-                }
-            }
-            catch (PostgresException postgresException) when (postgresException.SqlState == PostgresErrorCodes.UndefinedTable)
-            {
-                return [];
-            }
-
-            return result;
+            return PostgreSQL.Query.BuildingHeatDemandCountyResultsAsync(npgsqlConnection, countyIds, methodVersion, yearBuiltBounds, commandTimeout, cancellationToken);
         }
 
         /// <summary>
-        /// Asynchronously summarises what each of the given county parts holds per method version, automatically managing the connection.
+        /// Asynchronously summarises the stored heat demand of the given county parts, one row per county part, method version, building type and year-built band, automatically managing the connection.
         /// </summary>
         /// <param name="countyIds">The county parts to summarise; null for every part that holds results.</param>
+        /// <param name="methodVersion">The method version to summarise; null for every version, one row each.</param>
+        /// <param name="yearBuiltBounds">The bounds of the year-built bands; null or empty for one band of every year.</param>
         /// <param name="commandTimeout">The timeout in seconds for the command. A value of 0 disables the timeout.</param>
         /// <param name="cancellationToken">The cancellation token to monitor for cancellation requests.</param>
-        /// <returns>A task whose result holds one summary per county part and method version, or null when the connection cannot be made.</returns>
-        public async Task<List<BuildingHeatDemandCountyResult>?> GetSummariesByCountyIdsAsync(IEnumerable<int>? countyIds, int commandTimeout = 600, CancellationToken cancellationToken = default)
+        /// <returns>A task whose result holds the summaries, or null when the connection cannot be made.</returns>
+        public async Task<List<BuildingHeatDemandCountyResult>?> GetSummariesByCountyIdsAsync(IEnumerable<int>? countyIds, int? methodVersion = null, IEnumerable<short>? yearBuiltBounds = null, int commandTimeout = 600, CancellationToken cancellationToken = default)
         {
             await using NpgsqlConnection? npgsqlConnection = DiGi.PostgreSQL.Create.NpgsqlConnection(ConnectionData);
             if (npgsqlConnection is null)
@@ -427,7 +387,7 @@ namespace DiGi.GIS.PostgreSQL.Energy.Classes
             }
 
             await npgsqlConnection.OpenAsync(cancellationToken);
-            return await GetSummariesByCountyIdsAsync(npgsqlConnection, countyIds, commandTimeout, cancellationToken);
+            return await GetSummariesByCountyIdsAsync(npgsqlConnection, countyIds, methodVersion, yearBuiltBounds, commandTimeout, cancellationToken);
         }
     }
 }

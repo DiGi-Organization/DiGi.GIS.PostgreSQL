@@ -65,6 +65,11 @@
     <Reference Include="DiGi.Analytical.Building">
       <HintPath>..\..\DiGi.Analytical\bin\DiGi.Analytical.Building.dll</HintPath>
     </Reference>
+    <!-- BuildingHeatDemandCountyResult.BuildingType (DiGi.GIS.PostgreSQL#146): a host serializing the summary needs this
+         assembly too, since a HintPath does not carry it onward. No NuGet package of its own. -->
+    <Reference Include="DiGi.Analytical.Building.Regulation">
+      <HintPath>..\..\DiGi.Analytical\bin\DiGi.Analytical.Building.Regulation.dll</HintPath>
+    </Reference>
     <Reference Include="DiGi.BDL">
       <HintPath>..\..\DiGi.BDL\bin\DiGi.BDL.dll</HintPath>
     </Reference>

@@ -3,200 +3,6 @@
 ## DiGi\.GIS\.PostgreSQL\.Energy\.Classes Namespace
 ### Classes
 
-<a name='DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandCountyResult'></a>
-
-## BuildingHeatDemandCountyResult Class
-
-Represents what one county part holds in [BuildingHeatDemand](DiGi.GIS.PostgreSQL.Energy.Constants.md#DiGi.GIS.PostgreSQL.Energy.Constants.TableName.BuildingHeatDemand 'DiGi\.GIS\.PostgreSQL\.Energy\.Constants\.TableName\.BuildingHeatDemand') for one method version \(DiGi\.GIS\.PostgreSQL\#143\): how many buildings, their total and mean energy need for space heating, and when they were written\.
-
-```csharp
-public class BuildingHeatDemandCountyResult : DiGi.Core.Classes.SerializableResult, DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLSerializableObject, DiGi.Core.Interfaces.ISerializableObject, DiGi.Core.Interfaces.ICloneableObject<DiGi.Core.Interfaces.ISerializableObject>, DiGi.Core.Interfaces.ICloneableObject, DiGi.Core.Interfaces.IObject
-```
-
-Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [DiGi\.Core\.Classes\.Object](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.object 'DiGi\.Core\.Classes\.Object') → [DiGi\.Core\.Classes\.SerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.serializableobject 'DiGi\.Core\.Classes\.SerializableObject') → [DiGi\.Core\.Classes\.SerializableResult](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.serializableresult 'DiGi\.Core\.Classes\.SerializableResult') → BuildingHeatDemandCountyResult
-
-Implements [DiGi\.GIS\.PostgreSQL\.Interfaces\.IGISPostgreSQLSerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.postgresql.interfaces.igispostgresqlserializableobject 'DiGi\.GIS\.PostgreSQL\.Interfaces\.IGISPostgreSQLSerializableObject'), [DiGi\.Core\.Interfaces\.ISerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iserializableobject 'DiGi\.Core\.Interfaces\.ISerializableObject'), [DiGi\.Core\.Interfaces\.ICloneableObject&lt;](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject-1 'DiGi\.Core\.Interfaces\.ICloneableObject\`1')[DiGi\.Core\.Interfaces\.ISerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iserializableobject 'DiGi\.Core\.Interfaces\.ISerializableObject')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject-1 'DiGi\.Core\.Interfaces\.ICloneableObject\`1'), [DiGi\.Core\.Interfaces\.ICloneableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject 'DiGi\.Core\.Interfaces\.ICloneableObject'), [DiGi\.Core\.Interfaces\.IObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iobject 'DiGi\.Core\.Interfaces\.IObject')
-### Constructors
-
-<a name='DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandCountyResult.BuildingHeatDemandCountyResult(DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandCountyResult)'></a>
-
-## BuildingHeatDemandCountyResult\(BuildingHeatDemandCountyResult\) Constructor
-
-Initializes a new instance of the [BuildingHeatDemandCountyResult](DiGi.GIS.PostgreSQL.Energy.Classes.md#DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandCountyResult 'DiGi\.GIS\.PostgreSQL\.Energy\.Classes\.BuildingHeatDemandCountyResult') class by copying an existing instance\.
-
-```csharp
-public BuildingHeatDemandCountyResult(DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandCountyResult? buildingHeatDemandCountyResult);
-```
-#### Parameters
-
-<a name='DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandCountyResult.BuildingHeatDemandCountyResult(DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandCountyResult).buildingHeatDemandCountyResult'></a>
-
-`buildingHeatDemandCountyResult` [BuildingHeatDemandCountyResult](DiGi.GIS.PostgreSQL.Energy.Classes.md#DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandCountyResult 'DiGi\.GIS\.PostgreSQL\.Energy\.Classes\.BuildingHeatDemandCountyResult')
-
-The [BuildingHeatDemandCountyResult](DiGi.GIS.PostgreSQL.Energy.Classes.md#DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandCountyResult 'DiGi\.GIS\.PostgreSQL\.Energy\.Classes\.BuildingHeatDemandCountyResult') to copy\. This value can be null\.
-
-<a name='DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandCountyResult.BuildingHeatDemandCountyResult(int,int,long,double,double,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_)'></a>
-
-## BuildingHeatDemandCountyResult\(int, int, long, double, double, Nullable\<DateTimeOffset\>, Nullable\<DateTimeOffset\>\) Constructor
-
-Initializes a new instance of the [BuildingHeatDemandCountyResult](DiGi.GIS.PostgreSQL.Energy.Classes.md#DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandCountyResult 'DiGi\.GIS\.PostgreSQL\.Energy\.Classes\.BuildingHeatDemandCountyResult') class\.
-
-```csharp
-public BuildingHeatDemandCountyResult(int countyId, int methodVersion, long buildingCount, double heatingEnergyNeed, double heatingEnergyNeedPerArea, System.Nullable<System.DateTimeOffset> firstCreatedAt, System.Nullable<System.DateTimeOffset> lastCreatedAt);
-```
-#### Parameters
-
-<a name='DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandCountyResult.BuildingHeatDemandCountyResult(int,int,long,double,double,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_).countyId'></a>
-
-`countyId` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
-
-The id of the county part\.
-
-<a name='DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandCountyResult.BuildingHeatDemandCountyResult(int,int,long,double,double,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_).methodVersion'></a>
-
-`methodVersion` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
-
-The method version of the results\.
-
-<a name='DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandCountyResult.BuildingHeatDemandCountyResult(int,int,long,double,double,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_).buildingCount'></a>
-
-`buildingCount` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
-
-The number of buildings with a stored result\.
-
-<a name='DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandCountyResult.BuildingHeatDemandCountyResult(int,int,long,double,double,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_).heatingEnergyNeed'></a>
-
-`heatingEnergyNeed` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
-
-The total annual energy need for space heating of those buildings \[kWh/a\]\.
-
-<a name='DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandCountyResult.BuildingHeatDemandCountyResult(int,int,long,double,double,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_).heatingEnergyNeedPerArea'></a>
-
-`heatingEnergyNeedPerArea` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
-
-The mean annual energy need for space heating per reference floor area of those buildings \[kWh/\(m2a\)\]\.
-
-<a name='DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandCountyResult.BuildingHeatDemandCountyResult(int,int,long,double,double,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_).firstCreatedAt'></a>
-
-`firstCreatedAt` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.DateTimeOffset](https://learn.microsoft.com/en-us/dotnet/api/system.datetimeoffset 'System\.DateTimeOffset')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
-
-When the first of the results was written\.
-
-<a name='DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandCountyResult.BuildingHeatDemandCountyResult(int,int,long,double,double,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_).lastCreatedAt'></a>
-
-`lastCreatedAt` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.DateTimeOffset](https://learn.microsoft.com/en-us/dotnet/api/system.datetimeoffset 'System\.DateTimeOffset')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
-
-When the last of the results was written\.
-
-<a name='DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandCountyResult.BuildingHeatDemandCountyResult(System.Text.Json.Nodes.JsonObject)'></a>
-
-## BuildingHeatDemandCountyResult\(JsonObject\) Constructor
-
-Initializes a new instance of the [BuildingHeatDemandCountyResult](DiGi.GIS.PostgreSQL.Energy.Classes.md#DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandCountyResult 'DiGi\.GIS\.PostgreSQL\.Energy\.Classes\.BuildingHeatDemandCountyResult') class from a JSON object\.
-
-```csharp
-public BuildingHeatDemandCountyResult(System.Text.Json.Nodes.JsonObject? jsonObject);
-```
-#### Parameters
-
-<a name='DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandCountyResult.BuildingHeatDemandCountyResult(System.Text.Json.Nodes.JsonObject).jsonObject'></a>
-
-`jsonObject` [System\.Text\.Json\.Nodes\.JsonObject](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.nodes.jsonobject 'System\.Text\.Json\.Nodes\.JsonObject')
-
-The JSON object containing the data\. This value can be null\.
-### Properties
-
-<a name='DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandCountyResult.BuildingCount'></a>
-
-## BuildingHeatDemandCountyResult\.BuildingCount Property
-
-Gets the number of buildings with a stored result\.
-
-```csharp
-public long BuildingCount { get; }
-```
-
-#### Property Value
-[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
-
-<a name='DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandCountyResult.CountyId'></a>
-
-## BuildingHeatDemandCountyResult\.CountyId Property
-
-Gets the id of the county part\.
-
-```csharp
-public int CountyId { get; }
-```
-
-#### Property Value
-[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
-
-<a name='DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandCountyResult.FirstCreatedAt'></a>
-
-## BuildingHeatDemandCountyResult\.FirstCreatedAt Property
-
-Gets when the first of the results was written\.
-
-```csharp
-public System.Nullable<System.DateTimeOffset> FirstCreatedAt { get; }
-```
-
-#### Property Value
-[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.DateTimeOffset](https://learn.microsoft.com/en-us/dotnet/api/system.datetimeoffset 'System\.DateTimeOffset')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
-
-<a name='DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandCountyResult.HeatingEnergyNeed'></a>
-
-## BuildingHeatDemandCountyResult\.HeatingEnergyNeed Property
-
-Gets the total annual energy need for space heating of the buildings \[kWh/a\]\.
-
-```csharp
-public double HeatingEnergyNeed { get; }
-```
-
-#### Property Value
-[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
-
-<a name='DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandCountyResult.HeatingEnergyNeedPerArea'></a>
-
-## BuildingHeatDemandCountyResult\.HeatingEnergyNeedPerArea Property
-
-Gets the mean annual energy need for space heating per reference floor area of the buildings \[kWh/\(m2a\)\]\.
-
-```csharp
-public double HeatingEnergyNeedPerArea { get; }
-```
-
-#### Property Value
-[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
-
-<a name='DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandCountyResult.LastCreatedAt'></a>
-
-## BuildingHeatDemandCountyResult\.LastCreatedAt Property
-
-Gets when the last of the results was written\.
-
-```csharp
-public System.Nullable<System.DateTimeOffset> LastCreatedAt { get; }
-```
-
-#### Property Value
-[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.DateTimeOffset](https://learn.microsoft.com/en-us/dotnet/api/system.datetimeoffset 'System\.DateTimeOffset')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
-
-<a name='DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandCountyResult.MethodVersion'></a>
-
-## BuildingHeatDemandCountyResult\.MethodVersion Property
-
-Gets the method version of the results\.
-
-```csharp
-public int MethodVersion { get; }
-```
-
-#### Property Value
-[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
-
 <a name='DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandPostgreSQLConverter'></a>
 
 ## BuildingHeatDemandPostgreSQLConverter Class
@@ -454,77 +260,103 @@ The cancellation token to monitor for cancellation requests\.
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.HashSet&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.hashset-1 'System\.Collections\.Generic\.HashSet\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.hashset-1 'System\.Collections\.Generic\.HashSet\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A task whose result holds the references; empty when the table is missing, or null when the connection is null\.
 
-<a name='DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandPostgreSQLConverter.GetSummariesByCountyIdsAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken)'></a>
+<a name='DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandPostgreSQLConverter.GetSummariesByCountyIdsAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_int_,System.Nullable_int_,System.Collections.Generic.IEnumerable_short_,int,System.Threading.CancellationToken)'></a>
 
-## BuildingHeatDemandPostgreSQLConverter\.GetSummariesByCountyIdsAsync\(NpgsqlConnection, IEnumerable\<int\>, int, CancellationToken\) Method
+## BuildingHeatDemandPostgreSQLConverter\.GetSummariesByCountyIdsAsync\(NpgsqlConnection, IEnumerable\<int\>, Nullable\<int\>, IEnumerable\<short\>, int, CancellationToken\) Method
 
-Asynchronously summarises what each of the given county parts holds per method version: the number of buildings, their total and mean energy need for space heating, and when they were written\.
+Asynchronously summarises the stored heat demand of the given county parts, one row per county part, method version, building type and year\-built band: the buildings, shaded and unshaded, the quality counts of their calculation, their energy need \- total, mean and quantiles per area \- and design heat load, and when they were written\.
+
+Delegates to [DiGi\.GIS\.PostgreSQL\.Query\.BuildingHeatDemandCountyResultsAsync\(Npgsql\.NpgsqlConnection,System\.Collections\.Generic\.IEnumerable\{System\.Int32\},System\.Nullable\{System\.Int32\},System\.Collections\.Generic\.IEnumerable\{System\.Int16\},System\.Int32,System\.Threading\.CancellationToken\)](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.postgresql.query.buildingheatdemandcountyresultsasync#digi-gis-postgresql-query-buildingheatdemandcountyresultsasync(npgsql-npgsqlconnection-system-collections-generic-ienumerable{system-int32}-system-nullable{system-int32}-system-collections-generic-ienumerable{system-int16}-system-int32-system-threading-cancellationtoken) 'DiGi\.GIS\.PostgreSQL\.Query\.BuildingHeatDemandCountyResultsAsync\(Npgsql\.NpgsqlConnection,System\.Collections\.Generic\.IEnumerable\{System\.Int32\},System\.Nullable\{System\.Int32\},System\.Collections\.Generic\.IEnumerable\{System\.Int16\},System\.Int32,System\.Threading\.CancellationToken\)') of the main assembly, which reads no engine type, so the API host can serve the same summary without this assembly (DiGi.GIS.PostgreSQL#146).
 
 ```csharp
-public static System.Threading.Tasks.Task<System.Collections.Generic.List<DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandCountyResult>?> GetSummariesByCountyIdsAsync(Npgsql.NpgsqlConnection? npgsqlConnection, System.Collections.Generic.IEnumerable<int>? countyIds, int commandTimeout=600, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+public static System.Threading.Tasks.Task<System.Collections.Generic.List<DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult>?> GetSummariesByCountyIdsAsync(Npgsql.NpgsqlConnection? npgsqlConnection, System.Collections.Generic.IEnumerable<int>? countyIds, System.Nullable<int> methodVersion=null, System.Collections.Generic.IEnumerable<short>? yearBuiltBounds=null, int commandTimeout=600, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
 ```
 #### Parameters
 
-<a name='DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandPostgreSQLConverter.GetSummariesByCountyIdsAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken).npgsqlConnection'></a>
+<a name='DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandPostgreSQLConverter.GetSummariesByCountyIdsAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_int_,System.Nullable_int_,System.Collections.Generic.IEnumerable_short_,int,System.Threading.CancellationToken).npgsqlConnection'></a>
 
 `npgsqlConnection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
 
 The open [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection') of the Storage database\. This value can be null\.
 
-<a name='DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandPostgreSQLConverter.GetSummariesByCountyIdsAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken).countyIds'></a>
+<a name='DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandPostgreSQLConverter.GetSummariesByCountyIdsAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_int_,System.Nullable_int_,System.Collections.Generic.IEnumerable_short_,int,System.Threading.CancellationToken).countyIds'></a>
 
 `countyIds` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
 
 The county parts to summarise; null for every part that holds results\.
 
-<a name='DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandPostgreSQLConverter.GetSummariesByCountyIdsAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken).commandTimeout'></a>
+<a name='DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandPostgreSQLConverter.GetSummariesByCountyIdsAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_int_,System.Nullable_int_,System.Collections.Generic.IEnumerable_short_,int,System.Threading.CancellationToken).methodVersion'></a>
+
+`methodVersion` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The method version to summarise; null for every version, one row each\.
+
+<a name='DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandPostgreSQLConverter.GetSummariesByCountyIdsAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_int_,System.Nullable_int_,System.Collections.Generic.IEnumerable_short_,int,System.Threading.CancellationToken).yearBuiltBounds'></a>
+
+`yearBuiltBounds` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[System\.Int16](https://learn.microsoft.com/en-us/dotnet/api/system.int16 'System\.Int16')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The bounds of the year\-built bands; null or empty for one band of every year\.
+
+<a name='DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandPostgreSQLConverter.GetSummariesByCountyIdsAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_int_,System.Nullable_int_,System.Collections.Generic.IEnumerable_short_,int,System.Threading.CancellationToken).commandTimeout'></a>
 
 `commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
 
 The timeout in seconds for the command\. A value of 0 disables the timeout\.
 
-<a name='DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandPostgreSQLConverter.GetSummariesByCountyIdsAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken).cancellationToken'></a>
+<a name='DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandPostgreSQLConverter.GetSummariesByCountyIdsAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_int_,System.Nullable_int_,System.Collections.Generic.IEnumerable_short_,int,System.Threading.CancellationToken).cancellationToken'></a>
 
 `cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
 
 The cancellation token to monitor for cancellation requests\.
 
 #### Returns
-[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[BuildingHeatDemandCountyResult](DiGi.GIS.PostgreSQL.Energy.Classes.md#DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandCountyResult 'DiGi\.GIS\.PostgreSQL\.Energy\.Classes\.BuildingHeatDemandCountyResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
-A task whose result holds one summary per county part and method version, ordered by both; empty when the table is missing, or null when the connection is null\.
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[DiGi\.GIS\.PostgreSQL\.Classes\.BuildingHeatDemandCountyResult](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.postgresql.classes.buildingheatdemandcountyresult 'DiGi\.GIS\.PostgreSQL\.Classes\.BuildingHeatDemandCountyResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task whose result holds the summaries; empty when the table is missing, or null when the connection is null\.
 
-<a name='DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandPostgreSQLConverter.GetSummariesByCountyIdsAsync(System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken)'></a>
+<a name='DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandPostgreSQLConverter.GetSummariesByCountyIdsAsync(System.Collections.Generic.IEnumerable_int_,System.Nullable_int_,System.Collections.Generic.IEnumerable_short_,int,System.Threading.CancellationToken)'></a>
 
-## BuildingHeatDemandPostgreSQLConverter\.GetSummariesByCountyIdsAsync\(IEnumerable\<int\>, int, CancellationToken\) Method
+## BuildingHeatDemandPostgreSQLConverter\.GetSummariesByCountyIdsAsync\(IEnumerable\<int\>, Nullable\<int\>, IEnumerable\<short\>, int, CancellationToken\) Method
 
-Asynchronously summarises what each of the given county parts holds per method version, automatically managing the connection\.
+Asynchronously summarises the stored heat demand of the given county parts, one row per county part, method version, building type and year\-built band, automatically managing the connection\.
 
 ```csharp
-public System.Threading.Tasks.Task<System.Collections.Generic.List<DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandCountyResult>?> GetSummariesByCountyIdsAsync(System.Collections.Generic.IEnumerable<int>? countyIds, int commandTimeout=600, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+public System.Threading.Tasks.Task<System.Collections.Generic.List<DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult>?> GetSummariesByCountyIdsAsync(System.Collections.Generic.IEnumerable<int>? countyIds, System.Nullable<int> methodVersion=null, System.Collections.Generic.IEnumerable<short>? yearBuiltBounds=null, int commandTimeout=600, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
 ```
 #### Parameters
 
-<a name='DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandPostgreSQLConverter.GetSummariesByCountyIdsAsync(System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken).countyIds'></a>
+<a name='DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandPostgreSQLConverter.GetSummariesByCountyIdsAsync(System.Collections.Generic.IEnumerable_int_,System.Nullable_int_,System.Collections.Generic.IEnumerable_short_,int,System.Threading.CancellationToken).countyIds'></a>
 
 `countyIds` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
 
 The county parts to summarise; null for every part that holds results\.
 
-<a name='DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandPostgreSQLConverter.GetSummariesByCountyIdsAsync(System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken).commandTimeout'></a>
+<a name='DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandPostgreSQLConverter.GetSummariesByCountyIdsAsync(System.Collections.Generic.IEnumerable_int_,System.Nullable_int_,System.Collections.Generic.IEnumerable_short_,int,System.Threading.CancellationToken).methodVersion'></a>
+
+`methodVersion` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The method version to summarise; null for every version, one row each\.
+
+<a name='DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandPostgreSQLConverter.GetSummariesByCountyIdsAsync(System.Collections.Generic.IEnumerable_int_,System.Nullable_int_,System.Collections.Generic.IEnumerable_short_,int,System.Threading.CancellationToken).yearBuiltBounds'></a>
+
+`yearBuiltBounds` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[System\.Int16](https://learn.microsoft.com/en-us/dotnet/api/system.int16 'System\.Int16')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The bounds of the year\-built bands; null or empty for one band of every year\.
+
+<a name='DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandPostgreSQLConverter.GetSummariesByCountyIdsAsync(System.Collections.Generic.IEnumerable_int_,System.Nullable_int_,System.Collections.Generic.IEnumerable_short_,int,System.Threading.CancellationToken).commandTimeout'></a>
 
 `commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
 
 The timeout in seconds for the command\. A value of 0 disables the timeout\.
 
-<a name='DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandPostgreSQLConverter.GetSummariesByCountyIdsAsync(System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken).cancellationToken'></a>
+<a name='DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandPostgreSQLConverter.GetSummariesByCountyIdsAsync(System.Collections.Generic.IEnumerable_int_,System.Nullable_int_,System.Collections.Generic.IEnumerable_short_,int,System.Threading.CancellationToken).cancellationToken'></a>
 
 `cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
 
 The cancellation token to monitor for cancellation requests\.
 
 #### Returns
-[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[BuildingHeatDemandCountyResult](DiGi.GIS.PostgreSQL.Energy.Classes.md#DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandCountyResult 'DiGi\.GIS\.PostgreSQL\.Energy\.Classes\.BuildingHeatDemandCountyResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
-A task whose result holds one summary per county part and method version, or null when the connection cannot be made\.
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[DiGi\.GIS\.PostgreSQL\.Classes\.BuildingHeatDemandCountyResult](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.postgresql.classes.buildingheatdemandcountyresult 'DiGi\.GIS\.PostgreSQL\.Classes\.BuildingHeatDemandCountyResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task whose result holds the summaries, or null when the connection cannot be made\.
 
 <a name='DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandPostgreSQLConverter.UpdateAsync(int,System.Collections.Generic.IEnumerable_DiGi.GIS.Analytical.Energy.Classes.BuildingHeatDemandResult_,int,System.Threading.CancellationToken)'></a>
 

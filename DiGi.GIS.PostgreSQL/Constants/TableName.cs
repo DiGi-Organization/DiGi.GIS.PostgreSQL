@@ -141,6 +141,11 @@
         public const string BuildingSolarRadiation = "building_solar_radiation";
 
         /// <summary>
+        /// The name of the building heat demand table on the Storage database. One row is the stored monthly heat demand of one building model for one method version, partitioned by county part. Written by <c>DiGi.GIS.PostgreSQL.Energy</c> (DiGi.GIS.PostgreSQL#143); summarised here without the energy engine (DiGi.GIS.PostgreSQL#146).
+        /// </summary>
+        public const string BuildingHeatDemand = "building_heat_demand";
+
+        /// <summary>
         /// The name of the terrain point table. One row is a single terrain elevation point.
         /// </summary>
         public const string TerrainPoint = "terrain_point";

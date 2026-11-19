@@ -213,6 +213,19 @@ public const string BuildingDataset = "building_dataset";
 #### Field Value
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
+<a name='DiGi.GIS.PostgreSQL.Constants.TableName.BuildingHeatDemand'></a>
+
+## TableName\.BuildingHeatDemand Field
+
+The name of the building heat demand table on the Storage database\. One row is the stored monthly heat demand of one building model for one method version, partitioned by county part\. Written by `DiGi.GIS.PostgreSQL.Energy` \(DiGi\.GIS\.PostgreSQL\#143\); summarised here without the energy engine \(DiGi\.GIS\.PostgreSQL\#146\)\.
+
+```csharp
+public const string BuildingHeatDemand = "building_heat_demand";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
 <a name='DiGi.GIS.PostgreSQL.Constants.TableName.BuildingModel'></a>
 
 ## TableName\.BuildingModel Field

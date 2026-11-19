@@ -20,7 +20,7 @@ Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system
 
 ## TableName\.BuildingHeatDemand Field
 
-The table of the stored monthly heat demand of every building, one row per county part, building model and method version, on the Storage database beside `building_solar_radiation`\.
+The table of the stored monthly heat demand of every building, one row per county part, building model and method version, on the Storage database beside `building_solar_radiation`\. The literal lives once, in [DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.BuildingHeatDemand](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.postgresql.constants.tablename.buildingheatdemand 'DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.BuildingHeatDemand'), which the summary of the main assembly reads \(DiGi\.GIS\.PostgreSQL\#146\)\.
 
 ```csharp
 public const string BuildingHeatDemand = "building_heat_demand";

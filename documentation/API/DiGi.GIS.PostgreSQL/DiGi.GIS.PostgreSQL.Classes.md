@@ -14036,6 +14036,487 @@ public int Updated { get; }
 #### Property Value
 [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
 
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult'></a>
+
+## BuildingHeatDemandCountyResult Class
+
+Represents what one county part holds in [BuildingHeatDemand](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.TableName.BuildingHeatDemand 'DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.BuildingHeatDemand') for one method version, building type and year\-built band \(DiGi\.GIS\.PostgreSQL\#143, \#146\): how many buildings, how many took their irradiation from a stored solar result, the quality counts of their calculation, their energy need for space heating \- total, mean and quantiles per area \- their design heat load, and when they were written\.
+
+The production measure of a heat demand run, read through the API (`Coding - PostgreSQL.md` §6). The building type and the year built are the ones the calculation used; the band is one of the year-built bounds the summary was asked for, so the rows of a county line up with a typology's construction periods.
+
+```csharp
+public class BuildingHeatDemandCountyResult : DiGi.Core.Classes.SerializableResult, DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLSerializableObject, DiGi.Core.Interfaces.ISerializableObject, DiGi.Core.Interfaces.ICloneableObject<DiGi.Core.Interfaces.ISerializableObject>, DiGi.Core.Interfaces.ICloneableObject, DiGi.Core.Interfaces.IObject
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [DiGi\.Core\.Classes\.Object](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.object 'DiGi\.Core\.Classes\.Object') → [DiGi\.Core\.Classes\.SerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.serializableobject 'DiGi\.Core\.Classes\.SerializableObject') → [DiGi\.Core\.Classes\.SerializableResult](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.serializableresult 'DiGi\.Core\.Classes\.SerializableResult') → BuildingHeatDemandCountyResult
+
+Implements [IGISPostgreSQLSerializableObject](DiGi.GIS.PostgreSQL.Interfaces.md#DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLSerializableObject 'DiGi\.GIS\.PostgreSQL\.Interfaces\.IGISPostgreSQLSerializableObject'), [DiGi\.Core\.Interfaces\.ISerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iserializableobject 'DiGi\.Core\.Interfaces\.ISerializableObject'), [DiGi\.Core\.Interfaces\.ICloneableObject&lt;](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject-1 'DiGi\.Core\.Interfaces\.ICloneableObject\`1')[DiGi\.Core\.Interfaces\.ISerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iserializableobject 'DiGi\.Core\.Interfaces\.ISerializableObject')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject-1 'DiGi\.Core\.Interfaces\.ICloneableObject\`1'), [DiGi\.Core\.Interfaces\.ICloneableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject 'DiGi\.Core\.Interfaces\.ICloneableObject'), [DiGi\.Core\.Interfaces\.IObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iobject 'DiGi\.Core\.Interfaces\.IObject')
+### Constructors
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult.BuildingHeatDemandCountyResult(DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult)'></a>
+
+## BuildingHeatDemandCountyResult\(BuildingHeatDemandCountyResult\) Constructor
+
+Initializes a new instance of the [BuildingHeatDemandCountyResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult 'DiGi\.GIS\.PostgreSQL\.Classes\.BuildingHeatDemandCountyResult') class by copying an existing instance\.
+
+```csharp
+public BuildingHeatDemandCountyResult(DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult? buildingHeatDemandCountyResult);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult.BuildingHeatDemandCountyResult(DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult).buildingHeatDemandCountyResult'></a>
+
+`buildingHeatDemandCountyResult` [BuildingHeatDemandCountyResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult 'DiGi\.GIS\.PostgreSQL\.Classes\.BuildingHeatDemandCountyResult')
+
+The [BuildingHeatDemandCountyResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult 'DiGi\.GIS\.PostgreSQL\.Classes\.BuildingHeatDemandCountyResult') to copy\. This value can be null\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult.BuildingHeatDemandCountyResult(int,int,DiGi.Analytical.Building.Regulation.Enums.BuildingType,System.Nullable_int_,System.Nullable_short_,System.Nullable_short_,long,long,long,double,double,double,double,double,double,long,long,long,long,long,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_)'></a>
+
+## BuildingHeatDemandCountyResult\(int, int, BuildingType, Nullable\<int\>, Nullable\<short\>, Nullable\<short\>, long, long, long, double, double, double, double, double, double, long, long, long, long, long, Nullable\<DateTimeOffset\>, Nullable\<DateTimeOffset\>\) Constructor
+
+Initializes a new instance of the [BuildingHeatDemandCountyResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult 'DiGi\.GIS\.PostgreSQL\.Classes\.BuildingHeatDemandCountyResult') class\.
+
+```csharp
+public BuildingHeatDemandCountyResult(int countyId, int methodVersion, DiGi.Analytical.Building.Regulation.Enums.BuildingType buildingType, System.Nullable<int> yearBuiltBandIndex, System.Nullable<short> yearBuiltMin, System.Nullable<short> yearBuiltMax, long buildingCount, long shadedCount, long unshadedCount, double heatingEnergyNeed, double heatingEnergyNeedPerArea, double heatingEnergyNeedPerArea_P10, double heatingEnergyNeedPerArea_P50, double heatingEnergyNeedPerArea_P90, double designHeatLoad, long excludedComponentBuildingCount, long excludedComponentCount, long glazingFallbackBuildingCount, long glazingFallbackCount, long missingIrradiationBuildingCount, System.Nullable<System.DateTimeOffset> firstCreatedAt, System.Nullable<System.DateTimeOffset> lastCreatedAt);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult.BuildingHeatDemandCountyResult(int,int,DiGi.Analytical.Building.Regulation.Enums.BuildingType,System.Nullable_int_,System.Nullable_short_,System.Nullable_short_,long,long,long,double,double,double,double,double,double,long,long,long,long,long,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_).countyId'></a>
+
+`countyId` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The id of the county part\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult.BuildingHeatDemandCountyResult(int,int,DiGi.Analytical.Building.Regulation.Enums.BuildingType,System.Nullable_int_,System.Nullable_short_,System.Nullable_short_,long,long,long,double,double,double,double,double,double,long,long,long,long,long,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_).methodVersion'></a>
+
+`methodVersion` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The method version of the results\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult.BuildingHeatDemandCountyResult(int,int,DiGi.Analytical.Building.Regulation.Enums.BuildingType,System.Nullable_int_,System.Nullable_short_,System.Nullable_short_,long,long,long,double,double,double,double,double,double,long,long,long,long,long,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_).buildingType'></a>
+
+`buildingType` [DiGi\.Analytical\.Building\.Regulation\.Enums\.BuildingType](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.regulation.enums.buildingtype 'DiGi\.Analytical\.Building\.Regulation\.Enums\.BuildingType')
+
+The building type the calculation used\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult.BuildingHeatDemandCountyResult(int,int,DiGi.Analytical.Building.Regulation.Enums.BuildingType,System.Nullable_int_,System.Nullable_short_,System.Nullable_short_,long,long,long,double,double,double,double,double,double,long,long,long,long,long,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_).yearBuiltBandIndex'></a>
+
+`yearBuiltBandIndex` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The index of the year\-built band: 0 below the first bound \(or every year when no bound was given\), i from the bound i \- 1 to the bound i, the bound count from the last bound up; null for the buildings without a year built\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult.BuildingHeatDemandCountyResult(int,int,DiGi.Analytical.Building.Regulation.Enums.BuildingType,System.Nullable_int_,System.Nullable_short_,System.Nullable_short_,long,long,long,double,double,double,double,double,double,long,long,long,long,long,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_).yearBuiltMin'></a>
+
+`yearBuiltMin` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int16](https://learn.microsoft.com/en-us/dotnet/api/system.int16 'System\.Int16')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The first year of the band, inclusive; null when the band is open below or holds the buildings without a year built\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult.BuildingHeatDemandCountyResult(int,int,DiGi.Analytical.Building.Regulation.Enums.BuildingType,System.Nullable_int_,System.Nullable_short_,System.Nullable_short_,long,long,long,double,double,double,double,double,double,long,long,long,long,long,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_).yearBuiltMax'></a>
+
+`yearBuiltMax` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int16](https://learn.microsoft.com/en-us/dotnet/api/system.int16 'System\.Int16')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The last year of the band, inclusive; null when the band is open above or holds the buildings without a year built\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult.BuildingHeatDemandCountyResult(int,int,DiGi.Analytical.Building.Regulation.Enums.BuildingType,System.Nullable_int_,System.Nullable_short_,System.Nullable_short_,long,long,long,double,double,double,double,double,double,long,long,long,long,long,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_).buildingCount'></a>
+
+`buildingCount` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+The number of buildings with a stored result\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult.BuildingHeatDemandCountyResult(int,int,DiGi.Analytical.Building.Regulation.Enums.BuildingType,System.Nullable_int_,System.Nullable_short_,System.Nullable_short_,long,long,long,double,double,double,double,double,double,long,long,long,long,long,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_).shadedCount'></a>
+
+`shadedCount` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+The number of those buildings whose irradiation came from a stored solar result\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult.BuildingHeatDemandCountyResult(int,int,DiGi.Analytical.Building.Regulation.Enums.BuildingType,System.Nullable_int_,System.Nullable_short_,System.Nullable_short_,long,long,long,double,double,double,double,double,double,long,long,long,long,long,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_).unshadedCount'></a>
+
+`unshadedCount` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+The number of those buildings calculated with the unshaded irradiation, having no stored solar result\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult.BuildingHeatDemandCountyResult(int,int,DiGi.Analytical.Building.Regulation.Enums.BuildingType,System.Nullable_int_,System.Nullable_short_,System.Nullable_short_,long,long,long,double,double,double,double,double,double,long,long,long,long,long,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_).heatingEnergyNeed'></a>
+
+`heatingEnergyNeed` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The total annual energy need for space heating of the buildings \[kWh/a\]; NaN when none has a value\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult.BuildingHeatDemandCountyResult(int,int,DiGi.Analytical.Building.Regulation.Enums.BuildingType,System.Nullable_int_,System.Nullable_short_,System.Nullable_short_,long,long,long,double,double,double,double,double,double,long,long,long,long,long,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_).heatingEnergyNeedPerArea'></a>
+
+`heatingEnergyNeedPerArea` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The mean annual energy need for space heating per reference floor area of the buildings \[kWh/\(m2a\)\]; NaN when none has a value\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult.BuildingHeatDemandCountyResult(int,int,DiGi.Analytical.Building.Regulation.Enums.BuildingType,System.Nullable_int_,System.Nullable_short_,System.Nullable_short_,long,long,long,double,double,double,double,double,double,long,long,long,long,long,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_).heatingEnergyNeedPerArea_P10'></a>
+
+`heatingEnergyNeedPerArea_P10` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The 10th percentile of the energy need per reference floor area \[kWh/\(m2a\)\]; NaN when none has a value\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult.BuildingHeatDemandCountyResult(int,int,DiGi.Analytical.Building.Regulation.Enums.BuildingType,System.Nullable_int_,System.Nullable_short_,System.Nullable_short_,long,long,long,double,double,double,double,double,double,long,long,long,long,long,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_).heatingEnergyNeedPerArea_P50'></a>
+
+`heatingEnergyNeedPerArea_P50` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The median of the energy need per reference floor area \[kWh/\(m2a\)\]; NaN when none has a value\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult.BuildingHeatDemandCountyResult(int,int,DiGi.Analytical.Building.Regulation.Enums.BuildingType,System.Nullable_int_,System.Nullable_short_,System.Nullable_short_,long,long,long,double,double,double,double,double,double,long,long,long,long,long,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_).heatingEnergyNeedPerArea_P90'></a>
+
+`heatingEnergyNeedPerArea_P90` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The 90th percentile of the energy need per reference floor area \[kWh/\(m2a\)\]; NaN when none has a value\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult.BuildingHeatDemandCountyResult(int,int,DiGi.Analytical.Building.Regulation.Enums.BuildingType,System.Nullable_int_,System.Nullable_short_,System.Nullable_short_,long,long,long,double,double,double,double,double,double,long,long,long,long,long,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_).designHeatLoad'></a>
+
+`designHeatLoad` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The total design heat load of the buildings \[W\]; NaN when none has a value\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult.BuildingHeatDemandCountyResult(int,int,DiGi.Analytical.Building.Regulation.Enums.BuildingType,System.Nullable_int_,System.Nullable_short_,System.Nullable_short_,long,long,long,double,double,double,double,double,double,long,long,long,long,long,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_).excludedComponentBuildingCount'></a>
+
+`excludedComponentBuildingCount` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+The number of buildings with at least one component or opening excluded because its thermal transmittance is not known\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult.BuildingHeatDemandCountyResult(int,int,DiGi.Analytical.Building.Regulation.Enums.BuildingType,System.Nullable_int_,System.Nullable_short_,System.Nullable_short_,long,long,long,double,double,double,double,double,double,long,long,long,long,long,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_).excludedComponentCount'></a>
+
+`excludedComponentCount` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+The total number of such excluded components and openings\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult.BuildingHeatDemandCountyResult(int,int,DiGi.Analytical.Building.Regulation.Enums.BuildingType,System.Nullable_int_,System.Nullable_short_,System.Nullable_short_,long,long,long,double,double,double,double,double,double,long,long,long,long,long,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_).glazingFallbackBuildingCount'></a>
+
+`glazingFallbackBuildingCount` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+The number of buildings with at least one glazed opening whose glazed area was taken from the frame fraction, its construction having no panes\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult.BuildingHeatDemandCountyResult(int,int,DiGi.Analytical.Building.Regulation.Enums.BuildingType,System.Nullable_int_,System.Nullable_short_,System.Nullable_short_,long,long,long,double,double,double,double,double,double,long,long,long,long,long,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_).glazingFallbackCount'></a>
+
+`glazingFallbackCount` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+The total number of such glazed openings\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult.BuildingHeatDemandCountyResult(int,int,DiGi.Analytical.Building.Regulation.Enums.BuildingType,System.Nullable_int_,System.Nullable_short_,System.Nullable_short_,long,long,long,double,double,double,double,double,double,long,long,long,long,long,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_).missingIrradiationBuildingCount'></a>
+
+`missingIrradiationBuildingCount` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+The number of buildings with at least one external surface without monthly irradiation, whose solar gains are 0\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult.BuildingHeatDemandCountyResult(int,int,DiGi.Analytical.Building.Regulation.Enums.BuildingType,System.Nullable_int_,System.Nullable_short_,System.Nullable_short_,long,long,long,double,double,double,double,double,double,long,long,long,long,long,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_).firstCreatedAt'></a>
+
+`firstCreatedAt` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.DateTimeOffset](https://learn.microsoft.com/en-us/dotnet/api/system.datetimeoffset 'System\.DateTimeOffset')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+When the first of the results was written\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult.BuildingHeatDemandCountyResult(int,int,DiGi.Analytical.Building.Regulation.Enums.BuildingType,System.Nullable_int_,System.Nullable_short_,System.Nullable_short_,long,long,long,double,double,double,double,double,double,long,long,long,long,long,System.Nullable_System.DateTimeOffset_,System.Nullable_System.DateTimeOffset_).lastCreatedAt'></a>
+
+`lastCreatedAt` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.DateTimeOffset](https://learn.microsoft.com/en-us/dotnet/api/system.datetimeoffset 'System\.DateTimeOffset')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+When the last of the results was written\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult.BuildingHeatDemandCountyResult(System.Text.Json.Nodes.JsonObject)'></a>
+
+## BuildingHeatDemandCountyResult\(JsonObject\) Constructor
+
+Initializes a new instance of the [BuildingHeatDemandCountyResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult 'DiGi\.GIS\.PostgreSQL\.Classes\.BuildingHeatDemandCountyResult') class from a JSON object\.
+
+```csharp
+public BuildingHeatDemandCountyResult(System.Text.Json.Nodes.JsonObject? jsonObject);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult.BuildingHeatDemandCountyResult(System.Text.Json.Nodes.JsonObject).jsonObject'></a>
+
+`jsonObject` [System\.Text\.Json\.Nodes\.JsonObject](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.nodes.jsonobject 'System\.Text\.Json\.Nodes\.JsonObject')
+
+The JSON object containing the data\. This value can be null\.
+### Properties
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult.BuildingCount'></a>
+
+## BuildingHeatDemandCountyResult\.BuildingCount Property
+
+Gets the number of buildings with a stored result\.
+
+```csharp
+public long BuildingCount { get; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult.BuildingType'></a>
+
+## BuildingHeatDemandCountyResult\.BuildingType Property
+
+Gets the building type the calculation used\.
+
+```csharp
+public DiGi.Analytical.Building.Regulation.Enums.BuildingType BuildingType { get; }
+```
+
+#### Property Value
+[DiGi\.Analytical\.Building\.Regulation\.Enums\.BuildingType](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.regulation.enums.buildingtype 'DiGi\.Analytical\.Building\.Regulation\.Enums\.BuildingType')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult.CountyId'></a>
+
+## BuildingHeatDemandCountyResult\.CountyId Property
+
+Gets the id of the county part\.
+
+```csharp
+public int CountyId { get; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult.DesignHeatLoad'></a>
+
+## BuildingHeatDemandCountyResult\.DesignHeatLoad Property
+
+Gets the total design heat load of the buildings \[W\]; NaN when none has a value\.
+
+```csharp
+public double DesignHeatLoad { get; }
+```
+
+#### Property Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult.ExcludedComponentBuildingCount'></a>
+
+## BuildingHeatDemandCountyResult\.ExcludedComponentBuildingCount Property
+
+Gets the number of buildings with at least one component or opening excluded because its thermal transmittance is not known\.
+
+```csharp
+public long ExcludedComponentBuildingCount { get; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult.ExcludedComponentCount'></a>
+
+## BuildingHeatDemandCountyResult\.ExcludedComponentCount Property
+
+Gets the total number of components and openings excluded because their thermal transmittance is not known\.
+
+```csharp
+public long ExcludedComponentCount { get; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult.FirstCreatedAt'></a>
+
+## BuildingHeatDemandCountyResult\.FirstCreatedAt Property
+
+Gets when the first of the results was written\.
+
+```csharp
+public System.Nullable<System.DateTimeOffset> FirstCreatedAt { get; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.DateTimeOffset](https://learn.microsoft.com/en-us/dotnet/api/system.datetimeoffset 'System\.DateTimeOffset')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult.GlazingFallbackBuildingCount'></a>
+
+## BuildingHeatDemandCountyResult\.GlazingFallbackBuildingCount Property
+
+Gets the number of buildings with at least one glazed opening whose glazed area was taken from the frame fraction, its construction having no panes\.
+
+```csharp
+public long GlazingFallbackBuildingCount { get; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult.GlazingFallbackCount'></a>
+
+## BuildingHeatDemandCountyResult\.GlazingFallbackCount Property
+
+Gets the total number of glazed openings whose glazed area was taken from the frame fraction\.
+
+```csharp
+public long GlazingFallbackCount { get; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult.HeatingEnergyNeed'></a>
+
+## BuildingHeatDemandCountyResult\.HeatingEnergyNeed Property
+
+Gets the total annual energy need for space heating of the buildings \[kWh/a\]; NaN when none has a value\.
+
+```csharp
+public double HeatingEnergyNeed { get; }
+```
+
+#### Property Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult.HeatingEnergyNeedPerArea'></a>
+
+## BuildingHeatDemandCountyResult\.HeatingEnergyNeedPerArea Property
+
+Gets the mean annual energy need for space heating per reference floor area of the buildings \[kWh/\(m2a\)\]; NaN when none has a value\.
+
+```csharp
+public double HeatingEnergyNeedPerArea { get; }
+```
+
+#### Property Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult.HeatingEnergyNeedPerArea_P10'></a>
+
+## BuildingHeatDemandCountyResult\.HeatingEnergyNeedPerArea\_P10 Property
+
+Gets the 10th percentile of the energy need per reference floor area \[kWh/\(m2a\)\]; NaN when none has a value\.
+
+```csharp
+public double HeatingEnergyNeedPerArea_P10 { get; }
+```
+
+#### Property Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult.HeatingEnergyNeedPerArea_P50'></a>
+
+## BuildingHeatDemandCountyResult\.HeatingEnergyNeedPerArea\_P50 Property
+
+Gets the median of the energy need per reference floor area \[kWh/\(m2a\)\]; NaN when none has a value\.
+
+```csharp
+public double HeatingEnergyNeedPerArea_P50 { get; }
+```
+
+#### Property Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult.HeatingEnergyNeedPerArea_P90'></a>
+
+## BuildingHeatDemandCountyResult\.HeatingEnergyNeedPerArea\_P90 Property
+
+Gets the 90th percentile of the energy need per reference floor area \[kWh/\(m2a\)\]; NaN when none has a value\.
+
+```csharp
+public double HeatingEnergyNeedPerArea_P90 { get; }
+```
+
+#### Property Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult.LastCreatedAt'></a>
+
+## BuildingHeatDemandCountyResult\.LastCreatedAt Property
+
+Gets when the last of the results was written\.
+
+```csharp
+public System.Nullable<System.DateTimeOffset> LastCreatedAt { get; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.DateTimeOffset](https://learn.microsoft.com/en-us/dotnet/api/system.datetimeoffset 'System\.DateTimeOffset')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult.MethodVersion'></a>
+
+## BuildingHeatDemandCountyResult\.MethodVersion Property
+
+Gets the method version of the results\.
+
+```csharp
+public int MethodVersion { get; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult.MissingIrradiationBuildingCount'></a>
+
+## BuildingHeatDemandCountyResult\.MissingIrradiationBuildingCount Property
+
+Gets the number of buildings with at least one external surface without monthly irradiation, whose solar gains are 0\.
+
+```csharp
+public long MissingIrradiationBuildingCount { get; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult.ShadedCount'></a>
+
+## BuildingHeatDemandCountyResult\.ShadedCount Property
+
+Gets the number of buildings whose irradiation came from a stored solar result\.
+
+```csharp
+public long ShadedCount { get; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult.UnshadedCount'></a>
+
+## BuildingHeatDemandCountyResult\.UnshadedCount Property
+
+Gets the number of buildings calculated with the unshaded irradiation, having no stored solar result\.
+
+```csharp
+public long UnshadedCount { get; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult.YearBuiltBandIndex'></a>
+
+## BuildingHeatDemandCountyResult\.YearBuiltBandIndex Property
+
+Gets the index of the year\-built band: 0 below the first bound \(or every year when no bound was given\), i from the bound i \- 1 to the bound i, the bound count from the last bound up; null for the buildings without a year built\.
+
+```csharp
+public System.Nullable<int> YearBuiltBandIndex { get; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult.YearBuiltMax'></a>
+
+## BuildingHeatDemandCountyResult\.YearBuiltMax Property
+
+Gets the last year of the band, inclusive; null when the band is open above or holds the buildings without a year built\.
+
+```csharp
+public System.Nullable<short> YearBuiltMax { get; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int16](https://learn.microsoft.com/en-us/dotnet/api/system.int16 'System\.Int16')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult.YearBuiltMin'></a>
+
+## BuildingHeatDemandCountyResult\.YearBuiltMin Property
+
+Gets the first year of the band, inclusive; null when the band is open below or holds the buildings without a year built\.
+
+```csharp
+public System.Nullable<short> YearBuiltMin { get; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int16](https://learn.microsoft.com/en-us/dotnet/api/system.int16 'System\.Int16')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
 <a name='DiGi.GIS.PostgreSQL.Classes.BuildingModel'></a>
 
 ## BuildingModel Class
