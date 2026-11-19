@@ -349,7 +349,7 @@ namespace DiGi.GIS.PostgreSQL.Energy.Classes
 
                     List<BuildingModel?> buildingModels = await ReadBuildingModelsAsync(countyId_Batch, references_Batch, commandTimeout, cancellationToken) ?? throw new InvalidOperationException("the building models could not be read");
                     List<Building2D?> building2Ds = await ReadBuilding2DsAsync(countyId_Batch, references_Batch, commandTimeout, cancellationToken) ?? throw new InvalidOperationException("the 2D buildings could not be read");
-                    Dictionary<string, (short? YearBuilt, YearBuiltSource? YearBuiltSource)> yearBuilts = await ReadYearBuiltsAsync(countyId_Batch, references_Batch, commandTimeout, cancellationToken) ?? throw new InvalidOperationException("the year built could not be read");
+                    Dictionary<string, (short? YearBuilt, YearBuiltSource? YearBuiltSource, short? CensusYearBuilt)> yearBuilts = await ReadYearBuiltsAsync(countyId_Batch, references_Batch, commandTimeout, cancellationToken) ?? throw new InvalidOperationException("the year built could not be read");
                     Dictionary<string, OccupancyData> occupancyDatas = await ReadOccupancyDatasAsync(countyId_Batch, references_Batch, commandTimeout, cancellationToken) ?? throw new InvalidOperationException("the occupancy could not be read");
                     Dictionary<string, Point2D> addressPoints = await ReadAddressPointsAsync(countyId_Batch, references_Batch, commandTimeout, cancellationToken) ?? throw new InvalidOperationException("the address points could not be read");
 
@@ -475,10 +475,10 @@ namespace DiGi.GIS.PostgreSQL.Energy.Classes
                             }
                         }
 
-                        yearBuilts.TryGetValue(reference, out (short? YearBuilt, YearBuiltSource? YearBuiltSource) yearBuilt_Stored);
+                        yearBuilts.TryGetValue(reference, out (short? YearBuilt, YearBuiltSource? YearBuiltSource, short? CensusYearBuilt) yearBuilt_Stored);
 
-                        // A prediction that only bounds the year built is replaced by the fallback year before it selects the regime, as the generator does (DiGi-Organization/DiGi.GIS.Analytical#16).
-                        (short? YearBuilt, YearBuiltSource? YearBuiltSource) yearBuilt = GIS.Analytical.Query.CalculationYearBuilt(yearBuilt_Stored.YearBuilt, yearBuilt_Stored.YearBuiltSource);
+                        // A prediction that only bounds the year built is replaced by the census year built of the building's area, else the fallback year, before it selects the regime (DiGi-Organization/DiGi.GIS.Analytical#16, #17).
+                        (short? YearBuilt, YearBuiltSource? YearBuiltSource) yearBuilt = GIS.Analytical.Query.CalculationYearBuilt(yearBuilt_Stored.YearBuilt, yearBuilt_Stored.YearBuiltSource, yearBuilt_Stored.CensusYearBuilt);
                         occupancyDatas.TryGetValue(reference, out OccupancyData? occupancyData);
                         addressPoints.TryGetValue(reference, out Point2D? addressPoint);
 
@@ -628,15 +628,15 @@ namespace DiGi.GIS.PostgreSQL.Energy.Classes
         protected abstract Task<Dictionary<string, OccupancyData>?> ReadOccupancyDatasAsync(int countyId, List<string> references, int commandTimeout, CancellationToken cancellationToken);
 
         /// <summary>
-        /// Reads the year built of the given references of one county part, with its source: the user's year when there is one, else the predicted year.
-        /// <para>The year is returned as stored. The task replaces a prediction that only bounds the year by <c>GIS.Analytical.Query.CalculationYearBuilt</c> before calculating (DiGi-Organization/DiGi.GIS.Analytical#16), so an override does not apply that rule itself.</para>
+        /// Reads the year built of the given references of one county part, with its source - the user's year when there is one, else the predicted year - and the census year built of the building's area.
+        /// <para>The years are returned as stored. The task replaces a prediction that only bounds the year by <c>GIS.Analytical.Query.CalculationYearBuilt</c> before calculating - the census year built when there is one, else the fallback year (DiGi-Organization/DiGi.GIS.Analytical#16, #17) - so an override does not apply that rule itself. The census year is <c>IO.Constants.Column.CensusYearBuilt</c>, written by the Statistical update of building data; null when the area has none.</para>
         /// </summary>
         /// <param name="countyId">The id of the county part the references are filed under.</param>
         /// <param name="references">The references to read.</param>
         /// <param name="commandTimeout">The timeout in seconds of the read; 0 disables it.</param>
         /// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
-        /// <returns>A task whose result holds the year built of each reference that has one, or null when the read failed.</returns>
-        protected abstract Task<Dictionary<string, (short? YearBuilt, YearBuiltSource? YearBuiltSource)>?> ReadYearBuiltsAsync(int countyId, List<string> references, int commandTimeout, CancellationToken cancellationToken);
+        /// <returns>A task whose result holds the year built, its source and the census year built of each reference that has a year built, or null when the read failed.</returns>
+        protected abstract Task<Dictionary<string, (short? YearBuilt, YearBuiltSource? YearBuiltSource, short? CensusYearBuilt)>?> ReadYearBuiltsAsync(int countyId, List<string> references, int commandTimeout, CancellationToken cancellationToken);
 
         /// <summary>
         /// Prepares the transport before the run: resolves its converters or clients. A refusal logs its own reason.

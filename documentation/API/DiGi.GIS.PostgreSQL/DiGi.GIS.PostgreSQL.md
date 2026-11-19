@@ -3373,6 +3373,35 @@ The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dot
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[OrtoDatasCoverageResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoDatasCoverageResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoDatasCoverageResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A task that represents the asynchronous operation\. The task result contains one [OrtoDatasCoverageResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoDatasCoverageResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoDatasCoverageResult') per polygon that holds at least one of the county's buildings, in identifier order, plus one carrying a null [AdministrativeAreal2DId](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoDatasCoverageResult.AdministrativeAreal2DId 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoDatasCoverageResult\.AdministrativeAreal2DId') for the buildings inside none of them when there are any; or null when either converter or the polygon map is missing, either side could not be read, or the county holds no orthophoto row at all\.
 
+<a name='DiGi.GIS.PostgreSQL.Query.DistrictStatisticalUnits(thisDiGi.GIS.Classes.StatisticalUnit,DiGi.GIS.Classes.StatisticalUnit)'></a>
+
+## Query\.DistrictStatisticalUnits\(this StatisticalUnit, StatisticalUnit\) Method
+
+Returns the district units of a municipality's county: the BDL units of type [DiGi\.GIS\.Enums\.MunicipalityType\.Warsaw\_district](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.enums.municipalitytype.warsaw_district 'DiGi\.GIS\.Enums\.MunicipalityType\.Warsaw\_district') whose code shares the municipality's first nine digits \(DiGi\-Organization/DiGi\.GIS\.PostgreSQL\#148\)\.
+
+BDL publishes Warsaw both as the city (`071412865011`, "M.st.Warszawa od 2002") and as its 18 districts (`0714128650x8`, "Bemowo - dzielnica", ...), all under the county `071412865000`. For any other municipality the list is empty.
+
+```csharp
+public static System.Collections.Generic.List<DiGi.GIS.Classes.StatisticalUnit> DistrictStatisticalUnits(this DiGi.GIS.Classes.StatisticalUnit? rootStatisticalUnit, DiGi.GIS.Classes.StatisticalUnit? statisticalUnit_Municipality);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Query.DistrictStatisticalUnits(thisDiGi.GIS.Classes.StatisticalUnit,DiGi.GIS.Classes.StatisticalUnit).rootStatisticalUnit'></a>
+
+`rootStatisticalUnit` [DiGi\.GIS\.Classes\.StatisticalUnit](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.statisticalunit 'DiGi\.GIS\.Classes\.StatisticalUnit')
+
+The root statistical unit hierarchy\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.DistrictStatisticalUnits(thisDiGi.GIS.Classes.StatisticalUnit,DiGi.GIS.Classes.StatisticalUnit).statisticalUnit_Municipality'></a>
+
+`statisticalUnit_Municipality` [DiGi\.GIS\.Classes\.StatisticalUnit](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.statisticalunit 'DiGi\.GIS\.Classes\.StatisticalUnit')
+
+The municipality's unit\.
+
+#### Returns
+[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[DiGi\.GIS\.Classes\.StatisticalUnit](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.statisticalunit 'DiGi\.GIS\.Classes\.StatisticalUnit')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')  
+The district units, in hierarchy order; empty when there are none or either argument is null\.
+
 <a name='DiGi.GIS.PostgreSQL.Query.HasImages(thisDiGi.GIS.PostgreSQL.Classes.OrtoDatas)'></a>
 
 ## Query\.HasImages\(this OrtoDatas\) Method
@@ -3640,7 +3669,9 @@ The matching [DiGi\.GIS\.Classes\.StatisticalUnit](https://learn.microsoft.com/e
 
 ## Query\.Match\(this StatisticalUnit, AdministrativeAreal2DReference, AdministrativeAreal2DReferencePath\) Method
 
-Finds the [DiGi\.GIS\.Classes\.StatisticalUnit](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.statisticalunit 'DiGi\.GIS\.Classes\.StatisticalUnit') matching the subdivision reference within the hierarchy, falling back to the subdivision's parent municipality reference from the path when the subdivision itself does not match\.
+Finds the [DiGi\.GIS\.Classes\.StatisticalUnit](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.statisticalunit 'DiGi\.GIS\.Classes\.StatisticalUnit') of a reference within the hierarchy, using the reference's territorial ancestor chain; for a subdivision, without containers\.
+
+See [Match\(this StatisticalUnit, AdministrativeAreal2DReference, AdministrativeAreal2DReferencePath, IEnumerable&lt;string&gt;\)](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Query.Match(thisDiGi.GIS.Classes.StatisticalUnit,DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DReference,DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DReferencePath,System.Collections.Generic.IEnumerable_string_) 'DiGi\.GIS\.PostgreSQL\.Query\.Match\(this DiGi\.GIS\.Classes\.StatisticalUnit, DiGi\.GIS\.PostgreSQL\.Classes\.AdministrativeAreal2DReference, DiGi\.GIS\.PostgreSQL\.Classes\.AdministrativeAreal2DReferencePath, System\.Collections\.Generic\.IEnumerable\<string\>\)'): a Warsaw subdivision then reaches its district only when it is a district itself.
 
 ```csharp
 public static DiGi.GIS.Classes.StatisticalUnit? Match(this DiGi.GIS.Classes.StatisticalUnit? rootStatisticalUnit, DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DReference? administrativeAreal2DReference, DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DReferencePath? administrativeAreal2DReferencePath);
@@ -3657,13 +3688,56 @@ The root statistical unit hierarchy\.
 
 `administrativeAreal2DReference` [AdministrativeAreal2DReference](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DReference 'DiGi\.GIS\.PostgreSQL\.Classes\.AdministrativeAreal2DReference')
 
-The subdivision reference to match\.
+The reference to match\.
 
 <a name='DiGi.GIS.PostgreSQL.Query.Match(thisDiGi.GIS.Classes.StatisticalUnit,DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DReference,DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DReferencePath).administrativeAreal2DReferencePath'></a>
 
 `administrativeAreal2DReferencePath` [AdministrativeAreal2DReferencePath](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DReferencePath 'DiGi\.GIS\.PostgreSQL\.Classes\.AdministrativeAreal2DReferencePath')
 
-The subdivision's territorial ancestor chain, consulted for the municipality fallback\.
+The reference's territorial ancestor chain, giving its municipality\.
+
+#### Returns
+[DiGi\.GIS\.Classes\.StatisticalUnit](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.statisticalunit 'DiGi\.GIS\.Classes\.StatisticalUnit')  
+The matching [DiGi\.GIS\.Classes\.StatisticalUnit](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.statisticalunit 'DiGi\.GIS\.Classes\.StatisticalUnit') if found; otherwise, null\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.Match(thisDiGi.GIS.Classes.StatisticalUnit,DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DReference,DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DReferencePath,System.Collections.Generic.IEnumerable_string_)'></a>
+
+## Query\.Match\(this StatisticalUnit, AdministrativeAreal2DReference, AdministrativeAreal2DReferencePath, IEnumerable\<string\>\) Method
+
+Finds the [DiGi\.GIS\.Classes\.StatisticalUnit](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.statisticalunit 'DiGi\.GIS\.Classes\.StatisticalUnit') of a reference within the hierarchy, using the reference's territorial ancestor chain \(DiGi\-Organization/DiGi\.GIS\.PostgreSQL\#148\)\.
+
+<b>A subdivision</b> takes its municipality's unit - the path's municipality matched by [Match\(this StatisticalUnit, AdministrativeAreal2DReference\)](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Query.Match(thisDiGi.GIS.Classes.StatisticalUnit,DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DReference) 'DiGi\.GIS\.PostgreSQL\.Query\.Match\(this DiGi\.GIS\.Classes\.StatisticalUnit, DiGi\.GIS\.PostgreSQL\.Classes\.AdministrativeAreal2DReference\)') - except where that municipality has district units ([DistrictStatisticalUnits\(this StatisticalUnit, StatisticalUnit\)](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Query.DistrictStatisticalUnits(thisDiGi.GIS.Classes.StatisticalUnit,DiGi.GIS.Classes.StatisticalUnit) 'DiGi\.GIS\.PostgreSQL\.Query\.DistrictStatisticalUnits\(this DiGi\.GIS\.Classes\.StatisticalUnit, DiGi\.GIS\.Classes\.StatisticalUnit\)'), Warsaw): there it takes the district whose name is the subdivision's own or, failing that, one of [names\_Container](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Query.Match(thisDiGi.GIS.Classes.StatisticalUnit,DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DReference,DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DReferencePath,System.Collections.Generic.IEnumerable_string_).names_Container 'DiGi\.GIS\.PostgreSQL\.Query\.Match\(this DiGi\.GIS\.Classes\.StatisticalUnit, DiGi\.GIS\.PostgreSQL\.Classes\.AdministrativeAreal2DReference, DiGi\.GIS\.PostgreSQL\.Classes\.AdministrativeAreal2DReferencePath, System\.Collections\.Generic\.IEnumerable\<string\>\)\.names\_Container') (the subdivisions containing it, smallest first, as [ContainerIds\(this IReadOnlyDictionary&lt;int,PolygonalFace2D&gt;, double\)](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Query.ContainerIds(thisSystem.Collections.Generic.IReadOnlyDictionary_int,DiGi.Geometry.Planar.Classes.PolygonalFace2D_,double) 'DiGi\.GIS\.PostgreSQL\.Query\.ContainerIds\(this System\.Collections\.Generic\.IReadOnlyDictionary\<int,DiGi\.Geometry\.Planar\.Classes\.PolygonalFace2D\>, double\)') orders them), and the municipality when none is. A district's name is compared without its " - dzielnica" suffix, a subdivision's without a leading "Dzielnica", both upper-case. A subdivision is never matched by its name alone: the names of villages, estates and neighbourhoods repeat across the country, and before #148 a Warsaw neighbourhood took the unit of a same-named village elsewhere. Without a path, or a path without a municipality, a subdivision matches nothing.
+
+<b>Any other reference</b> is matched by its own name and code, falling back to the path's municipality when it does not match.
+
+```csharp
+public static DiGi.GIS.Classes.StatisticalUnit? Match(this DiGi.GIS.Classes.StatisticalUnit? rootStatisticalUnit, DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DReference? administrativeAreal2DReference, DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DReferencePath? administrativeAreal2DReferencePath, System.Collections.Generic.IEnumerable<string?>? names_Container);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Query.Match(thisDiGi.GIS.Classes.StatisticalUnit,DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DReference,DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DReferencePath,System.Collections.Generic.IEnumerable_string_).rootStatisticalUnit'></a>
+
+`rootStatisticalUnit` [DiGi\.GIS\.Classes\.StatisticalUnit](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.statisticalunit 'DiGi\.GIS\.Classes\.StatisticalUnit')
+
+The root statistical unit hierarchy\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.Match(thisDiGi.GIS.Classes.StatisticalUnit,DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DReference,DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DReferencePath,System.Collections.Generic.IEnumerable_string_).administrativeAreal2DReference'></a>
+
+`administrativeAreal2DReference` [AdministrativeAreal2DReference](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DReference 'DiGi\.GIS\.PostgreSQL\.Classes\.AdministrativeAreal2DReference')
+
+The reference to match\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.Match(thisDiGi.GIS.Classes.StatisticalUnit,DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DReference,DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DReferencePath,System.Collections.Generic.IEnumerable_string_).administrativeAreal2DReferencePath'></a>
+
+`administrativeAreal2DReferencePath` [AdministrativeAreal2DReferencePath](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DReferencePath 'DiGi\.GIS\.PostgreSQL\.Classes\.AdministrativeAreal2DReferencePath')
+
+The reference's territorial ancestor chain, giving its municipality\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.Match(thisDiGi.GIS.Classes.StatisticalUnit,DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DReference,DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DReferencePath,System.Collections.Generic.IEnumerable_string_).names_Container'></a>
+
+`names_Container` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The names of the subdivisions containing a subdivision, smallest first, or null when not known; read only where the municipality has district units\.
 
 #### Returns
 [DiGi\.GIS\.Classes\.StatisticalUnit](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.statisticalunit 'DiGi\.GIS\.Classes\.StatisticalUnit')  
@@ -3701,6 +3775,8 @@ The matching [DiGi\.GIS\.Classes\.StatisticalUnit](https://learn.microsoft.com/e
 ## Query\.Match\(this StatisticalUnit, string, string, AdministrativeArealType\) Method
 
 Finds the [DiGi\.GIS\.Classes\.StatisticalUnit](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.statisticalunit 'DiGi\.GIS\.Classes\.StatisticalUnit') matching the specified territorial name, code, and administrative type\.
+
+A [Subdivision](DiGi.GIS.PostgreSQL.Enums.md#DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType.Subdivision 'DiGi\.GIS\.PostgreSQL\.Enums\.AdministrativeArealType\.Subdivision') matches nothing here: its name alone does not say where it is (DiGi-Organization/DiGi.GIS.PostgreSQL#148). Match a subdivision with its path, [Match\(this StatisticalUnit, AdministrativeAreal2DReference, AdministrativeAreal2DReferencePath, IEnumerable&lt;string&gt;\)](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Query.Match(thisDiGi.GIS.Classes.StatisticalUnit,DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DReference,DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DReferencePath,System.Collections.Generic.IEnumerable_string_) 'DiGi\.GIS\.PostgreSQL\.Query\.Match\(this DiGi\.GIS\.Classes\.StatisticalUnit, DiGi\.GIS\.PostgreSQL\.Classes\.AdministrativeAreal2DReference, DiGi\.GIS\.PostgreSQL\.Classes\.AdministrativeAreal2DReferencePath, System\.Collections\.Generic\.IEnumerable\<string\>\)').
 
 ```csharp
 public static DiGi.GIS.Classes.StatisticalUnit? Match(this DiGi.GIS.Classes.StatisticalUnit? rootStatisticalUnit, string? name, string? code, DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType administrativeArealType);

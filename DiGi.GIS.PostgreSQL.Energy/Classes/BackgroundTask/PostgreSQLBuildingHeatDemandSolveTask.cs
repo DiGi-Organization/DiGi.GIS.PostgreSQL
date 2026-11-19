@@ -236,7 +236,7 @@ namespace DiGi.GIS.PostgreSQL.Energy.Classes
         }
 
         /// <inheritdoc />
-        protected override async Task<Dictionary<string, (short? YearBuilt, YearBuiltSource? YearBuiltSource)>?> ReadYearBuiltsAsync(int countyId, List<string> references, int commandTimeout, CancellationToken cancellationToken)
+        protected override async Task<Dictionary<string, (short? YearBuilt, YearBuiltSource? YearBuiltSource, short? CensusYearBuilt)>?> ReadYearBuiltsAsync(int countyId, List<string> references, int commandTimeout, CancellationToken cancellationToken)
         {
             if (buildingDataPostgreSQLConverter is null)
             {
@@ -247,12 +247,13 @@ namespace DiGi.GIS.PostgreSQL.Energy.Classes
             string? uniqueId_Reference = Core.IO.Query.UniqueId(IO.Constants.Column.Reference);
             string? uniqueId_UserYearBuilt = Core.IO.Query.UniqueId(IO.Constants.Column.UserYearBuilt);
             string? uniqueId_PredictedYearBuilt = Core.IO.Query.UniqueId(IO.Constants.Column.PredictedYearBuilt);
-            if (uniqueId_CountyId is null || uniqueId_Reference is null || uniqueId_UserYearBuilt is null || uniqueId_PredictedYearBuilt is null)
+            string? uniqueId_CensusYearBuilt = Core.IO.Query.UniqueId(IO.Constants.Column.CensusYearBuilt);
+            if (uniqueId_CountyId is null || uniqueId_Reference is null || uniqueId_UserYearBuilt is null || uniqueId_PredictedYearBuilt is null || uniqueId_CensusYearBuilt is null)
             {
                 return null;
             }
 
-            Table? table = await buildingDataPostgreSQLConverter.PullAsync(references, countyId, [uniqueId_CountyId, uniqueId_Reference, uniqueId_UserYearBuilt, uniqueId_PredictedYearBuilt], fallbackByReference: true, commandTimeout: commandTimeout, cancellationToken: cancellationToken);
+            Table? table = await buildingDataPostgreSQLConverter.PullAsync(references, countyId, [uniqueId_CountyId, uniqueId_Reference, uniqueId_UserYearBuilt, uniqueId_PredictedYearBuilt, uniqueId_CensusYearBuilt], fallbackByReference: true, commandTimeout: commandTimeout, cancellationToken: cancellationToken);
             if (table is null)
             {
                 return null;
@@ -261,6 +262,7 @@ namespace DiGi.GIS.PostgreSQL.Energy.Classes
             Column? column_Reference = null;
             Column? column_UserYearBuilt = null;
             Column? column_PredictedYearBuilt = null;
+            Column? column_CensusYearBuilt = null;
             foreach (Column column in table.Columns)
             {
                 string? uniqueId = Core.IO.Query.UniqueId(column);
@@ -276,9 +278,13 @@ namespace DiGi.GIS.PostgreSQL.Energy.Classes
                 {
                     column_PredictedYearBuilt = column;
                 }
+                else if (uniqueId == uniqueId_CensusYearBuilt)
+                {
+                    column_CensusYearBuilt = column;
+                }
             }
 
-            Dictionary<string, (short? YearBuilt, YearBuiltSource? YearBuiltSource)> result = [];
+            Dictionary<string, (short? YearBuilt, YearBuiltSource? YearBuiltSource, short? CensusYearBuilt)> result = [];
             if (column_Reference is null)
             {
                 return result;
@@ -292,14 +298,17 @@ namespace DiGi.GIS.PostgreSQL.Energy.Classes
                     continue;
                 }
 
+                // The census year built of the building's area, read for every building: it replaces a prediction that only bounds the year (DiGi-Organization/DiGi.GIS.Analytical#17).
+                short? censusYearBuilt = column_CensusYearBuilt is not null && row.TryGetValue(column_CensusYearBuilt.Index, out object? value_Census) && Core.Query.TryConvert(value_Census, out short censusYearBuilt_Value) && censusYearBuilt_Value > 0 ? censusYearBuilt_Value : null;
+
                 // The user's year when there is one, else the predicted one: the rule of building_data.CalculatedYearBuilt.
                 if (column_UserYearBuilt is not null && row.TryGetValue(column_UserYearBuilt.Index, out object? value_User) && Core.Query.TryConvert(value_User, out short yearBuilt_User) && yearBuilt_User > 0)
                 {
-                    result[reference!] = (yearBuilt_User, YearBuiltSource.User);
+                    result[reference!] = (yearBuilt_User, YearBuiltSource.User, censusYearBuilt);
                 }
                 else if (column_PredictedYearBuilt is not null && row.TryGetValue(column_PredictedYearBuilt.Index, out object? value_Predicted) && Core.Query.TryConvert(value_Predicted, out short yearBuilt_Predicted) && yearBuilt_Predicted > 0)
                 {
-                    result[reference!] = (yearBuilt_Predicted, YearBuiltSource.Prediction);
+                    result[reference!] = (yearBuilt_Predicted, YearBuiltSource.Prediction, censusYearBuilt);
                 }
             }
 

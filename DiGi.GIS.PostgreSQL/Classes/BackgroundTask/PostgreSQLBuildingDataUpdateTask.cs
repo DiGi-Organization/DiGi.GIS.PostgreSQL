@@ -257,6 +257,70 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 yearBuiltBuildingCounts_ByCountyId[countyId_Tally] = yearBuiltBuildingCounts_ByCountyId.GetValueOrDefault(countyId_Tally) + buildingCount_Tally;
             }
             Dictionary<string, StatisticalDataCollection?> cachedStatisticalDataCollections = [];
+
+            // A subdivision takes its municipality's statistical unit, but in a municipality with district units (Warsaw)
+            // the unit of the district containing it (DiGi.GIS.PostgreSQL#148). Buildings are filed under the smallest
+            // subdivision - a neighbourhood - so the district is found among the subdivisions containing it, which only
+            // the geometry of the layer says (Query.ContainerIds). Read once per county, and only for such a county.
+            Dictionary<int, bool> hasDistricts_ByMunicipalityId = [];
+            Dictionary<int, Dictionary<int, List<string?>>> names_Container_ByCountyId = [];
+
+            async Task<StatisticalUnit?> MatchStatisticalUnitAsync(AdministrativeAreal2DReference administrativeAreal2DReference_Match, AdministrativeAreal2DReferencePath? administrativeAreal2DReferencePath_Match)
+            {
+                AdministrativeAreal2DReference? municipalityReference_Match = administrativeAreal2DReferencePath_Match?[AdministrativeArealType.Municipality];
+                if (municipalityReference_Match is null || administrativeAreal2DReference_Match.CountyId is not int countyId_Match)
+                {
+                    return Query.Match(rootStatisticalUnit, administrativeAreal2DReference_Match, administrativeAreal2DReferencePath_Match);
+                }
+
+                if (!hasDistricts_ByMunicipalityId.TryGetValue(municipalityReference_Match.Id, out bool hasDistricts))
+                {
+                    hasDistricts = Query.DistrictStatisticalUnits(rootStatisticalUnit, Query.Match(rootStatisticalUnit, municipalityReference_Match)).Count > 0;
+                    hasDistricts_ByMunicipalityId[municipalityReference_Match.Id] = hasDistricts;
+                }
+
+                if (!hasDistricts)
+                {
+                    return Query.Match(rootStatisticalUnit, administrativeAreal2DReference_Match, administrativeAreal2DReferencePath_Match);
+                }
+
+                if (!names_Container_ByCountyId.TryGetValue(countyId_Match, out Dictionary<int, List<string?>>? names_Container_BySubdivisionId))
+                {
+                    names_Container_BySubdivisionId = [];
+
+                    Dictionary<int, PolygonalFace2D> polygonalFace2Ds_BySubdivisionId = [];
+                    Dictionary<int, string?> names_BySubdivisionId = [];
+                    List<AdministrativeAreal2D>? administrativeAreal2Ds_Subdivision = await administrativeAreal2DPostgreSQLConverter.GetAdministrativeAreal2DsByAdministrativeArealType(AdministrativeArealType.Subdivision, countyId_Match, commandTimeout, cancellationToken) ?? throw new InvalidOperationException($"the subdivisions of county {countyId_Match} could not be read");
+                    foreach (AdministrativeAreal2D administrativeAreal2D_Subdivision in administrativeAreal2Ds_Subdivision)
+                    {
+                        // Districts are AdministrativeDivision objects stored as subdivisions, so read the common base.
+                        if (administrativeAreal2D_Subdivision?.ToDiGi() is not GIS.Classes.AdministrativeAreal2D administrativeAreal2D_GIS)
+                        {
+                            continue;
+                        }
+
+                        names_BySubdivisionId[administrativeAreal2D_Subdivision.Id] = administrativeAreal2D_GIS.Name;
+
+                        // Read into a local: the property hands back a clone per access.
+                        PolygonalFace2D? polygonalFace2D = administrativeAreal2D_GIS.PolygonalFace2D;
+                        if (polygonalFace2D is not null)
+                        {
+                            polygonalFace2Ds_BySubdivisionId[administrativeAreal2D_Subdivision.Id] = polygonalFace2D;
+                        }
+                    }
+
+                    foreach (KeyValuePair<int, List<int>> keyValuePair in polygonalFace2Ds_BySubdivisionId.ContainerIds())
+                    {
+                        names_Container_BySubdivisionId[keyValuePair.Key] = [.. keyValuePair.Value.Select(x => names_BySubdivisionId.TryGetValue(x, out string? name) ? name : null)];
+                    }
+
+                    names_Container_ByCountyId[countyId_Match] = names_Container_BySubdivisionId;
+                }
+
+                names_Container_BySubdivisionId.TryGetValue(administrativeAreal2DReference_Match.Id, out List<string?>? names_Container);
+                return Query.Match(rootStatisticalUnit, administrativeAreal2DReference_Match, administrativeAreal2DReferencePath_Match, names_Container);
+            }
+
             Dictionary<int, HashSet<int>> inScopeSubdivisionIds_ByCountyId = Query.InScopeSubdivisionIds(administrativeAreal2DReferences, siblingCountyGroups);
 
             Serilog.Modify.Log(
@@ -324,7 +388,21 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 StatisticalDataCollection? statisticalDataCollection = null;
                 if (update_Statistical && rootStatisticalUnit is not null)
                 {
-                    StatisticalUnit? statisticalUnit = Query.Match(rootStatisticalUnit, administrativeAreal2DReference, administrativeAreal2DReferencePath);
+                    StatisticalUnit? statisticalUnit;
+                    try
+                    {
+                        statisticalUnit = await MatchStatisticalUnitAsync(administrativeAreal2DReference, administrativeAreal2DReferencePath);
+                    }
+                    catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                    {
+                        throw;
+                    }
+                    catch (Exception exception)
+                    {
+                        FailedSubdivisionCount++;
+                        Serilog.Modify.Log(exception, "Building data subdivision statistical unit failed - subdivision {SubdivisionId}", subdivisionId);
+                        continue;
+                    }
 
                     if (statisticalUnit?.Code is string statisticalUnitCode && !string.IsNullOrWhiteSpace(statisticalUnitCode))
                     {
@@ -489,6 +567,9 @@ namespace DiGi.GIS.PostgreSQL.Classes
 
                         if (update_Statistical && statisticalDataCollection is not null)
                         {
+                            // The census year built of the unit, empty when it has no census counts (DiGi.GIS.Analytical#17).
+                            IO.Modify.Update_Building2D_CensusYearBuilt(table, targetCountyId, building2Ds_GIS, statisticalDataCollection);
+
                             StatisticalYearlyDoubleData? statisticalYearlyDoubleData = Query.Population(statisticalDataCollection);
                             if (statisticalYearlyDoubleData is not null)
                             {
@@ -737,7 +818,21 @@ namespace DiGi.GIS.PostgreSQL.Classes
 
                                 administrativeAreal2DReferencePaths_BySubdivisionId.TryGetValue(building2Ds_Group_Entry.Key, out AdministrativeAreal2DReferencePath? administrativeAreal2DReferencePath_Group);
 
-                                StatisticalUnit? statisticalUnit = Query.Match(rootStatisticalUnit, administrativeAreal2DReference_Subdivision, administrativeAreal2DReferencePath_Group);
+                                StatisticalUnit? statisticalUnit;
+                                try
+                                {
+                                    statisticalUnit = await MatchStatisticalUnitAsync(administrativeAreal2DReference_Subdivision, administrativeAreal2DReferencePath_Group);
+                                }
+                                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                                {
+                                    throw;
+                                }
+                                catch (Exception exception)
+                                {
+                                    Serilog.Modify.Log(exception, "Building data unassigned buildings statistical unit failed - county {CountyId}, subdivision {SubdivisionId}", countyId, building2Ds_Group_Entry.Key);
+                                    statisticalUnit = null;
+                                }
+
                                 if (statisticalUnit?.Code is not string statisticalUnitCode || string.IsNullOrWhiteSpace(statisticalUnitCode))
                                 {
                                     buildingCount_NoPopulation += building2Ds_Group.Count;
@@ -761,15 +856,21 @@ namespace DiGi.GIS.PostgreSQL.Classes
                                     }
                                 }
 
+                                HashSet<string> references_Group = [.. building2Ds_Group.Where(x => !string.IsNullOrWhiteSpace(x?.Reference)).Select(x => x.Reference!)];
+                                List<GIS.Classes.Building2D> building2Ds_Group_GIS = [.. building2Ds_Unassigned_GIS.Where(x => x.Reference is string reference_Group && references_Group.Contains(reference_Group))];
+
+                                // The census year built is written whenever the unit's data was read, population series or not (DiGi.GIS.Analytical#17).
+                                if (statisticalDataCollection is not null)
+                                {
+                                    IO.Modify.Update_Building2D_CensusYearBuilt(table, countyId, building2Ds_Group_GIS, statisticalDataCollection);
+                                }
+
                                 StatisticalYearlyDoubleData? statisticalYearlyDoubleData = Query.Population(statisticalDataCollection);
                                 if (statisticalYearlyDoubleData is null)
                                 {
                                     buildingCount_NoPopulation += building2Ds_Group.Count;
                                     continue;
                                 }
-
-                                HashSet<string> references_Group = [.. building2Ds_Group.Where(x => !string.IsNullOrWhiteSpace(x?.Reference)).Select(x => x.Reference!)];
-                                List<GIS.Classes.Building2D> building2Ds_Group_GIS = [.. building2Ds_Unassigned_GIS.Where(x => x.Reference is string reference_Group && references_Group.Contains(reference_Group))];
 
                                 IO.Modify.Update_Building2D_Population(table, countyId, building2Ds_Group_GIS, statisticalYearlyDoubleData, PostgreSQLBuildingDataUpdateOptions.Years);
                             }

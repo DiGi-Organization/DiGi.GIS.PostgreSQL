@@ -43,27 +43,96 @@ namespace DiGi.GIS.PostgreSQL
         }
 
         /// <summary>
-        /// Finds the <see cref="StatisticalUnit"/> matching the subdivision reference within the hierarchy, falling back to the subdivision's parent municipality reference from the path when the subdivision itself does not match.
+        /// Finds the <see cref="StatisticalUnit"/> of a reference within the hierarchy, using the reference's territorial ancestor chain; for a subdivision, without containers.
+        /// <para>See <see cref="Match(StatisticalUnit?, AdministrativeAreal2DReference?, AdministrativeAreal2DReferencePath?, IEnumerable{string?}?)"/>: a Warsaw subdivision then reaches its district only when it is a district itself.</para>
         /// </summary>
         /// <param name="rootStatisticalUnit">The root statistical unit hierarchy.</param>
-        /// <param name="administrativeAreal2DReference">The subdivision reference to match.</param>
-        /// <param name="administrativeAreal2DReferencePath">The subdivision's territorial ancestor chain, consulted for the municipality fallback.</param>
+        /// <param name="administrativeAreal2DReference">The reference to match.</param>
+        /// <param name="administrativeAreal2DReferencePath">The reference's territorial ancestor chain, giving its municipality.</param>
         /// <returns>The matching <see cref="StatisticalUnit"/> if found; otherwise, null.</returns>
         public static StatisticalUnit? Match(this StatisticalUnit? rootStatisticalUnit, AdministrativeAreal2DReference? administrativeAreal2DReference, AdministrativeAreal2DReferencePath? administrativeAreal2DReferencePath)
         {
-            StatisticalUnit? statisticalUnit = Match(rootStatisticalUnit, administrativeAreal2DReference);
-            if (statisticalUnit is not null || administrativeAreal2DReferencePath is null)
+            return Match(rootStatisticalUnit, administrativeAreal2DReference, administrativeAreal2DReferencePath, null);
+        }
+
+        /// <summary>
+        /// Finds the <see cref="StatisticalUnit"/> of a reference within the hierarchy, using the reference's territorial ancestor chain (DiGi-Organization/DiGi.GIS.PostgreSQL#148).
+        /// <para><b>A subdivision</b> takes its municipality's unit - the path's municipality matched by <see cref="Match(StatisticalUnit?, AdministrativeAreal2DReference?)"/> - except where that municipality has district units (<see cref="DistrictStatisticalUnits"/>, Warsaw): there it takes the district whose name is the subdivision's own or, failing that, one of <paramref name="names_Container"/> (the subdivisions containing it, smallest first, as <see cref="ContainerIds"/> orders them), and the municipality when none is. A district's name is compared without its " - dzielnica" suffix, a subdivision's without a leading "Dzielnica", both upper-case. A subdivision is never matched by its name alone: the names of villages, estates and neighbourhoods repeat across the country, and before #148 a Warsaw neighbourhood took the unit of a same-named village elsewhere. Without a path, or a path without a municipality, a subdivision matches nothing.</para>
+        /// <para><b>Any other reference</b> is matched by its own name and code, falling back to the path's municipality when it does not match.</para>
+        /// </summary>
+        /// <param name="rootStatisticalUnit">The root statistical unit hierarchy.</param>
+        /// <param name="administrativeAreal2DReference">The reference to match.</param>
+        /// <param name="administrativeAreal2DReferencePath">The reference's territorial ancestor chain, giving its municipality.</param>
+        /// <param name="names_Container">The names of the subdivisions containing a subdivision, smallest first, or null when not known; read only where the municipality has district units.</param>
+        /// <returns>The matching <see cref="StatisticalUnit"/> if found; otherwise, null.</returns>
+        public static StatisticalUnit? Match(this StatisticalUnit? rootStatisticalUnit, AdministrativeAreal2DReference? administrativeAreal2DReference, AdministrativeAreal2DReferencePath? administrativeAreal2DReferencePath, IEnumerable<string?>? names_Container)
+        {
+            if (rootStatisticalUnit is null || administrativeAreal2DReference is null)
             {
-                return statisticalUnit;
+                return null;
             }
 
-            AdministrativeAreal2DReference? municipalityReference = administrativeAreal2DReferencePath[Enums.AdministrativeArealType.Municipality];
+            AdministrativeAreal2DReference? municipalityReference = administrativeAreal2DReferencePath?[Enums.AdministrativeArealType.Municipality];
+
+            if (administrativeAreal2DReference.AdministrativeArealType != Enums.AdministrativeArealType.Subdivision)
+            {
+                StatisticalUnit? statisticalUnit = Match(rootStatisticalUnit, administrativeAreal2DReference);
+                if (statisticalUnit is not null || municipalityReference is null)
+                {
+                    return statisticalUnit;
+                }
+
+                return Match(rootStatisticalUnit, municipalityReference);
+            }
+
             if (municipalityReference is null)
             {
                 return null;
             }
 
-            return Match(rootStatisticalUnit, municipalityReference);
+            StatisticalUnit? statisticalUnit_Municipality = Match(rootStatisticalUnit, municipalityReference);
+            if (statisticalUnit_Municipality is null)
+            {
+                return null;
+            }
+
+            List<StatisticalUnit> statisticalUnits_District = DistrictStatisticalUnits(rootStatisticalUnit, statisticalUnit_Municipality);
+            if (statisticalUnits_District.Count == 0)
+            {
+                return statisticalUnit_Municipality;
+            }
+
+            List<string?> names = [administrativeAreal2DReference.Name, .. names_Container ?? []];
+            foreach (string? name in names)
+            {
+                string name_Subdivision = name?.Trim().ToUpperInvariant() ?? string.Empty;
+                if (name_Subdivision.StartsWith("DZIELNICA ", StringComparison.Ordinal))
+                {
+                    name_Subdivision = name_Subdivision.Substring("DZIELNICA ".Length).Trim();
+                }
+
+                if (string.IsNullOrWhiteSpace(name_Subdivision))
+                {
+                    continue;
+                }
+
+                foreach (StatisticalUnit statisticalUnit_District in statisticalUnits_District)
+                {
+                    string name_District = statisticalUnit_District.Name?.Trim().ToUpperInvariant() ?? string.Empty;
+                    int index = name_District.IndexOf(" - ", StringComparison.Ordinal);
+                    if (index > 0)
+                    {
+                        name_District = name_District.Substring(0, index).Trim();
+                    }
+
+                    if (name_District == name_Subdivision)
+                    {
+                        return statisticalUnit_District;
+                    }
+                }
+            }
+
+            return statisticalUnit_Municipality;
         }
 
         /// <summary>
@@ -119,6 +188,7 @@ namespace DiGi.GIS.PostgreSQL
 
         /// <summary>
         /// Finds the <see cref="StatisticalUnit"/> matching the specified territorial name, code, and administrative type.
+        /// <para>A <see cref="Enums.AdministrativeArealType.Subdivision"/> matches nothing here: its name alone does not say where it is (DiGi-Organization/DiGi.GIS.PostgreSQL#148). Match a subdivision with its path, <see cref="Match(StatisticalUnit?, AdministrativeAreal2DReference?, AdministrativeAreal2DReferencePath?, IEnumerable{string?}?)"/>.</para>
         /// </summary>
         /// <param name="rootStatisticalUnit">The root statistical unit hierarchy.</param>
         /// <param name="name">The territorial entity name.</param>
@@ -322,17 +392,9 @@ namespace DiGi.GIS.PostgreSQL
                 return null;
             }
 
-            if (administrativeArealType == Enums.AdministrativeArealType.Subdivision)
-            {
-                IEnumerable<StatisticalUnit>? candidates = rootStatisticalUnit.GetStatisticalUnits(includeNested: true, x =>
-                {
-                    string cName = x?.Name?.Trim().ToUpperInvariant() ?? string.Empty;
-                    return !string.IsNullOrWhiteSpace(cleanName) && (cName == cleanName || cName.StartsWith(cleanName, StringComparison.CurrentCulture) || cleanName.StartsWith(cName, StringComparison.CurrentCulture));
-                });
-
-                return candidates?.FirstOrDefault();
-            }
-
+            // A subdivision is not matched by its name alone: subdivision names repeat across the country, so a
+            // name-only match took a Warsaw neighbourhood to a same-named village elsewhere (DiGi.GIS.PostgreSQL#148).
+            // It is matched with its path instead - Match(StatisticalUnit?, AdministrativeAreal2DReference?, AdministrativeAreal2DReferencePath?, IEnumerable<string?>?).
             return null;
         }
     }
