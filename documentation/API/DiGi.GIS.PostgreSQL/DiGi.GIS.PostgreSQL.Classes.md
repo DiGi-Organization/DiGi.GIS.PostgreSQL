@@ -19093,6 +19093,92 @@ The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dot
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A task whose result is the number of rows, or null when the connection or dataset key is null, the key is unknown, or the table does not exist\.
 
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.GetSizesAsync(Npgsql.NpgsqlConnection,string,System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken)'></a>
+
+## OpenBuildingPostgreSQLConverter\.GetSizesAsync\(NpgsqlConnection, string, IEnumerable\<int\>, int, CancellationToken\) Method
+
+Asynchronously reads the disk use of the open building tables from the system catalog: one row per county partition of a footprint table, and one row for the unpartitioned GHS\-OBAT table \(DiGi\.GIS\.PostgreSQL\#150\)\.
+
+Only `pg_class`, `pg_inherits` and `pg_total_relation_size` are read, so no footprint row is touched and the call answers in milliseconds whatever the tables hold. A partition's county part is read from its name, `<table>_<countyId>`, the name [PartitionCommandText\(string, int\)](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Query.PartitionCommandText(string,int) 'DiGi\.GIS\.PostgreSQL\.Query\.PartitionCommandText\(string, int\)') gives it; a partition named otherwise is not reported.
+
+```csharp
+public static System.Threading.Tasks.Task<System.Collections.Generic.List<DiGi.GIS.PostgreSQL.Classes.OpenBuildingTableSizeResult>?> GetSizesAsync(Npgsql.NpgsqlConnection? npgsqlConnection, string? datasetKey=null, System.Collections.Generic.IEnumerable<int>? countyIds=null, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.GetSizesAsync(Npgsql.NpgsqlConnection,string,System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken).npgsqlConnection'></a>
+
+`npgsqlConnection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
+
+The [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection') used to execute the commands\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.GetSizesAsync(Npgsql.NpgsqlConnection,string,System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken).datasetKey'></a>
+
+`datasetKey` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The dataset key whose table is measured, resolved through [OpenBuildingTableName\(string\)](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Query.OpenBuildingTableName(string) 'DiGi\.GIS\.PostgreSQL\.Query\.OpenBuildingTableName\(string\)'); null measures all six tables\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.GetSizesAsync(Npgsql.NpgsqlConnection,string,System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken).countyIds'></a>
+
+`countyIds` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The county parts whose partitions are reported, or null to report every partition\. The GHS\-OBAT table has no partitions and is reported whole either way\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.GetSizesAsync(Npgsql.NpgsqlConnection,string,System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of each command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.GetSizesAsync(Npgsql.NpgsqlConnection,string,System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken') to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[OpenBuildingTableSizeResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingTableSizeResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingTableSizeResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task whose result is one [OpenBuildingTableSizeResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingTableSizeResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingTableSizeResult') per partition in scope and per unpartitioned table, ordered by dataset key and county part \(a table that does not exist contributes nothing\), or null when the connection is null, the key is unknown, or none of the named tables exists\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.GetSizesAsync(string,System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken)'></a>
+
+## OpenBuildingPostgreSQLConverter\.GetSizesAsync\(string, IEnumerable\<int\>, int, CancellationToken\) Method
+
+Asynchronously reads the disk use of the open building tables from the system catalog, automatically managing the connection\.
+
+```csharp
+public System.Threading.Tasks.Task<System.Collections.Generic.List<DiGi.GIS.PostgreSQL.Classes.OpenBuildingTableSizeResult>?> GetSizesAsync(string? datasetKey=null, System.Collections.Generic.IEnumerable<int>? countyIds=null, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.GetSizesAsync(string,System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken).datasetKey'></a>
+
+`datasetKey` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The dataset key whose table is measured; null measures all six tables\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.GetSizesAsync(string,System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken).countyIds'></a>
+
+`countyIds` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The county parts whose partitions are reported, or null to report every partition\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.GetSizesAsync(string,System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of each command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.GetSizesAsync(string,System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken') to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[OpenBuildingTableSizeResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingTableSizeResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingTableSizeResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task whose result is one [OpenBuildingTableSizeResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingTableSizeResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingTableSizeResult') per partition in scope and per unpartitioned table, or null when no connection could be built, the key is unknown, or none of the named tables exists\.
+
 <a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.GetSummariesByCountyIdsAsync(Npgsql.NpgsqlConnection,string,System.Collections.Generic.IEnumerable_int_,int,System.Threading.CancellationToken)'></a>
 
 ## OpenBuildingPostgreSQLConverter\.GetSummariesByCountyIdsAsync\(NpgsqlConnection, string, IEnumerable\<int\>, int, CancellationToken\) Method
@@ -19543,6 +19629,166 @@ public string? SourceId { get; set; }
 
 #### Property Value
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingTableSizeResult'></a>
+
+## OpenBuildingTableSizeResult Class
+
+The disk use of one storage unit of an open building table, read from the system catalog: one county partition of a footprint table, or the whole unpartitioned GHS\-OBAT table \(DiGi\.GIS\.PostgreSQL\#150\)\.
+
+The measured disk use of the Main database after the pilot imports (DiGi.GIS.PostgreSQL#126), and the per-county sizes the full-country roll-out is extrapolated from. A partitioned parent stores nothing itself - its indexes are inherited by every partition - so the sizes of a table's partitions sum to the table's size.
+
+```csharp
+public class OpenBuildingTableSizeResult : DiGi.Core.Classes.SerializableResult, DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLSerializableObject, DiGi.Core.Interfaces.ISerializableObject, DiGi.Core.Interfaces.ICloneableObject<DiGi.Core.Interfaces.ISerializableObject>, DiGi.Core.Interfaces.ICloneableObject, DiGi.Core.Interfaces.IObject
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [DiGi\.Core\.Classes\.Object](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.object 'DiGi\.Core\.Classes\.Object') → [DiGi\.Core\.Classes\.SerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.serializableobject 'DiGi\.Core\.Classes\.SerializableObject') → [DiGi\.Core\.Classes\.SerializableResult](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.serializableresult 'DiGi\.Core\.Classes\.SerializableResult') → OpenBuildingTableSizeResult
+
+Implements [IGISPostgreSQLSerializableObject](DiGi.GIS.PostgreSQL.Interfaces.md#DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLSerializableObject 'DiGi\.GIS\.PostgreSQL\.Interfaces\.IGISPostgreSQLSerializableObject'), [DiGi\.Core\.Interfaces\.ISerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iserializableobject 'DiGi\.Core\.Interfaces\.ISerializableObject'), [DiGi\.Core\.Interfaces\.ICloneableObject&lt;](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject-1 'DiGi\.Core\.Interfaces\.ICloneableObject\`1')[DiGi\.Core\.Interfaces\.ISerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iserializableobject 'DiGi\.Core\.Interfaces\.ISerializableObject')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject-1 'DiGi\.Core\.Interfaces\.ICloneableObject\`1'), [DiGi\.Core\.Interfaces\.ICloneableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.icloneableobject 'DiGi\.Core\.Interfaces\.ICloneableObject'), [DiGi\.Core\.Interfaces\.IObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iobject 'DiGi\.Core\.Interfaces\.IObject')
+### Constructors
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingTableSizeResult.OpenBuildingTableSizeResult(DiGi.GIS.PostgreSQL.Classes.OpenBuildingTableSizeResult)'></a>
+
+## OpenBuildingTableSizeResult\(OpenBuildingTableSizeResult\) Constructor
+
+Initializes a new instance of the [OpenBuildingTableSizeResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingTableSizeResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingTableSizeResult') class by copying an existing one\.
+
+```csharp
+public OpenBuildingTableSizeResult(DiGi.GIS.PostgreSQL.Classes.OpenBuildingTableSizeResult? openBuildingTableSizeResult);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingTableSizeResult.OpenBuildingTableSizeResult(DiGi.GIS.PostgreSQL.Classes.OpenBuildingTableSizeResult).openBuildingTableSizeResult'></a>
+
+`openBuildingTableSizeResult` [OpenBuildingTableSizeResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingTableSizeResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingTableSizeResult')
+
+The [OpenBuildingTableSizeResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingTableSizeResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingTableSizeResult') to copy from\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingTableSizeResult.OpenBuildingTableSizeResult(string,string,System.Nullable_int_,long,System.Nullable_long_)'></a>
+
+## OpenBuildingTableSizeResult\(string, string, Nullable\<int\>, long, Nullable\<long\>\) Constructor
+
+Initializes a new instance of the [OpenBuildingTableSizeResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingTableSizeResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingTableSizeResult') class\.
+
+```csharp
+public OpenBuildingTableSizeResult(string? datasetKey, string? tableName, System.Nullable<int> countyId, long totalSize, System.Nullable<long> estimatedCount);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingTableSizeResult.OpenBuildingTableSizeResult(string,string,System.Nullable_int_,long,System.Nullable_long_).datasetKey'></a>
+
+`datasetKey` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The dataset key of the table \(`eubucco`, `overture`, `osm`, `dbsm`, `microsoft`, `ghs_obat`\)\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingTableSizeResult.OpenBuildingTableSizeResult(string,string,System.Nullable_int_,long,System.Nullable_long_).tableName'></a>
+
+`tableName` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The name of the table the storage unit belongs to\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingTableSizeResult.OpenBuildingTableSizeResult(string,string,System.Nullable_int_,long,System.Nullable_long_).countyId'></a>
+
+`countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The identifier of the county part the partition holds, or null for a table that is not partitioned\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingTableSizeResult.OpenBuildingTableSizeResult(string,string,System.Nullable_int_,long,System.Nullable_long_).totalSize'></a>
+
+`totalSize` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+The total size in bytes \- table, TOAST and indexes\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingTableSizeResult.OpenBuildingTableSizeResult(string,string,System.Nullable_int_,long,System.Nullable_long_).estimatedCount'></a>
+
+`estimatedCount` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The planner's row estimate, or null when the relation has never been analysed\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingTableSizeResult.OpenBuildingTableSizeResult(System.Text.Json.Nodes.JsonObject)'></a>
+
+## OpenBuildingTableSizeResult\(JsonObject\) Constructor
+
+Initializes a new instance of the [OpenBuildingTableSizeResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingTableSizeResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingTableSizeResult') class from a [System\.Text\.Json\.Nodes\.JsonObject](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.nodes.jsonobject 'System\.Text\.Json\.Nodes\.JsonObject')\.
+
+```csharp
+public OpenBuildingTableSizeResult(System.Text.Json.Nodes.JsonObject? jsonObject);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingTableSizeResult.OpenBuildingTableSizeResult(System.Text.Json.Nodes.JsonObject).jsonObject'></a>
+
+`jsonObject` [System\.Text\.Json\.Nodes\.JsonObject](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.nodes.jsonobject 'System\.Text\.Json\.Nodes\.JsonObject')
+
+The [System\.Text\.Json\.Nodes\.JsonObject](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.nodes.jsonobject 'System\.Text\.Json\.Nodes\.JsonObject') containing the serialized data\.
+### Properties
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingTableSizeResult.CountyId'></a>
+
+## OpenBuildingTableSizeResult\.CountyId Property
+
+Gets the identifier of the county part the partition holds, or null for a table that is not partitioned \(GHS\-OBAT\), whose size covers every county it holds\.
+
+```csharp
+public System.Nullable<int> CountyId { get; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingTableSizeResult.DatasetKey'></a>
+
+## OpenBuildingTableSizeResult\.DatasetKey Property
+
+Gets the dataset key of the table \(`eubucco`, `overture`, `osm`, `dbsm`, `microsoft`, `ghs_obat`\)\.
+
+```csharp
+public string? DatasetKey { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingTableSizeResult.EstimatedCount'></a>
+
+## OpenBuildingTableSizeResult\.EstimatedCount Property
+
+Gets the planner's row estimate \(`pg_class.reltuples`\), or null when the relation has never been analysed\.
+
+An estimate, refreshed by `ANALYZE` and autovacuum: right after an import it may still describe the partition before the run. The exact count is the register's `row_count` or the open building summaries.
+
+```csharp
+public System.Nullable<long> EstimatedCount { get; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingTableSizeResult.TableName'></a>
+
+## OpenBuildingTableSizeResult\.TableName Property
+
+Gets the name of the table the storage unit belongs to \- the partitioned parent for a partition, never the partition's own name\.
+
+```csharp
+public string? TableName { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingTableSizeResult.TotalSize'></a>
+
+## OpenBuildingTableSizeResult\.TotalSize Property
+
+Gets the total size in bytes \(`pg_total_relation_size`\): the table, its TOAST table and every index\.
+
+```csharp
+public long TotalSize { get; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
 
 <a name='DiGi.GIS.PostgreSQL.Classes.OrtoArea'></a>
 

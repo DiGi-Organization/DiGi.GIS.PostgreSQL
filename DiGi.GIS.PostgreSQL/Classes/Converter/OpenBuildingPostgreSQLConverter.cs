@@ -441,6 +441,141 @@ namespace DiGi.GIS.PostgreSQL.Classes
         }
 
         /// <summary>
+        /// Asynchronously reads the disk use of the open building tables from the system catalog: one row per county partition of a footprint table, and one row for the unpartitioned GHS-OBAT table (DiGi.GIS.PostgreSQL#150).
+        /// <para>Only <c>pg_class</c>, <c>pg_inherits</c> and <c>pg_total_relation_size</c> are read, so no footprint row is touched and the call answers in milliseconds whatever the tables hold. A partition's county part is read from its name, <c>&lt;table&gt;_&lt;countyId&gt;</c>, the name <see cref="Query.PartitionCommandText(string, int)"/> gives it; a partition named otherwise is not reported.</para>
+        /// </summary>
+        /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> used to execute the commands.</param>
+        /// <param name="datasetKey">The dataset key whose table is measured, resolved through <see cref="Query.OpenBuildingTableName(string?)"/>; null measures all six tables.</param>
+        /// <param name="countyIds">The county parts whose partitions are reported, or null to report every partition. The GHS-OBAT table has no partitions and is reported whole either way.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of each command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> to monitor for cancellation requests.</param>
+        /// <returns>A task whose result is one <see cref="OpenBuildingTableSizeResult"/> per partition in scope and per unpartitioned table, ordered by dataset key and county part (a table that does not exist contributes nothing), or null when the connection is null, the key is unknown, or none of the named tables exists.</returns>
+        public static async Task<List<OpenBuildingTableSizeResult>?> GetSizesAsync(NpgsqlConnection? npgsqlConnection, string? datasetKey = null, IEnumerable<int>? countyIds = null, int commandTimeout = 30, CancellationToken cancellationToken = default)
+        {
+            if (npgsqlConnection is null)
+            {
+                return null;
+            }
+
+            string[] datasetKeys = datasetKey is null
+                ? ["eubucco", "overture", "osm", "dbsm", "microsoft", "ghs_obat"]
+                : [datasetKey.Trim().ToLowerInvariant()];
+
+            List<string> datasetKeys_Valid = [];
+            List<string> tableNames = [];
+            foreach (string datasetKey_Temp in datasetKeys)
+            {
+                string? tableName = Query.OpenBuildingTableName(datasetKey_Temp);
+                if (!Query.IsOpenBuildingTableName(tableName))
+                {
+                    return null;
+                }
+
+                datasetKeys_Valid.Add(datasetKey_Temp);
+                tableNames.Add(tableName);
+            }
+
+            // Table names travel as values (to_regclass takes text), never as identifiers, and every one has
+            // already passed the whitelist above.
+            const string commandText_Exists = @"
+                SELECT count(*)
+                FROM unnest(@tableNames) AS table_name
+                WHERE to_regclass('public.' || table_name) IS NOT NULL;";
+
+            await using (NpgsqlCommand npgsqlCommand_Exists = new(commandText_Exists, npgsqlConnection))
+            {
+                npgsqlCommand_Exists.CommandTimeout = commandTimeout;
+                npgsqlCommand_Exists.Parameters.Add(new NpgsqlParameter("tableNames", NpgsqlDbType.Array | NpgsqlDbType.Text) { Value = tableNames.ToArray() });
+
+                object? count = await npgsqlCommand_Exists.ExecuteScalarAsync(cancellationToken);
+                if (count is not long count_Long || count_Long == 0)
+                {
+                    return null;
+                }
+            }
+
+            int[]? countyIds_Array = countyIds is null ? null : [.. countyIds];
+
+            // The county part is cast only for a name matching the partition pattern (at most nine digits, so the
+            // cast cannot overflow), inside a CASE so the cast never runs on any other name.
+            string commandText = $@"
+                WITH tables AS (
+                    SELECT dataset_key, table_name, to_regclass('public.' || table_name)::oid AS table_oid
+                    FROM unnest(@datasetKeys, @tableNames) AS t(dataset_key, table_name)
+                ),
+                partitions AS (
+                    SELECT
+                        tables.dataset_key,
+                        tables.table_name,
+                        CASE WHEN child.relname ~ ('^' || tables.table_name || '_[0-9]{{1,9}}$')
+                            THEN substring(child.relname FROM length(tables.table_name) + 2)::int
+                        END AS county_id,
+                        child.oid AS child_oid,
+                        child.reltuples
+                    FROM tables
+                    JOIN pg_class parent ON parent.oid = tables.table_oid AND parent.relkind = 'p'
+                    JOIN pg_inherits ON pg_inherits.inhparent = parent.oid
+                    JOIN pg_class child ON child.oid = pg_inherits.inhrelid
+                )
+                SELECT dataset_key, table_name, NULL::int, pg_total_relation_size(parent.oid), parent.reltuples
+                FROM tables
+                JOIN pg_class parent ON parent.oid = tables.table_oid AND parent.relkind = 'r'
+                UNION ALL
+                SELECT dataset_key, table_name, county_id, pg_total_relation_size(child_oid), reltuples
+                FROM partitions
+                WHERE county_id IS NOT NULL{(countyIds_Array is null ? string.Empty : " AND county_id = ANY(@countyIds)")}
+                ORDER BY 1, 3 NULLS FIRST;";
+
+            await using NpgsqlCommand npgsqlCommand = new(commandText, npgsqlConnection);
+            npgsqlCommand.CommandTimeout = commandTimeout;
+            npgsqlCommand.Parameters.Add(new NpgsqlParameter("datasetKeys", NpgsqlDbType.Array | NpgsqlDbType.Text) { Value = datasetKeys_Valid.ToArray() });
+            npgsqlCommand.Parameters.Add(new NpgsqlParameter("tableNames", NpgsqlDbType.Array | NpgsqlDbType.Text) { Value = tableNames.ToArray() });
+
+            if (countyIds_Array is not null)
+            {
+                npgsqlCommand.Parameters.Add(new NpgsqlParameter("countyIds", NpgsqlDbType.Array | NpgsqlDbType.Integer) { Value = countyIds_Array });
+            }
+
+            List<OpenBuildingTableSizeResult> result = [];
+
+            await using NpgsqlDataReader npgsqlDataReader = await npgsqlCommand.ExecuteReaderAsync(cancellationToken);
+            while (await npgsqlDataReader.ReadAsync(cancellationToken))
+            {
+                // reltuples is -1 for a relation never analysed (PostgreSQL 14+).
+                float reltuples = npgsqlDataReader.GetFloat(4);
+
+                result.Add(new OpenBuildingTableSizeResult(
+                    npgsqlDataReader.GetString(0),
+                    npgsqlDataReader.GetString(1),
+                    npgsqlDataReader.IsDBNull(2) ? null : npgsqlDataReader.GetInt32(2),
+                    npgsqlDataReader.GetInt64(3),
+                    reltuples < 0 ? null : (long)reltuples));
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Asynchronously reads the disk use of the open building tables from the system catalog, automatically managing the connection.
+        /// </summary>
+        /// <param name="datasetKey">The dataset key whose table is measured; null measures all six tables.</param>
+        /// <param name="countyIds">The county parts whose partitions are reported, or null to report every partition.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of each command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> to monitor for cancellation requests.</param>
+        /// <returns>A task whose result is one <see cref="OpenBuildingTableSizeResult"/> per partition in scope and per unpartitioned table, or null when no connection could be built, the key is unknown, or none of the named tables exists.</returns>
+        public async Task<List<OpenBuildingTableSizeResult>?> GetSizesAsync(string? datasetKey = null, IEnumerable<int>? countyIds = null, int commandTimeout = 30, CancellationToken cancellationToken = default)
+        {
+            await using NpgsqlConnection? npgsqlConnection = DiGi.PostgreSQL.Create.NpgsqlConnection(ConnectionData);
+            if (npgsqlConnection is null)
+            {
+                return null;
+            }
+
+            await npgsqlConnection.OpenAsync(cancellationToken);
+            return await GetSizesAsync(npgsqlConnection, datasetKey, countyIds, commandTimeout, cancellationToken);
+        }
+
+        /// <summary>
         /// Asynchronously reads the footprints of one dataset whose EPSG:2180 envelope intersects a bounding box, in EPSG:2180 with their source attributes, provenance and licence exception.
         /// <para>The envelope test is served by the table's GiST index on <c>box(point(min_x, min_y), point(max_x, max_y))</c> in every partition, so a test-area-sized box reads only the footprints near it. It is a prefilter: a footprint whose envelope reaches the box need not itself intersect it.</para>
         /// </summary>

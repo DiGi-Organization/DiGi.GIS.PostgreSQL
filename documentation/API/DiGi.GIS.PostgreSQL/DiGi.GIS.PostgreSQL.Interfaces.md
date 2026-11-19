@@ -160,6 +160,7 @@ Derived
 ↳ [ExternalComponentsAreaResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.ExternalComponentsAreaResult 'DiGi\.GIS\.PostgreSQL\.Classes\.ExternalComponentsAreaResult')  
 ↳ [OpenBuildingCountyResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingCountyResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingCountyResult')  
 ↳ [OpenBuildingImportResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingImportResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingImportResult')  
+↳ [OpenBuildingTableSizeResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingTableSizeResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingTableSizeResult')  
 ↳ [OrtoArea](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoArea 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoArea')  
 ↳ [OrtoAreaCell](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaCell 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaCell')  
 ↳ [OrtoAreaDatasetValidationResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaDatasetValidationResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaDatasetValidationResult')  
