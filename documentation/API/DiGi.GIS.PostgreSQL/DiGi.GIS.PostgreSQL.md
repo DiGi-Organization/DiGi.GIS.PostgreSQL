@@ -2512,6 +2512,8 @@ A model that carries components but no envelope at all - fewer than the four ext
 
 The finest tolerance at which the envelope edge-pairs into a closed surface is recorded beside the areas - the closing tolerance column, null when the envelope closes at no rung of the ladder 1e-6 to 0.2 m or the model carries no external components. Ray parity is sound only for a closed face set, so a null closing tolerance is the signal that the row’s sector and tilt values may rest on an arbitrary face side; such a model is counted in the result, not failed.
 
+The calculated height of the building is recorded beside the areas - the Z extent (max Z minus min Z) of the rehydrated model's bounding box, in meters (DiGi-Organization/DiGi.GIS.IO#20). It is null, and the cell left unset rather than written as 0, when the model carries no component geometry. It follows the row: a degenerate or refused model gets no row, so no height.
+
 A component the method cannot classify - a wall whose normal is vertical, so its azimuth is undefined - is skipped and counted in the result.
 
 A reference can arrive several times (several stored versions of the model); the first record of a given county and reference is the one that is written and the rest are stepped over, so the collection has to reach this method in the caller’s order of preference - the converter returns the newest record first.

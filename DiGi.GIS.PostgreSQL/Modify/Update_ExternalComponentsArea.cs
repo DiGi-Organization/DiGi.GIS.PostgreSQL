@@ -16,6 +16,7 @@ namespace DiGi.GIS.PostgreSQL
         /// <para>The wall outward and roof upward normals are the normals of the faces of the model’s external envelope, built by <see cref="DiGi.Analytical.Building.Classes.BuildingModel.GetExternalShell(DiGi.Geometry.Core.Enums.Side?, DiGi.Geometry.Core.Enums.Orientation?, DiGi.Geometry.Core.Enums.Orientation?, double)"/> with <see cref="DiGi.Geometry.Core.Enums.Side.External"/>, so each face direction is resolved once over the envelope instead of being guessed from the component’s stored geometry. That method states the selection rule for every consumer: a component bounding exactly one space is external, one bounding two is an internal partition, one bounding none is part of no envelope. Every envelope face carries the <see cref="DiGi.Core.Interfaces.IUniqueReference"/> of the component it was built from, which is how a face is matched back to its component; a component the envelope carries is classified from its face, one it does not carry is excluded from the external area and counted in the result when it bounds two spaces, and is a defect in the model’s space structure otherwise - a component bounding one space that the envelope still leaves out has no polygonal face.</para>
         /// <para>A model that carries components but no envelope at all - fewer than the four external faces a closed solid needs, typically a sliver footprint with walls and no roof or floor - is degenerate: nothing gives its components an outward normal, so it gets no row and its reference is listed in <see cref="ExternalComponentsAreaResult.DegenerateReferences"/>. A model refused as a defect gets no row either and is listed with its reason in <see cref="ExternalComponentsAreaResult.FailedReferences"/>; neither stops the classification of the other models, and neither leaves a partial row, because a row is only built once its model is classified.</para>
         /// <para>The finest tolerance at which the envelope edge-pairs into a closed surface is recorded beside the areas - the closing tolerance column, null when the envelope closes at no rung of the ladder 1e-6 to 0.2 m or the model carries no external components. Ray parity is sound only for a closed face set, so a null closing tolerance is the signal that the row’s sector and tilt values may rest on an arbitrary face side; such a model is counted in the result, not failed.</para>
+        /// <para>The calculated height of the building is recorded beside the areas - the Z extent (max Z minus min Z) of the rehydrated model's bounding box, in meters (DiGi-Organization/DiGi.GIS.IO#20). It is null, and the cell left unset rather than written as 0, when the model carries no component geometry. It follows the row: a degenerate or refused model gets no row, so no height.</para>
         /// <para>A component the method cannot classify - a wall whose normal is vertical, so its azimuth is undefined - is skipped and counted in the result.</para>
         /// <para>A reference can arrive several times (several stored versions of the model); the first record of a given county and reference is the one that is written and the rest are stepped over, so the collection has to reach this method in the caller’s order of preference - the converter returns the newest record first.</para>
         /// </summary>
@@ -119,6 +120,7 @@ namespace DiGi.GIS.PostgreSQL
             // The base-typed accessor keeps this project free of a DiGi.Unit.IO reference: the field behind it is a UnitColumn,
             // and referencing that assembly would make the DiGi.Unit namespace shadow DiGi.BDL.Classes.Unit everywhere here.
             Column? column_ClosingTolerance = table.UpdateColumn<Column>(IO.Create.Column_ClosingTolerance());
+            Column? column_CalculatedHeight = table.UpdateColumn<Column>(IO.Create.Column_CalculatedHeight());
             if (column_CountyId is null || column_Reference is null)
             {
                 return new ExternalComponentsAreaResult(skippedComponentCount, openEnvelopeCount);
@@ -213,9 +215,10 @@ namespace DiGi.GIS.PostgreSQL
                 double[] areas = new double[count_Breakdown];
                 double[] areas_Party = new double[8];
                 double? closingTolerance = null;
+                double? height = null;
                 try
                 {
-                    if (!Classify(buildingModel_Envelope, reference, countyId, areas, areas_Party, out closingTolerance))
+                    if (!Classify(buildingModel_Envelope, reference, countyId, areas, areas_Party, out closingTolerance, out height))
                     {
                         references_Degenerate.Add(reference);
                         continue;
@@ -268,6 +271,10 @@ namespace DiGi.GIS.PostgreSQL
                 float? value_ClosingTolerance = closingTolerance is null ? null : (float)closingTolerance.Value;
                 IO.Modify.SetValue(row, column_ClosingTolerance, value_ClosingTolerance);
 
+                // The same rule for the height: null - a model with no component geometry - writes nothing, never a 0.
+                float? value_CalculatedHeight = height is null ? null : (float)height.Value;
+                IO.Modify.SetValue(row, column_CalculatedHeight, value_CalculatedHeight);
+
                 table.AddRow(row, false);
             }
 
@@ -275,13 +282,27 @@ namespace DiGi.GIS.PostgreSQL
 
             // Classifies the components of one model into the given area buckets, and the shared part of each wall into the party buckets. False when the model carries components
             // but no external envelope (a degenerate model: nothing to classify by, and no row is written); throws
-            // InvalidOperationException for a defect in the model's space structure.
-            bool Classify(BuildingModel buildingModel_Envelope, string reference, int countyId, double[] areas, double[] areas_Party, out double? closingTolerance)
+            // InvalidOperationException for a defect in the model's space structure. The height is the Z extent of the model's bounding box,
+            // null when the model carries no component geometry (DiGi-Organization/DiGi.GIS.IO#20).
+            bool Classify(BuildingModel buildingModel_Envelope, string reference, int countyId, double[] areas, double[] areas_Party, out double? closingTolerance, out double? height)
             {
-                DiGi.Analytical.Building.Classes.BuildingModel? buildingModel = buildingModel_Envelope.ToDiGi();
+                height = null;
+
+                DiGi.Analytical.Building.Classes.BuildingModel? buildingModel =buildingModel_Envelope.ToDiGi();
                 if (buildingModel is null)
                 {
                     throw new InvalidOperationException($"Building {reference} of county {countyId}: the stored model does not rehydrate into an analytical BuildingModel, so its components cannot be classified.");
+                }
+
+                // The bounding box is read once per model; a missing box, a NaN or a negative extent leaves the height null rather than a placeholder.
+                DiGi.Geometry.Spatial.Classes.BoundingBox3D? boundingBox3D = buildingModel.GetBoundingBox();
+                if (boundingBox3D is not null)
+                {
+                    double height_Temp = boundingBox3D.Max.Z - boundingBox3D.Min.Z;
+                    if (!double.IsNaN(height_Temp) && height_Temp >= 0)
+                    {
+                        height = height_Temp;
+                    }
                 }
 
                 // GetComponents hands out clones, so each list is fetched exactly once and reused.
