@@ -2884,6 +2884,63 @@ The cancellation token to monitor for cancellation requests\.
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[BuildingHeatDemandCountyResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult 'DiGi\.GIS\.PostgreSQL\.Classes\.BuildingHeatDemandCountyResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A task whose result holds the summaries ordered by county part, method version, building type and band \(the band without a year built last\); empty when the table is missing, or null when the connection is null\.
 
+<a name='DiGi.GIS.PostgreSQL.Query.BuildingHeatDemandObjectsAsync(thisNpgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_string_,int,bool,int,System.Threading.CancellationToken)'></a>
+
+## Query\.BuildingHeatDemandObjectsAsync\(this NpgsqlConnection, IEnumerable\<string\>, int, bool, int, CancellationToken\) Method
+
+Asynchronously reads every stored heat demand of each of the given references \- every method, method version and input variant \- as the JSON objects of the stored `BuildingHeatDemandResult`s, for comparing them \(DiGi\-Organization/DiGi\.GIS\.WebAPI\#104, Heat Demand Method Identity DiGi\-Organization/DiGi\.GIS\.Analytical\#19\)\.
+
+Plain SQL over [BuildingHeatDemand](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.TableName.BuildingHeatDemand 'DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.BuildingHeatDemand'), returning JSON rather than results, so a host that serves it needs no energy engine - the API host, like [BuildingHeatDemandCountyResultsAsync\(this NpgsqlConnection, IEnumerable&lt;int&gt;, Nullable&lt;int&gt;, IEnumerable&lt;short&gt;, int, int, int, CancellationToken\)](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Query.BuildingHeatDemandCountyResultsAsync(thisNpgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_int_,System.Nullable_int_,System.Collections.Generic.IEnumerable_short_,int,int,int,System.Threading.CancellationToken) 'DiGi\.GIS\.PostgreSQL\.Query\.BuildingHeatDemandCountyResultsAsync\(this Npgsql\.NpgsqlConnection, System\.Collections\.Generic\.IEnumerable\<int\>, System\.Nullable\<int\>, System\.Collections\.Generic\.IEnumerable\<short\>, int, int, int, System\.Threading\.CancellationToken\)'). `DiGi.GIS.PostgreSQL.Energy.Classes.BuildingHeatDemandPostgreSQLConverter.GetAllItemsByReferencesAsync` is this read made into results.
+
+Each object is labelled by its row's key: the `method`, `method_version` and `input_variant` columns are written into it as `HeatDemandResult.HeatDemandMethod`, `HeatDemandResult.MethodVersion` and `HeatDemandInputVariant` (integers), so the label is the key the row is stored under even where the stored JSON predates the method and the input variant. An object without a nested `HeatDemandResult` keeps only the input variant. The objects come ordered by reference, method, method version and input variant.
+
+The read is scoped to [countyId](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Query.BuildingHeatDemandObjectsAsync(thisNpgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_string_,int,bool,int,System.Threading.CancellationToken).countyId 'DiGi\.GIS\.PostgreSQL\.Query\.BuildingHeatDemandObjectsAsync\(this Npgsql\.NpgsqlConnection, System\.Collections\.Generic\.IEnumerable\<string\>, int, bool, int, System\.Threading\.CancellationToken\)\.countyId') first; with [fallbackByReference](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Query.BuildingHeatDemandObjectsAsync(thisNpgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_string_,int,bool,int,System.Threading.CancellationToken).fallbackByReference 'DiGi\.GIS\.PostgreSQL\.Query\.BuildingHeatDemandObjectsAsync\(this Npgsql\.NpgsqlConnection, System\.Collections\.Generic\.IEnumerable\<string\>, int, bool, int, System\.Threading\.CancellationToken\)\.fallbackByReference'), a reference with no row there is looked for under every county part, in a separate statement (`Coding - GIS Administrative Data.md`, `Coding - PostgreSQL.md` §3). References are read 1000 at a time.
+
+```csharp
+public static System.Threading.Tasks.Task<System.Collections.Generic.List<System.Text.Json.Nodes.JsonObject>?> BuildingHeatDemandObjectsAsync(this Npgsql.NpgsqlConnection? npgsqlConnection, System.Collections.Generic.IEnumerable<string>? references, int countyId, bool fallbackByReference=false, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Query.BuildingHeatDemandObjectsAsync(thisNpgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_string_,int,bool,int,System.Threading.CancellationToken).npgsqlConnection'></a>
+
+`npgsqlConnection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
+
+The open [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection') of the Storage database\. This value can be null\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.BuildingHeatDemandObjectsAsync(thisNpgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_string_,int,bool,int,System.Threading.CancellationToken).references'></a>
+
+`references` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The references to read\. This value can be null\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.BuildingHeatDemandObjectsAsync(thisNpgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_string_,int,bool,int,System.Threading.CancellationToken).countyId'></a>
+
+`countyId` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The county part to scope the read\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.BuildingHeatDemandObjectsAsync(thisNpgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_string_,int,bool,int,System.Threading.CancellationToken).fallbackByReference'></a>
+
+`fallbackByReference` [System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')
+
+True to look for a reference not found under [countyId](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Query.BuildingHeatDemandObjectsAsync(thisNpgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_string_,int,bool,int,System.Threading.CancellationToken).countyId 'DiGi\.GIS\.PostgreSQL\.Query\.BuildingHeatDemandObjectsAsync\(this Npgsql\.NpgsqlConnection, System\.Collections\.Generic\.IEnumerable\<string\>, int, bool, int, System\.Threading\.CancellationToken\)\.countyId') under every county part\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.BuildingHeatDemandObjectsAsync(thisNpgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_string_,int,bool,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for each command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.BuildingHeatDemandObjectsAsync(thisNpgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_string_,int,bool,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The cancellation token to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[System\.Text\.Json\.Nodes\.JsonObject](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.nodes.jsonobject 'System\.Text\.Json\.Nodes\.JsonObject')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task whose result holds the JSON object of every stored result of the references found, or null when the connection or the references are null or the table is missing\.
+
 <a name='DiGi.GIS.PostgreSQL.Query.BuildingModelsByCircle2DAsync(thisDiGi.GIS.PostgreSQL.Classes.Building2DPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.BuildingModelPostgreSQLConverter,DiGi.Geometry.Planar.Classes.Circle2D,double,int,System.Threading.CancellationToken)'></a>
 
 ## Query\.BuildingModelsByCircle2DAsync\(this Building2DPostgreSQLConverter, BuildingModelPostgreSQLConverter, Circle2D, double, int, CancellationToken\) Method

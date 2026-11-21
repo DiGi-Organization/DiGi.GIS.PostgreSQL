@@ -326,7 +326,7 @@ namespace DiGi.GIS.PostgreSQL.Energy.Classes
 
         /// <summary>
         /// Asynchronously reads every stored heat demand of each of the given references - every method, method version and input variant - for comparing them (DiGi-Organization/DiGi.GIS.PostgreSQL#152, Heat Demand Method Identity DiGi-Organization/DiGi.GIS.Analytical#19).
-        /// <para>The only read that mixes methods and input variants. Each result is labelled by its own <c>HeatDemandResult.HeatDemandMethod</c>, <c>HeatDemandResult.MethodVersion</c> and <see cref="BuildingHeatDemandResult.HeatDemandInputVariant"/>, which the key columns repeat; a result stored before the two were recorded reads as <c>Monthly</c> and <c>Generated</c>, as its backfilled columns say. The results come ordered by reference, method, method version and input variant.</para>
+        /// <para>The only read that mixes methods and input variants. It is <see cref="PostgreSQL.Query.BuildingHeatDemandObjectsAsync(NpgsqlConnection?, IEnumerable{string}?, int, bool, int, CancellationToken)"/> of the main assembly - which the API host serves without the engine (DiGi-Organization/DiGi.GIS.WebAPI#104) - made into results: each is labelled by its row's key, its <c>HeatDemandResult.HeatDemandMethod</c>, <c>HeatDemandResult.MethodVersion</c> and <see cref="BuildingHeatDemandResult.HeatDemandInputVariant"/> being the <c>method</c>, <c>method_version</c> and <c>input_variant</c> columns it is stored under. The results come ordered by reference, method, method version and input variant.</para>
         /// <para>The read is scoped to <paramref name="countyId"/> first; with <paramref name="fallbackByReference"/>, a reference with no row there is looked for under every county part, in a separate statement (<c>Coding - GIS Administrative Data.md</c>). References are read 1000 at a time.</para>
         /// </summary>
         /// <param name="npgsqlConnection">The open <see cref="NpgsqlConnection"/> of the Storage database. This value can be null.</param>
@@ -338,81 +338,8 @@ namespace DiGi.GIS.PostgreSQL.Energy.Classes
         /// <returns>A task whose result holds every stored result of the references found, or null when the connection is null or the table is missing.</returns>
         public static async Task<List<BuildingHeatDemandResult>?> GetAllItemsByReferencesAsync(NpgsqlConnection? npgsqlConnection, IEnumerable<string>? references, int countyId, bool fallbackByReference = false, int commandTimeout = 30, CancellationToken cancellationToken = default)
         {
-            if (npgsqlConnection is null || references is null)
-            {
-                return null;
-            }
-
-            List<string> references_List = [];
-            HashSet<string> references_Unique = [];
-            foreach (string? reference in references)
-            {
-                if (!string.IsNullOrWhiteSpace(reference) && references_Unique.Add(reference!))
-                {
-                    references_List.Add(reference!);
-                }
-            }
-
-            string commandText_Scoped = $@"
-                SELECT object, reference
-                FROM {TableName}
-                WHERE county_id = @county_id
-                  AND reference = ANY(@references)
-                ORDER BY reference, method, method_version, input_variant, created_at;";
-            string commandText_Unscoped = $@"
-                SELECT object, reference
-                FROM {TableName}
-                WHERE reference = ANY(@references)
-                ORDER BY reference, method, method_version, input_variant, created_at;";
-
-            List<BuildingHeatDemandResult> result = [];
-            HashSet<string> references_Found = [];
-            try
-            {
-                for (int offset = 0; offset < references_List.Count; offset += batchSize)
-                {
-                    List<string> references_Batch = references_List.GetRange(offset, Math.Min(batchSize, references_List.Count - offset));
-                    await ReadAsync(commandText_Scoped, references_Batch, true);
-
-                    if (fallbackByReference)
-                    {
-                        List<string> references_Missing = references_Batch.FindAll(x => !references_Found.Contains(x));
-                        if (references_Missing.Count != 0)
-                        {
-                            await ReadAsync(commandText_Unscoped, references_Missing, false);
-                        }
-                    }
-                }
-            }
-            catch (PostgresException postgresException) when (postgresException.SqlState == PostgresErrorCodes.UndefinedTable)
-            {
-                return null;
-            }
-
-            return result;
-
-            async Task ReadAsync(string commandText, List<string> references_Read, bool scoped)
-            {
-                await using NpgsqlCommand npgsqlCommand = new(commandText, npgsqlConnection) { CommandTimeout = commandTimeout };
-                if (scoped)
-                {
-                    npgsqlCommand.Parameters.Add(new NpgsqlParameter("county_id", NpgsqlDbType.Integer) { Value = countyId });
-                }
-
-                npgsqlCommand.Parameters.Add(new NpgsqlParameter("references", NpgsqlDbType.Array | NpgsqlDbType.Text) { Value = references_Read.ToArray() });
-
-                await using NpgsqlDataReader npgsqlDataReader = await npgsqlCommand.ExecuteReaderAsync(cancellationToken);
-                while (await npgsqlDataReader.ReadAsync(cancellationToken))
-                {
-                    if (JsonNode.Parse(npgsqlDataReader.GetString(0)) is not JsonObject jsonObject)
-                    {
-                        continue;
-                    }
-
-                    references_Found.Add(npgsqlDataReader.GetString(1));
-                    result.Add(new BuildingHeatDemandResult(jsonObject));
-                }
-            }
+            List<JsonObject>? jsonObjects = await PostgreSQL.Query.BuildingHeatDemandObjectsAsync(npgsqlConnection, references, countyId, fallbackByReference, commandTimeout, cancellationToken);
+            return jsonObjects?.ConvertAll(x => new BuildingHeatDemandResult(x));
         }
 
         /// <summary>
