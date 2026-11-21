@@ -511,6 +511,39 @@ public static DiGi.GIS.PostgreSQL.Classes.GISPostgreSQLConverterManager? GISPost
 [GISPostgreSQLConverterManager](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.GISPostgreSQLConverterManager 'DiGi\.GIS\.PostgreSQL\.Classes\.GISPostgreSQLConverterManager')  
 A configured [GISPostgreSQLConverterManager\(\)](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Create.GISPostgreSQLConverterManager() 'DiGi\.GIS\.PostgreSQL\.Create\.GISPostgreSQLConverterManager\(\)') if successful; otherwise, null\.
 
+<a name='DiGi.GIS.PostgreSQL.Create.MergedStatisticalDataCollection(thisDiGi.GIS.Classes.StatisticalDataCollection,System.Collections.Generic.IEnumerable_DiGi.GIS.Classes.StatisticalDataCollection_)'></a>
+
+## Create\.MergedStatisticalDataCollection\(this StatisticalDataCollection, IEnumerable\<StatisticalDataCollection\>\) Method
+
+Creates the statistical data of a municipality listed under several BDL units of one name \- a gmina that changed its type or county \- by merging its namesakes' collections into its own \(DiGi\-Organization/DiGi\.GIS\.PostgreSQL\#149\)\.
+
+BDL splits such a gmina's data between the units by when it was published: Czerwińsk nad Wisłą holds its population of 2008-2019 on the historical unit 071422520042 and of 2020-2025 and the 2021 census on the current 071422520043; Nowe Miasto the census and the population up to 2021 on the historical 071422520082 and only 2022 on on the current 071422520083. No one unit holds it all, in either direction.
+
+A namesake is a distinct gmina, not the same one under another unit, when it holds the 2021 census while the result already does: a town and the rural gmina around it share a name (Płońsk 071422520011 and 071422520092, Bochnia, Gorlice - 143 pairs in one county, 22 more across counties), and each holds its own census. Such a namesake is skipped, so one gmina's numbers never fill another's gaps. A successor or predecessor never does: of two units of one gmina at most one holds the census.
+
+The result starts from [statisticalDataCollection](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Create.MergedStatisticalDataCollection(thisDiGi.GIS.Classes.StatisticalDataCollection,System.Collections.Generic.IEnumerable_DiGi.GIS.Classes.StatisticalDataCollection_).statisticalDataCollection 'DiGi\.GIS\.PostgreSQL\.Create\.MergedStatisticalDataCollection\(this DiGi\.GIS\.Classes\.StatisticalDataCollection, System\.Collections\.Generic\.IEnumerable\<DiGi\.GIS\.Classes\.StatisticalDataCollection\>\)\.statisticalDataCollection') - the unit the code names - and takes from [statisticalDataCollections\_Namesake](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Create.MergedStatisticalDataCollection(thisDiGi.GIS.Classes.StatisticalDataCollection,System.Collections.Generic.IEnumerable_DiGi.GIS.Classes.StatisticalDataCollection_).statisticalDataCollections_Namesake 'DiGi\.GIS\.PostgreSQL\.Create\.MergedStatisticalDataCollection\(this DiGi\.GIS\.Classes\.StatisticalDataCollection, System\.Collections\.Generic\.IEnumerable\<DiGi\.GIS\.Classes\.StatisticalDataCollection\>\)\.statisticalDataCollections\_Namesake'), in order, every series it lacks, and every year of a yearly series it holds no value for. A value of 0 or NaN counts as missing, since BDL answers 0 for a year it has not published; a year all of them leave at 0 stays 0. Series are matched by name, as a collection keys them. The inputs are not changed.
+
+```csharp
+public static DiGi.GIS.Classes.StatisticalDataCollection? MergedStatisticalDataCollection(this DiGi.GIS.Classes.StatisticalDataCollection? statisticalDataCollection, System.Collections.Generic.IEnumerable<DiGi.GIS.Classes.StatisticalDataCollection?>? statisticalDataCollections_Namesake);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Create.MergedStatisticalDataCollection(thisDiGi.GIS.Classes.StatisticalDataCollection,System.Collections.Generic.IEnumerable_DiGi.GIS.Classes.StatisticalDataCollection_).statisticalDataCollection'></a>
+
+`statisticalDataCollection` [DiGi\.GIS\.Classes\.StatisticalDataCollection](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.statisticaldatacollection 'DiGi\.GIS\.Classes\.StatisticalDataCollection')
+
+The collection of the unit the code names\. This value can be null\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.MergedStatisticalDataCollection(thisDiGi.GIS.Classes.StatisticalDataCollection,System.Collections.Generic.IEnumerable_DiGi.GIS.Classes.StatisticalDataCollection_).statisticalDataCollections_Namesake'></a>
+
+`statisticalDataCollections_Namesake` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[DiGi\.GIS\.Classes\.StatisticalDataCollection](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.statisticaldatacollection 'DiGi\.GIS\.Classes\.StatisticalDataCollection')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The collections of its namesakes \(`Query.NamesakeStatisticalUnits`\), most preferred first\. This value can be null\.
+
+#### Returns
+[DiGi\.GIS\.Classes\.StatisticalDataCollection](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.statisticaldatacollection 'DiGi\.GIS\.Classes\.StatisticalDataCollection')  
+The merged collection, keeping the code and identity of [statisticalDataCollection](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Create.MergedStatisticalDataCollection(thisDiGi.GIS.Classes.StatisticalDataCollection,System.Collections.Generic.IEnumerable_DiGi.GIS.Classes.StatisticalDataCollection_).statisticalDataCollection 'DiGi\.GIS\.PostgreSQL\.Create\.MergedStatisticalDataCollection\(this DiGi\.GIS\.Classes\.StatisticalDataCollection, System\.Collections\.Generic\.IEnumerable\<DiGi\.GIS\.Classes\.StatisticalDataCollection\>\)\.statisticalDataCollection') \(of the first namesake when that is null\); null when there is no collection at all\.
+
 <a name='DiGi.GIS.PostgreSQL.Create.OrtoDataAcquisitions(thisDiGi.GIS.Classes.OrtoDatas,int)'></a>
 
 ## Create\.OrtoDataAcquisitions\(this OrtoDatas, int\) Method
@@ -3885,6 +3918,37 @@ The administrative area type\.
 #### Returns
 [DiGi\.GIS\.Classes\.StatisticalUnit](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.statisticalunit 'DiGi\.GIS\.Classes\.StatisticalUnit')  
 The matching [DiGi\.GIS\.Classes\.StatisticalUnit](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.statisticalunit 'DiGi\.GIS\.Classes\.StatisticalUnit') if found; otherwise, null\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.NamesakeStatisticalUnits(thisDiGi.GIS.Classes.StatisticalUnit,DiGi.GIS.Classes.StatisticalUnit)'></a>
+
+## Query\.NamesakeStatisticalUnits\(this StatisticalUnit, StatisticalUnit\) Method
+
+Returns the other municipality units of the same name in the same voivodeship as the given one, in code order \- the units a gmina that changed its type or county is also listed under \(DiGi\-Organization/DiGi\.GIS\.PostgreSQL\#149\)\.
+
+A gmina that changed its type (rural to urban-rural) or its county since a census keeps its name on two BDL units, and which of them holds the data depends on whether BDL has moved the history yet: Czerwińsk nad Wisłą holds its 2021 census on the current unit 071422520043, Nowe Miasto still on the historical 071422520082 while its current 071422520083 holds nothing. [Match\(this StatisticalUnit, string, string, AdministrativeArealType\)](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Query.Match(thisDiGi.GIS.Classes.StatisticalUnit,string,string,DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType) 'DiGi\.GIS\.PostgreSQL\.Query\.Match\(this DiGi\.GIS\.Classes\.StatisticalUnit, string, string, DiGi\.GIS\.PostgreSQL\.Enums\.AdministrativeArealType\)') takes the unit the code names; a reader whose unit holds no data falls back to these.
+
+Only municipality-level units are compared ([DiGi\.GIS\.Enums\.StatisticalUnitType\.municipalities](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.enums.statisticalunittype.municipalities 'DiGi\.GIS\.Enums\.StatisticalUnitType\.municipalities')), so the town and rural parts of an urban-rural gmina (" - miasto", " - obszar wiejski") are not namesakes; names are compared trimmed and case-insensitively, the voivodeship by the first four digits of the code.
+
+```csharp
+public static System.Collections.Generic.List<DiGi.GIS.Classes.StatisticalUnit> NamesakeStatisticalUnits(this DiGi.GIS.Classes.StatisticalUnit? rootStatisticalUnit, DiGi.GIS.Classes.StatisticalUnit? statisticalUnit);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Query.NamesakeStatisticalUnits(thisDiGi.GIS.Classes.StatisticalUnit,DiGi.GIS.Classes.StatisticalUnit).rootStatisticalUnit'></a>
+
+`rootStatisticalUnit` [DiGi\.GIS\.Classes\.StatisticalUnit](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.statisticalunit 'DiGi\.GIS\.Classes\.StatisticalUnit')
+
+The root statistical unit hierarchy\. This value can be null\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.NamesakeStatisticalUnits(thisDiGi.GIS.Classes.StatisticalUnit,DiGi.GIS.Classes.StatisticalUnit).statisticalUnit'></a>
+
+`statisticalUnit` [DiGi\.GIS\.Classes\.StatisticalUnit](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.statisticalunit 'DiGi\.GIS\.Classes\.StatisticalUnit')
+
+The municipality unit\. This value can be null\.
+
+#### Returns
+[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[DiGi\.GIS\.Classes\.StatisticalUnit](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.statisticalunit 'DiGi\.GIS\.Classes\.StatisticalUnit')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')  
+The namesakes, the given unit excluded; empty when either argument is null or the unit has no name or a code shorter than 4 digits\.
 
 <a name='DiGi.GIS.PostgreSQL.Query.OccupancySubdivisionId(int,System.Collections.Generic.IReadOnlyDictionary_int,System.Collections.Generic.List_int__,System.Collections.Generic.IReadOnlyDictionary_int,System.Nullable_uint__)'></a>
 

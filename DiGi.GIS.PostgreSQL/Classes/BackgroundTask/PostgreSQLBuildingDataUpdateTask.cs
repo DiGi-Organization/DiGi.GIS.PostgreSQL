@@ -258,6 +258,56 @@ namespace DiGi.GIS.PostgreSQL.Classes
             }
             Dictionary<string, StatisticalDataCollection?> cachedStatisticalDataCollections = [];
 
+            // The statistical data of a unit, merged with its namesakes' - the other units a gmina that changed its type or
+            // county is listed under. BDL splits such a gmina's data between them by when it was published, so the unit the
+            // code names may hold the census but not the earlier population (Czerwińsk nad Wisłą) or nothing up to 2021 at
+            // all (Nowe Miasto) (DiGi.GIS.PostgreSQL#149). Read once per unit; a read that fails is logged and left out.
+            async Task<StatisticalDataCollection?> ReadStatisticalDataCollectionAsync(StatisticalUnit statisticalUnit_Read, string statisticalUnitCode_Read)
+            {
+                if (cachedStatisticalDataCollections.TryGetValue(statisticalUnitCode_Read, out StatisticalDataCollection? statisticalDataCollection_Cached))
+                {
+                    return statisticalDataCollection_Cached;
+                }
+
+                StatisticalDataCollection? statisticalDataCollection_Read = await ReadOneAsync(statisticalUnitCode_Read);
+
+                List<StatisticalUnit> statisticalUnits_Namesake = Query.NamesakeStatisticalUnits(rootStatisticalUnit, statisticalUnit_Read);
+                if (statisticalUnits_Namesake.Count != 0)
+                {
+                    List<StatisticalDataCollection?> statisticalDataCollections_Namesake = [];
+                    foreach (StatisticalUnit statisticalUnit_Namesake in statisticalUnits_Namesake)
+                    {
+                        if (statisticalUnit_Namesake.Code is string statisticalUnitCode_Namesake && !string.IsNullOrWhiteSpace(statisticalUnitCode_Namesake))
+                        {
+                            statisticalDataCollections_Namesake.Add(await ReadOneAsync(statisticalUnitCode_Namesake));
+                        }
+                    }
+
+                    statisticalDataCollection_Read = Create.MergedStatisticalDataCollection(statisticalDataCollection_Read, statisticalDataCollections_Namesake);
+                    Serilog.Modify.Log("Building data statistical unit {Code} merged with its namesakes {Codes}", statisticalUnitCode_Read, string.Join(", ", statisticalUnits_Namesake.Select(x => x.Code)));
+                }
+
+                cachedStatisticalDataCollections[statisticalUnitCode_Read] = statisticalDataCollection_Read;
+                return statisticalDataCollection_Read;
+
+                async Task<StatisticalDataCollection?> ReadOneAsync(string statisticalUnitCode_One)
+                {
+                    try
+                    {
+                        return await statisticalDataCollectionPostgreSQLConverter!.GetStatisticalDataCollectionByIdAsync(statisticalUnitCode_One, commandTimeout: commandTimeout, cancellationToken: cancellationToken);
+                    }
+                    catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                    {
+                        throw;
+                    }
+                    catch (Exception exception)
+                    {
+                        Serilog.Modify.Log(exception, "Building data statistical data collection retrieval failed - unit code {Code}", statisticalUnitCode_One);
+                        return null;
+                    }
+                }
+            }
+
             // A subdivision takes its municipality's statistical unit, but in a municipality with district units (Warsaw)
             // the unit of the district containing it (DiGi.GIS.PostgreSQL#148). Buildings are filed under the smallest
             // subdivision - a neighbourhood - so the district is found among the subdivisions containing it, which only
@@ -406,22 +456,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
 
                     if (statisticalUnit?.Code is string statisticalUnitCode && !string.IsNullOrWhiteSpace(statisticalUnitCode))
                     {
-                        if (!cachedStatisticalDataCollections.TryGetValue(statisticalUnitCode, out statisticalDataCollection))
-                        {
-                            try
-                            {
-                                statisticalDataCollection = await statisticalDataCollectionPostgreSQLConverter!.GetStatisticalDataCollectionByIdAsync(statisticalUnitCode, commandTimeout: commandTimeout, cancellationToken: cancellationToken);
-                                cachedStatisticalDataCollections[statisticalUnitCode] = statisticalDataCollection;
-                            }
-                            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-                            {
-                                throw;
-                            }
-                            catch (Exception exception)
-                            {
-                                Serilog.Modify.Log(exception, "Building data statistical data collection retrieval failed - unit code {Code}", statisticalUnitCode);
-                            }
-                        }
+                        statisticalDataCollection = await ReadStatisticalDataCollectionAsync(statisticalUnit, statisticalUnitCode);
                     }
                 }
 
@@ -839,22 +874,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
                                     continue;
                                 }
 
-                                if (!cachedStatisticalDataCollections.TryGetValue(statisticalUnitCode, out StatisticalDataCollection? statisticalDataCollection))
-                                {
-                                    try
-                                    {
-                                        statisticalDataCollection = await statisticalDataCollectionPostgreSQLConverter!.GetStatisticalDataCollectionByIdAsync(statisticalUnitCode, commandTimeout: commandTimeout, cancellationToken: cancellationToken);
-                                        cachedStatisticalDataCollections[statisticalUnitCode] = statisticalDataCollection;
-                                    }
-                                    catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-                                    {
-                                        throw;
-                                    }
-                                    catch (Exception exception)
-                                    {
-                                        Serilog.Modify.Log(exception, "Building data statistical data collection retrieval failed - unit code {Code}", statisticalUnitCode);
-                                    }
-                                }
+                                StatisticalDataCollection? statisticalDataCollection = await ReadStatisticalDataCollectionAsync(statisticalUnit, statisticalUnitCode);
 
                                 HashSet<string> references_Group = [.. building2Ds_Group.Where(x => !string.IsNullOrWhiteSpace(x?.Reference)).Select(x => x.Reference!)];
                                 List<GIS.Classes.Building2D> building2Ds_Group_GIS = [.. building2Ds_Unassigned_GIS.Where(x => x.Reference is string reference_Group && references_Group.Contains(reference_Group))];
