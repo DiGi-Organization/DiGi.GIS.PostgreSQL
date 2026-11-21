@@ -128,7 +128,7 @@ The registered converter, or null when the manager is null or has no Storage con
 
 ## Modify\.Update\_HeatDemand\(this Table, IEnumerable\<BuildingHeatDemandResult\>\) Method
 
-Writes the heat\-demand summary of the given results into the four "Heat demand" columns of a `building_data` table, keyed by county identifier and reference \(DiGi\.GIS\.PostgreSQL\#143\): the annual energy need for space heating \[kWh\], the energy need per reference floor area \[kWh/m2\], the design heat load \[W\] and the method version \(`GIS.IO.Create.Columns_HeatDemand`\)\.
+Writes the heat\-demand summary of the given results into the six "Heat demand" columns of a `building_data` table, keyed by county identifier and reference \(DiGi\.GIS\.PostgreSQL\#143\): the annual energy need for space heating \[kWh\], the energy need per reference floor area \[kWh/m2\], the design heat load \[W\], the method version, and the integers of the method and the input variant that identify the result \(DiGi\-Organization/DiGi\.GIS\.IO\#21\) \(`GIS.IO.Create.Columns_HeatDemand`\)\.
 
 The first result of a county and reference is the one written and the rest are stepped over, so the results reach this method in the caller's order of preference. A value that is not a finite number is left as a null cell, never a sentinel. A result without a reference or without a heat demand is stepped over.
 

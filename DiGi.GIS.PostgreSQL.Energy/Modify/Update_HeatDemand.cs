@@ -8,7 +8,7 @@ namespace DiGi.GIS.PostgreSQL.Energy
     public static partial class Modify
     {
         /// <summary>
-        /// Writes the heat-demand summary of the given results into the four "Heat demand" columns of a <c>building_data</c> table, keyed by county identifier and reference (DiGi.GIS.PostgreSQL#143): the annual energy need for space heating [kWh], the energy need per reference floor area [kWh/m2], the design heat load [W] and the method version (<c>GIS.IO.Create.Columns_HeatDemand</c>).
+        /// Writes the heat-demand summary of the given results into the six "Heat demand" columns of a <c>building_data</c> table, keyed by county identifier and reference (DiGi.GIS.PostgreSQL#143): the annual energy need for space heating [kWh], the energy need per reference floor area [kWh/m2], the design heat load [W], the method version, and the integers of the method and the input variant that identify the result (DiGi-Organization/DiGi.GIS.IO#21) (<c>GIS.IO.Create.Columns_HeatDemand</c>).
         /// <para>The first result of a county and reference is the one written and the rest are stepped over, so the results reach this method in the caller's order of preference. A value that is not a finite number is left as a null cell, never a sentinel. A result without a reference or without a heat demand is stepped over.</para>
         /// </summary>
         /// <param name="table">The table to fill. This value can be null.</param>
@@ -37,8 +37,8 @@ namespace DiGi.GIS.PostgreSQL.Energy
                 }
             }
 
-            // HeatingEnergyNeed, HeatingEnergyNeedPerArea, DesignHeatLoad, HeatDemandMethodVersion, in that order.
-            if (columns.Count != 4)
+            // HeatingEnergyNeed, HeatingEnergyNeedPerArea, DesignHeatLoad, HeatDemandMethodVersion, HeatDemandMethod, HeatDemandInputVariant, in that order.
+            if (columns.Count != 6)
             {
                 return 0;
             }
@@ -68,6 +68,8 @@ namespace DiGi.GIS.PostgreSQL.Energy
                 SetIfFinite(row, columns[1], heatDemandResult.HeatingEnergyNeedPerArea);
                 SetIfFinite(row, columns[2], heatDemandResult.DesignHeatLoad);
                 IO.Modify.SetValue(row, columns[3], heatDemandResult.MethodVersion);
+                IO.Modify.SetValue(row, columns[4], (int)heatDemandResult.HeatDemandMethod);
+                IO.Modify.SetValue(row, columns[5], (int)buildingHeatDemandResult.HeatDemandInputVariant);
 
                 table.AddRow(row, false);
                 result++;
