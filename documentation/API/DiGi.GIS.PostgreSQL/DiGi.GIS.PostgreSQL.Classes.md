@@ -28536,7 +28536,7 @@ The JSON object containing the configuration settings\.
 
 Gets or sets the number of references read, classified and written together\. Values below 1 are treated as 1\.
 
-This bounds the memory of the run: only one batch of stored building models is held at a time, so a county of any size costs the same. Lower it when a batch of large models still weighs too much.
+This bounds the memory of the run: up to [MaxDegreeOfParallelism](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLBuildingDataExternalComponentsUpdateOptions.MaxDegreeOfParallelism 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLBuildingDataExternalComponentsUpdateOptions\.MaxDegreeOfParallelism') batches of stored building models are held at a time, so a county of any size costs the same. Lower it when that many batches of large models still weigh too much.
 
 ```csharp
 public int BatchSize { get; set; }
@@ -28574,6 +28574,21 @@ public System.Collections.Generic.HashSet<int>? CountyIds { get; set; }
 
 #### Property Value
 [System\.Collections\.Generic\.HashSet&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.hashset-1 'System\.Collections\.Generic\.HashSet\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.hashset-1 'System\.Collections\.Generic\.HashSet\`1')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLBuildingDataExternalComponentsUpdateOptions.MaxDegreeOfParallelism'></a>
+
+## PostgreSQLBuildingDataExternalComponentsUpdateOptions\.MaxDegreeOfParallelism Property
+
+Gets or sets the largest number of batches of one county read, classified and written at the same time\. A value of 0 or less uses half of the processors \([DiGi\.Core\.Query\.ProcessorCount\(System\.Double\)](https://learn.microsoft.com/en-us/dotnet/api/digi.core.query.processorcount#digi-core-query-processorcount(system-double) 'DiGi\.Core\.Query\.ProcessorCount\(System\.Double\)') with 0\.5, at least 1\); 1 runs one batch at a time\.
+
+Counties stay one after another; the batches of a county run concurrently, which spreads a dense city over several cores and overlaps the database time of a rural county (DiGi-Organization/DiGi.GIS.PostgreSQL#154). Memory grows with this value times [BatchSize](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLBuildingDataExternalComponentsUpdateOptions.BatchSize 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLBuildingDataExternalComponentsUpdateOptions\.BatchSize').
+
+```csharp
+public int MaxDegreeOfParallelism { get; set; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
 
 <a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLBuildingDataExternalComponentsUpdateOptions.PartyWallMaxDistance'></a>
 
@@ -28640,6 +28655,8 @@ A model whose external envelope does not close is not failed either: its row is 
 
 With [PartyWalls](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLBuildingDataExternalComponentsUpdateOptions.PartyWalls 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLBuildingDataExternalComponentsUpdateOptions\.PartyWalls') set, the party wall area columns are filled in the same pass (DiGi-Organization/DiGi.GIS.Analytical#4). The references of a county are ordered along a Z-order curve of their outlines ([DiGi\.Geometry\.Planar\.Query\.ZOrderComparison&lt;&gt;\.Collections\.Generic\.IDictionary\{&lt;&gt;\.Geometry\.Planar\.Classes\.BoundingBox2D\},System\.Double\)](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.query.zordercomparison--1#digi-geometry-planar-query-zordercomparison--1(system-collections-generic-idictionary{--0-digi-geometry-planar-classes-boundingbox2d}-system-double) 'DiGi\.Geometry\.Planar\.Query\.ZOrderComparison\`\`1\(System\.Collections\.Generic\.IDictionary\{\`\`0,DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D\},System\.Double\)')), so a batch covers a compact area. For each batch, the outlines touching its buildings are read - across county borders too - and the stored models of those neighbours are read by reference with a fallback to any county, since a county is not a key of the building table. [DiGi\.Analytical\.Building\.Query\.PartyWalls\(System\.Collections\.Generic\.IEnumerable\{DiGi\.Analytical\.Building\.Classes\.BuildingModel\},System\.Collections\.Generic\.IEnumerable\{DiGi\.Analytical\.Building\.Classes\.BuildingModel\},System\.Double,System\.Double,System\.Double,System\.Double\)](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.query.partywalls#digi-analytical-building-query-partywalls(system-collections-generic-ienumerable{digi-analytical-building-classes-buildingmodel}-system-collections-generic-ienumerable{digi-analytical-building-classes-buildingmodel}-system-double-system-double-system-double-system-double) 'DiGi\.Analytical\.Building\.Query\.PartyWalls\(System\.Collections\.Generic\.IEnumerable\{DiGi\.Analytical\.Building\.Classes\.BuildingModel\},System\.Collections\.Generic\.IEnumerable\{DiGi\.Analytical\.Building\.Classes\.BuildingModel\},System\.Double,System\.Double,System\.Double,System\.Double\)') then measures the shared walls of the whole batch in one call, so each model's envelope is built once. A neighbour with no stored model is counted in [MissingNeighbourModelCount](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLBuildingDataExternalComponentsUpdateTask.MissingNeighbourModelCount 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLBuildingDataExternalComponentsUpdateTask\.MissingNeighbourModelCount'), and a batch whose neighbours cannot be read keeps its party wall columns as they were and is counted in [PartyWallFailedBatchCount](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLBuildingDataExternalComponentsUpdateTask.PartyWallFailedBatchCount 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLBuildingDataExternalComponentsUpdateTask\.PartyWallFailedBatchCount'); neither fails the run.
 
+Counties are processed one after another; the batches of a county run concurrently, up to [MaxDegreeOfParallelism](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLBuildingDataExternalComponentsUpdateOptions.MaxDegreeOfParallelism 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLBuildingDataExternalComponentsUpdateOptions\.MaxDegreeOfParallelism') at a time, each on its own connection (DiGi-Organization/DiGi.GIS.PostgreSQL#154); until the first rows of a county are written its batches run one at a time, because that first push creates the county's partition of the building data table and two concurrent first pushes would race on it. Batches write disjoint rows and only read their neighbours, so the rows and counters do not depend on the order in which the batches finish; with a degree of 1 they run one after another in order. [UpdatedRowCount](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLBuildingDataExternalComponentsUpdateTask.UpdatedRowCount 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLBuildingDataExternalComponentsUpdateTask\.UpdatedRowCount') and the other counters are totals over all batches, and the progress reported is their running total. Memory grows with the degree times [BatchSize](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLBuildingDataExternalComponentsUpdateOptions.BatchSize 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLBuildingDataExternalComponentsUpdateOptions\.BatchSize') stored models. A batch whose read, classification or write fails marks its county failed: batches not yet started step over, batches in flight finish and keep their rows, and the county is counted once in [FailedCountyCount](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLBuildingDataExternalComponentsUpdateTask.FailedCountyCount 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLBuildingDataExternalComponentsUpdateTask\.FailedCountyCount'). A stop cancels the batches in flight; a batch is written in one transaction, so no partial batch is left.
+
 The run is idempotent: the read is deterministic (the latest stored version of a model wins), the classification is pure, and the push upserts on county and reference, so a re-run writes the same values.
 
 ```csharp
@@ -28692,7 +28709,7 @@ Gets the number of models that carry components but no external envelope, so no 
 Each one is logged as a warning with its reference. It is a property of the stored data rather than a defect of the run, so it does not fail the run.
 
 ```csharp
-public long DegenerateModelCount { get; private set; }
+public long DegenerateModelCount { get; }
 ```
 
 #### Property Value
@@ -28707,7 +28724,7 @@ Gets the number of counties that failed outright and were stepped over during th
 Each one is logged with the exception that caused it, so this figure is a count of entries to go and read rather than the whole of what is known.
 
 ```csharp
-public long FailedCountyCount { get; private set; }
+public long FailedCountyCount { get; }
 ```
 
 #### Property Value
@@ -28722,7 +28739,7 @@ Gets the number of models the classification refused as a defect in their space 
 Each one is logged as an error with its reference and reason and gets no row; the other models of its batch and county are still written. A non-zero count makes the run report itself as not succeeded.
 
 ```csharp
-public long FailedModelCount { get; private set; }
+public long FailedModelCount { get; }
 ```
 
 #### Property Value
@@ -28737,7 +28754,7 @@ Gets the number of neighbours, counted once per building they touch, whose outli
 The walls such a neighbour shares cannot be measured, so the party wall area of the building it touches is understated.
 
 ```csharp
-public long MissingNeighbourModelCount { get; private set; }
+public long MissingNeighbourModelCount { get; }
 ```
 
 #### Property Value
@@ -28752,7 +28769,7 @@ Gets the number of classified models whose external envelope does not close on t
 Each such row is written with a null closing tolerance: the orientation of an envelope face is decided by ray parity, which is sound only for a closed face set, so the sector and tilt values of these rows may rest on an arbitrary face side.
 
 ```csharp
-public long OpenEnvelopeCount { get; private set; }
+public long OpenEnvelopeCount { get; }
 ```
 
 #### Property Value
@@ -28767,7 +28784,7 @@ Gets the number of buildings found to share at least one wall with an adjacent b
 Always 0 unless [PartyWalls](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLBuildingDataExternalComponentsUpdateOptions.PartyWalls 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLBuildingDataExternalComponentsUpdateOptions\.PartyWalls') is set.
 
 ```csharp
-public long PartyWallBuildingCount { get; private set; }
+public long PartyWallBuildingCount { get; }
 ```
 
 #### Property Value
@@ -28782,7 +28799,7 @@ Gets the number of batches, or counties, whose party walls could not be measured
 The party wall columns of those buildings are left as they were; each one is logged with the exception.
 
 ```csharp
-public long PartyWallFailedBatchCount { get; private set; }
+public long PartyWallFailedBatchCount { get; }
 ```
 
 #### Property Value
@@ -28810,7 +28827,7 @@ Gets the number of counties that were processed during the last run\.
 A county whose buildings carry no stored model is processed, not failed: there is simply nothing to classify there.
 
 ```csharp
-public long ProcessedCountyCount { get; private set; }
+public long ProcessedCountyCount { get; }
 ```
 
 #### Property Value
@@ -28825,7 +28842,7 @@ Gets the number of building models read for classification during the last run, 
 Models rather than records: a reference with several stored versions is read as the latest one only, and that one is what is counted.
 
 ```csharp
-public long ProcessedModelCount { get; private set; }
+public long ProcessedModelCount { get; }
 ```
 
 #### Property Value
@@ -28840,7 +28857,7 @@ Gets the number of components skipped because their target bucket is undefined d
 A wall whose normal is vertical, so its azimuth is undefined, or whose orientation against the building interior is degenerate. A component that cannot be classified at all does not count here - that is a data defect and fails its model ([FailedModelCount](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLBuildingDataExternalComponentsUpdateTask.FailedModelCount 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLBuildingDataExternalComponentsUpdateTask\.FailedModelCount')).
 
 ```csharp
-public long SkippedComponentCount { get; private set; }
+public long SkippedComponentCount { get; }
 ```
 
 #### Property Value
@@ -28855,7 +28872,7 @@ Gets the number of references stepped over during the last run because their bui
 Always 0 unless [SkipCompleted](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLBuildingDataExternalComponentsUpdateOptions.SkipCompleted 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLBuildingDataExternalComponentsUpdateOptions\.SkipCompleted') is set.
 
 ```csharp
-public long SkippedReferenceCount { get; private set; }
+public long SkippedReferenceCount { get; }
 ```
 
 #### Property Value
@@ -28870,7 +28887,7 @@ Gets the number of building data rows written during the last run\.
 Rows rather than buildings: the same building is counted again on a later run.
 
 ```csharp
-public long UpdatedRowCount { get; private set; }
+public long UpdatedRowCount { get; }
 ```
 
 #### Property Value

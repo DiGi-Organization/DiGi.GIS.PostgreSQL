@@ -18,6 +18,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
     /// <para>A component that is valid but has no definable bucket - a wall whose normal is vertical - is skipped and counted in <see cref="SkippedComponentCount"/> rather than failing the county.</para>
     /// <para>A model whose external envelope does not close is not failed either: its row is written with a null closing tolerance and counted in <see cref="OpenEnvelopeCount"/>, because the sector and tilt values of such a row may rest on an arbitrary face side - the count is the share of rows of the run to treat with that caution.</para>
     /// <para>With <see cref="PostgreSQLBuildingDataExternalComponentsUpdateOptions.PartyWalls"/> set, the party wall area columns are filled in the same pass (DiGi-Organization/DiGi.GIS.Analytical#4). The references of a county are ordered along a Z-order curve of their outlines (<see cref="DiGi.Geometry.Planar.Query.ZOrderComparison{TKey}"/>), so a batch covers a compact area. For each batch, the outlines touching its buildings are read - across county borders too - and the stored models of those neighbours are read by reference with a fallback to any county, since a county is not a key of the building table. <see cref="DiGi.Analytical.Building.Query.PartyWalls(System.Collections.Generic.IEnumerable{DiGi.Analytical.Building.Classes.BuildingModel?}?, System.Collections.Generic.IEnumerable{DiGi.Analytical.Building.Classes.BuildingModel?}?, double, double, double, double)"/> then measures the shared walls of the whole batch in one call, so each model's envelope is built once. A neighbour with no stored model is counted in <see cref="MissingNeighbourModelCount"/>, and a batch whose neighbours cannot be read keeps its party wall columns as they were and is counted in <see cref="PartyWallFailedBatchCount"/>; neither fails the run.</para>
+    /// <para>Counties are processed one after another; the batches of a county run concurrently, up to <see cref="PostgreSQLBuildingDataExternalComponentsUpdateOptions.MaxDegreeOfParallelism"/> at a time, each on its own connection (DiGi-Organization/DiGi.GIS.PostgreSQL#154); until the first rows of a county are written its batches run one at a time, because that first push creates the county's partition of the building data table and two concurrent first pushes would race on it. Batches write disjoint rows and only read their neighbours, so the rows and counters do not depend on the order in which the batches finish; with a degree of 1 they run one after another in order. <see cref="UpdatedRowCount"/> and the other counters are totals over all batches, and the progress reported is their running total. Memory grows with the degree times <see cref="PostgreSQLBuildingDataExternalComponentsUpdateOptions.BatchSize"/> stored models. A batch whose read, classification or write fails marks its county failed: batches not yet started step over, batches in flight finish and keep their rows, and the county is counted once in <see cref="FailedCountyCount"/>. A stop cancels the batches in flight; a batch is written in one transaction, so no partial batch is left.</para>
     /// <para>The run is idempotent: the read is deterministic (the latest stored version of a model wins), the classification is pure, and the push upserts on county and reference, so a re-run writes the same values.</para>
     /// </summary>
     public class PostgreSQLBuildingDataExternalComponentsUpdateTask : ReportableBackgroundTask<long>, IGISPostgreSQLObject
@@ -26,6 +27,21 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// The GIS PostgreSQL converter manager used to retrieve converters and execute operations.
         /// </summary>
         protected readonly GISPostgreSQLConverterManager gISPostgreSQLConverterManager;
+
+        // The counters of the last run. Fields rather than auto-properties because the batches of a county add to them
+        // concurrently with Interlocked; the public properties read them with Interlocked.Read.
+        private long degenerateModelCount;
+        private long failedCountyCount;
+        private long failedModelCount;
+        private long missingNeighbourModelCount;
+        private long openEnvelopeCount;
+        private long partyWallBuildingCount;
+        private long partyWallFailedBatchCount;
+        private long processedCountyCount;
+        private long processedModelCount;
+        private long skippedComponentCount;
+        private long skippedReferenceCount;
+        private long updatedRowCount;
 
         /// <summary>
         /// Gets or sets the options used to configure the run.
@@ -45,73 +61,73 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// Gets the number of models that carry components but no external envelope, so no row was written for them, during the last run.
         /// <para>Each one is logged as a warning with its reference. It is a property of the stored data rather than a defect of the run, so it does not fail the run.</para>
         /// </summary>
-        public long DegenerateModelCount { get; private set; }
+        public long DegenerateModelCount => Interlocked.Read(ref degenerateModelCount);
 
         /// <summary>
         /// Gets the number of counties that failed outright and were stepped over during the last run.
         /// <para>Each one is logged with the exception that caused it, so this figure is a count of entries to go and read rather than the whole of what is known.</para>
         /// </summary>
-        public long FailedCountyCount { get; private set; }
+        public long FailedCountyCount => Interlocked.Read(ref failedCountyCount);
 
         /// <summary>
         /// Gets the number of models the classification refused as a defect in their space structure during the last run.
         /// <para>Each one is logged as an error with its reference and reason and gets no row; the other models of its batch and county are still written. A non-zero count makes the run report itself as not succeeded.</para>
         /// </summary>
-        public long FailedModelCount { get; private set; }
+        public long FailedModelCount => Interlocked.Read(ref failedModelCount);
 
         /// <summary>
         /// Gets the number of classified models whose external envelope does not close on the tolerance ladder during the last run.
         /// <para>Each such row is written with a null closing tolerance: the orientation of an envelope face is decided by ray parity, which is sound only for a closed face set, so the sector and tilt values of these rows may rest on an arbitrary face side.</para>
         /// </summary>
-        public long OpenEnvelopeCount { get; private set; }
+        public long OpenEnvelopeCount => Interlocked.Read(ref openEnvelopeCount);
 
         /// <summary>
         /// Gets the number of counties that were processed during the last run.
         /// <para>A county whose buildings carry no stored model is processed, not failed: there is simply nothing to classify there.</para>
         /// </summary>
-        public long ProcessedCountyCount { get; private set; }
+        public long ProcessedCountyCount => Interlocked.Read(ref processedCountyCount);
 
         /// <summary>
         /// Gets the number of building models read for classification during the last run, degenerate and refused models included.
         /// <para>Models rather than records: a reference with several stored versions is read as the latest one only, and that one is what is counted.</para>
         /// </summary>
-        public long ProcessedModelCount { get; private set; }
+        public long ProcessedModelCount => Interlocked.Read(ref processedModelCount);
 
         /// <summary>
         /// Gets the number of components skipped because their target bucket is undefined during the last run.
         /// <para>A wall whose normal is vertical, so its azimuth is undefined, or whose orientation against the building interior is degenerate. A component that cannot be classified at all does not count here - that is a data defect and fails its model (<see cref="FailedModelCount"/>).</para>
         /// </summary>
-        public long SkippedComponentCount { get; private set; }
+        public long SkippedComponentCount => Interlocked.Read(ref skippedComponentCount);
 
         /// <summary>
         /// Gets the number of references stepped over during the last run because their building data row already carried an external components area total.
         /// <para>Always 0 unless <see cref="PostgreSQLBuildingDataExternalComponentsUpdateOptions.SkipCompleted"/> is set.</para>
         /// </summary>
-        public long SkippedReferenceCount { get; private set; }
+        public long SkippedReferenceCount => Interlocked.Read(ref skippedReferenceCount);
 
         /// <summary>
         /// Gets the number of building data rows written during the last run.
         /// <para>Rows rather than buildings: the same building is counted again on a later run.</para>
         /// </summary>
-        public long UpdatedRowCount { get; private set; }
+        public long UpdatedRowCount => Interlocked.Read(ref updatedRowCount);
 
         /// <summary>
         /// Gets the number of buildings found to share at least one wall with an adjacent building during the last run.
         /// <para>Always 0 unless <see cref="PostgreSQLBuildingDataExternalComponentsUpdateOptions.PartyWalls"/> is set.</para>
         /// </summary>
-        public long PartyWallBuildingCount { get; private set; }
+        public long PartyWallBuildingCount => Interlocked.Read(ref partyWallBuildingCount);
 
         /// <summary>
         /// Gets the number of batches, or counties, whose party walls could not be measured during the last run, because the outlines or the stored models of their neighbours could not be read.
         /// <para>The party wall columns of those buildings are left as they were; each one is logged with the exception.</para>
         /// </summary>
-        public long PartyWallFailedBatchCount { get; private set; }
+        public long PartyWallFailedBatchCount => Interlocked.Read(ref partyWallFailedBatchCount);
 
         /// <summary>
         /// Gets the number of neighbours, counted once per building they touch, whose outline touches a building of the run but which carry no stored model, during the last run.
         /// <para>The walls such a neighbour shares cannot be measured, so the party wall area of the building it touches is understated.</para>
         /// </summary>
-        public long MissingNeighbourModelCount { get; private set; }
+        public long MissingNeighbourModelCount => Interlocked.Read(ref missingNeighbourModelCount);
 
         /// <summary>
         /// Executes the background task that fills the external components area columns of the building data table from the stored building models.
@@ -121,18 +137,18 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// <returns>A task representing the asynchronous operation. Returns true when every county in scope was processed without error and no model was refused by the classification; otherwise, false. Degenerate models do not make it false.</returns>
         protected override async Task<bool> ExecuteAsync(IProgress<long> progress, CancellationToken cancellationToken)
         {
-            DegenerateModelCount = 0;
-            FailedCountyCount = 0;
-            FailedModelCount = 0;
-            OpenEnvelopeCount = 0;
-            ProcessedCountyCount = 0;
-            ProcessedModelCount = 0;
-            SkippedComponentCount = 0;
-            SkippedReferenceCount = 0;
-            UpdatedRowCount = 0;
-            PartyWallBuildingCount = 0;
-            PartyWallFailedBatchCount = 0;
-            MissingNeighbourModelCount = 0;
+            degenerateModelCount = 0;
+            failedCountyCount = 0;
+            failedModelCount = 0;
+            openEnvelopeCount = 0;
+            processedCountyCount = 0;
+            processedModelCount = 0;
+            skippedComponentCount = 0;
+            skippedReferenceCount = 0;
+            updatedRowCount = 0;
+            partyWallBuildingCount = 0;
+            partyWallFailedBatchCount = 0;
+            missingNeighbourModelCount = 0;
 
             PostgreSQLBuildingDataExternalComponentsUpdateOptions ??= new();
 
@@ -141,6 +157,10 @@ namespace DiGi.GIS.PostgreSQL.Classes
             bool skipCompleted = PostgreSQLBuildingDataExternalComponentsUpdateOptions.SkipCompleted;
             bool partyWalls = PostgreSQLBuildingDataExternalComponentsUpdateOptions.PartyWalls;
             double partyWallMaxDistance = PostgreSQLBuildingDataExternalComponentsUpdateOptions.PartyWallMaxDistance;
+            int degreeOfParallelism = PostgreSQLBuildingDataExternalComponentsUpdateOptions.MaxDegreeOfParallelism > 0 ? PostgreSQLBuildingDataExternalComponentsUpdateOptions.MaxDegreeOfParallelism : Math.Max(1, Core.Query.ProcessorCount(0.5));
+
+            // Held while a batch adds its rows to the running total and reports it, so the reported total never goes back.
+            Lock progressLock = new();
 
             BuildingModelPostgreSQLConverter? buildingModelPostgreSQLConverter = gISPostgreSQLConverterManager.GetPostgreSQLConverter<BuildingModelPostgreSQLConverter>();
             if (buildingModelPostgreSQLConverter is null)
@@ -184,14 +204,16 @@ namespace DiGi.GIS.PostgreSQL.Classes
             HashSet<int>? countyIds = PostgreSQLBuildingDataExternalComponentsUpdateOptions.CountyIds;
 
             Serilog.Modify.Log(
-                "{Type}: starting over {CountyCount} counties, scope {CountyScope}, batch size {BatchSize}, skip completed {SkipCompleted}, party walls {PartyWalls} within {PartyWallMaxDistance} m",
+                "{Type}: starting over {CountyCount} counties, scope {CountyScope}, batch size {BatchSize}, skip completed {SkipCompleted}, party walls {PartyWalls} within {PartyWallMaxDistance} m, max degree of parallelism {MaxDegreeOfParallelism} (used {DegreeOfParallelism})",
                 nameof(PostgreSQLBuildingDataExternalComponentsUpdateTask),
                 countyReferences.Count,
                 countyIds is null ? "all" : string.Join(", ", countyIds),
                 batchSize,
                 skipCompleted,
                 partyWalls,
-                partyWallMaxDistance);
+                partyWallMaxDistance,
+                PostgreSQLBuildingDataExternalComponentsUpdateOptions.MaxDegreeOfParallelism,
+                degreeOfParallelism);
 
             // The columns the resume check reads. The reference column is asked for explicitly so the rows can be
             // matched back; the total is non-null only on a row a run has written.
@@ -219,7 +241,10 @@ namespace DiGi.GIS.PostgreSQL.Classes
                     continue;
                 }
 
-                bool countyFailed = false;
+                // 1 once the county has failed: set by the reference read below, or by the first batch whose read, classification
+                // or write fails. Batches of the county that have not started yet then step over; batches in flight finish
+                // and keep their rows. Written with Interlocked, read with Volatile, because batches run concurrently.
+                int countyFailed = 0;
 
                 List<string> references_List = [];
                 try
@@ -236,21 +261,21 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 }
                 catch (Exception exception)
                 {
-                    countyFailed = true;
+                    countyFailed = 1;
                     Serilog.Modify.Log(exception, "External components county failed - county {CountyId}, the stored model references could not be read", countyId);
                 }
 
-                if (references_List.Count == 0 && !countyFailed)
+                if (references_List.Count == 0 && countyFailed == 0)
                 {
                     // No stored models in this county: nothing to classify, and that is not a failure.
-                    ProcessedCountyCount++;
+                    Interlocked.Increment(ref processedCountyCount);
                     Serilog.Modify.Log(Serilog.Enums.LogEventLevel.Information, "External components county processed - county {CountyId} carries no stored building models", countyId);
                     continue;
                 }
 
                 // The outlines of the county, read once: they order the references so that a batch covers a compact area,
                 // and they are the outlines the neighbour search starts from. A county whose outlines cannot be read is
-                // still classified; only its party wall columns are left as they are.
+                // still classified; only its party wall columns are left as they are. Read-only while the batches run.
                 Dictionary<string, GIS.Classes.Building2D> building2Ds_ByReference = [];
                 bool partyWalls_County = partyWalls && building2DPostgreSQLConverter is not null;
                 if (partyWalls_County)
@@ -272,7 +297,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
                     if (building2Ds_County is null)
                     {
                         partyWalls_County = false;
-                        PartyWallFailedBatchCount++;
+                        Interlocked.Increment(ref partyWallFailedBatchCount);
                     }
                     else
                     {
@@ -294,10 +319,12 @@ namespace DiGi.GIS.PostgreSQL.Classes
                     }
                 }
 
-                // One batch is read, classified and written before the next is read, so memory follows the batch
-                // size rather than the county: holding every stored model of a city county at once starved the
-                // production host (DiGi.GIS.PostgreSQL#97). A county is therefore no longer written in one
-                // push, and a failed batch leaves the batches before it written - harmless, the run is idempotent.
+                // Up to degreeOfParallelism batches are read, classified and written at once, each on its own connection, so
+                // memory follows the degree times the batch size rather than the county: holding every stored model of a city
+                // county at once starved the production host (DiGi.GIS.PostgreSQL#97). A county is therefore not written in
+                // one push, and a failed batch leaves the batches before it and those in flight written - harmless, the run is
+                // idempotent. With a degree of 1 the batches run one after another in order, as they did before
+                // DiGi.GIS.PostgreSQL#154. The county totals are added with Interlocked by the batches.
                 long countyModelCount = 0;
                 long countyRowCount = 0;
                 long countySkippedComponentCount = 0;
@@ -306,8 +333,47 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 long countyDegenerateModelCount = 0;
                 long countyFailedModelCount = 0;
 
-                for (int offset = 0; offset < references_List.Count && !countyFailed; offset += batchSize)
+                List<int> offsets = [];
+                for (int offset = 0; offset < references_List.Count && countyFailed == 0; offset += batchSize)
                 {
+                    offsets.Add(offset);
+                }
+
+                // One batch at a time until the county has its first written row: that push creates the county's partition
+                // of the building data table and any column it lacks, and two first pushes running at once race on that DDL
+                // - one of them is rolled back and fails the county (DiGi.GIS.PostgreSQL#154). Once the partition exists,
+                // the DDL of every later push is a no-op.
+                int index_Parallel = 0;
+                while (index_Parallel < offsets.Count && countyFailed == 0 && Interlocked.Read(ref countyRowCount) == 0)
+                {
+                    await BatchAsync(offsets[index_Parallel]);
+                    index_Parallel++;
+                }
+
+                await Parallel.ForEachAsync(offsets.GetRange(index_Parallel, offsets.Count - index_Parallel), new ParallelOptions() { MaxDegreeOfParallelism = degreeOfParallelism, CancellationToken = cancellationToken }, (offset, _) => new ValueTask(BatchAsync(offset)));
+
+                Interlocked.Add(ref skippedReferenceCount, countySkippedReferenceCount);
+
+                if (countyFailed != 0)
+                {
+                    Interlocked.Increment(ref failedCountyCount);
+                    continue;
+                }
+
+                Interlocked.Increment(ref processedCountyCount);
+
+                Serilog.Modify.Log(Serilog.Enums.LogEventLevel.Information, "External components county processed - county {CountyId}, {ModelCount} models, {RowCount} rows, {SkippedCount} components skipped, {OpenEnvelopeCount} open envelopes, {DegenerateModelCount} degenerate models, {FailedModelCount} models failed, {SkippedReferenceCount} references already done", countyId, countyModelCount, countyRowCount, countySkippedComponentCount, countyOpenEnvelopeCount, countyDegenerateModelCount, countyFailedModelCount, countySkippedReferenceCount);
+
+                // One batch of the county: the references from the offset are read, classified and written, and the counts
+                // added to the county and run totals. Returns at once when the county has already failed; a failure of its own
+                // marks the county failed and leaves the rows of the other batches as they are.
+                async Task BatchAsync(int offset)
+                {
+                    if (Volatile.Read(ref countyFailed) != 0)
+                    {
+                        return;
+                    }
+
                     cancellationToken.ThrowIfCancellationRequested();
 
                     List<string> references_Batch = references_List.GetRange(offset, Math.Min(batchSize, references_List.Count - offset));
@@ -317,12 +383,12 @@ namespace DiGi.GIS.PostgreSQL.Classes
                         HashSet<string>? references_Completed = await CompletedReferencesAsync(references_Batch, countyId);
                         if (references_Completed is not null && references_Completed.Count > 0)
                         {
-                            countySkippedReferenceCount += references_Batch.RemoveAll(references_Completed.Contains);
+                            Interlocked.Add(ref countySkippedReferenceCount, references_Batch.RemoveAll(references_Completed.Contains));
                         }
 
                         if (references_Batch.Count == 0)
                         {
-                            continue;
+                            return;
                         }
                     }
 
@@ -335,7 +401,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
                         models_Batch = await buildingModelPostgreSQLConverter.GetItemsByReferencesAsync(references_Batch, countyId, fallbackByReference: false, commandTimeout: commandTimeout, cancellationToken: cancellationToken);
                         if (models_Batch is null)
                         {
-                            countyFailed = true;
+                            Interlocked.Exchange(ref countyFailed, 1);
                             Serilog.Modify.Log(Serilog.Enums.LogEventLevel.Warning, "External components county failed - county {CountyId}, offset {Offset}, the read of the {ReferenceCount} references came back empty", countyId, offset, references_Batch.Count);
                         }
                     }
@@ -345,13 +411,13 @@ namespace DiGi.GIS.PostgreSQL.Classes
                     }
                     catch (Exception exception)
                     {
-                        countyFailed = true;
+                        Interlocked.Exchange(ref countyFailed, 1);
                         Serilog.Modify.Log(exception, "External components county failed - county {CountyId}, offset {Offset}, the stored models of {ReferenceCount} references could not be read", countyId, offset, references_Batch.Count);
                     }
 
-                    if (countyFailed || models_Batch is null)
+                    if (models_Batch is null)
                     {
-                        break;
+                        return;
                     }
 
                     // The read is ordered created_at DESC, id DESC, so the first record of a reference is the latest
@@ -394,9 +460,9 @@ namespace DiGi.GIS.PostgreSQL.Classes
                     {
                         // A model the classification refuses is caught per model inside the method; reaching this is an
                         // unexpected fault, so the county fails visibly instead of writing partial rows.
-                        countyFailed = true;
+                        Interlocked.Exchange(ref countyFailed, 1);
                         Serilog.Modify.Log(exception, "External components county failed - county {CountyId}, offset {Offset}, the {ModelCount} stored models could not be classified", countyId, offset, models_Latest.Count);
-                        break;
+                        return;
                     }
 
                     List<string>? references_Degenerate = batchResult.DegenerateReferences;
@@ -430,46 +496,39 @@ namespace DiGi.GIS.PostgreSQL.Classes
                         }
                         catch (Exception exception)
                         {
-                            countyFailed = true;
+                            Interlocked.Exchange(ref countyFailed, 1);
                             Serilog.Modify.Log(exception, "External components county failed - county {CountyId}, offset {Offset}, the {RowCount} rows built could not be written", countyId, offset, table.RowCount);
-                            break;
+                            return;
                         }
 
                         if (!updated)
                         {
-                            countyFailed = true;
+                            Interlocked.Exchange(ref countyFailed, 1);
                             Serilog.Modify.Log(Serilog.Enums.LogEventLevel.Warning, "External components county failed - county {CountyId}, offset {Offset}, the write of {RowCount} rows was rolled back", countyId, offset, table.RowCount);
-                            break;
+                            return;
                         }
                     }
 
-                    countyModelCount += models_Latest.Count;
-                    countyRowCount += table.RowCount;
-                    countySkippedComponentCount += batchResult.SkippedComponentCount;
-                    countyOpenEnvelopeCount += batchResult.OpenEnvelopeCount;
-                    countyDegenerateModelCount += batchResult.DegenerateModelCount;
-                    countyFailedModelCount += batchResult.FailedModelCount;
+                    Interlocked.Add(ref countyModelCount, models_Latest.Count);
+                    Interlocked.Add(ref countyRowCount, table.RowCount);
+                    Interlocked.Add(ref countySkippedComponentCount, batchResult.SkippedComponentCount);
+                    Interlocked.Add(ref countyOpenEnvelopeCount, batchResult.OpenEnvelopeCount);
+                    Interlocked.Add(ref countyDegenerateModelCount, batchResult.DegenerateModelCount);
+                    Interlocked.Add(ref countyFailedModelCount, batchResult.FailedModelCount);
 
-                    DegenerateModelCount += batchResult.DegenerateModelCount;
-                    FailedModelCount += batchResult.FailedModelCount;
-                    OpenEnvelopeCount += batchResult.OpenEnvelopeCount;
-                    SkippedComponentCount += batchResult.SkippedComponentCount;
-                    ProcessedModelCount += models_Latest.Count;
-                    UpdatedRowCount += table.RowCount;
-                    progress.Report(UpdatedRowCount);
+                    Interlocked.Add(ref degenerateModelCount, batchResult.DegenerateModelCount);
+                    Interlocked.Add(ref failedModelCount, batchResult.FailedModelCount);
+                    Interlocked.Add(ref openEnvelopeCount, batchResult.OpenEnvelopeCount);
+                    Interlocked.Add(ref skippedComponentCount, batchResult.SkippedComponentCount);
+                    Interlocked.Add(ref processedModelCount, models_Latest.Count);
+
+                    // The add and the report under one lock, so the reported running total never goes back when two
+                    // batches finish at once.
+                    lock (progressLock)
+                    {
+                        progress.Report(Interlocked.Add(ref updatedRowCount, table.RowCount));
+                    }
                 }
-
-                SkippedReferenceCount += countySkippedReferenceCount;
-
-                if (countyFailed)
-                {
-                    FailedCountyCount++;
-                    continue;
-                }
-
-                ProcessedCountyCount++;
-
-                Serilog.Modify.Log(Serilog.Enums.LogEventLevel.Information, "External components county processed - county {CountyId}, {ModelCount} models, {RowCount} rows, {SkippedCount} components skipped, {OpenEnvelopeCount} open envelopes, {DegenerateModelCount} degenerate models, {FailedModelCount} models failed, {SkippedReferenceCount} references already done", countyId, countyModelCount, countyRowCount, countySkippedComponentCount, countyOpenEnvelopeCount, countyDegenerateModelCount, countyFailedModelCount, countySkippedReferenceCount);
             }
 
             Serilog.Modify.Log(
@@ -775,7 +834,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
                             }
                             else
                             {
-                                MissingNeighbourModelCount++;
+                                Interlocked.Increment(ref missingNeighbourModelCount);
                             }
                         }
 
@@ -792,7 +851,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
                         {
                             if (partyWallResults_Subject.Count != 0)
                             {
-                                PartyWallBuildingCount++;
+                                Interlocked.Increment(ref partyWallBuildingCount);
                                 result.AddRange(partyWallResults_Subject);
                             }
                         }
@@ -806,7 +865,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 }
                 catch (Exception exception)
                 {
-                    PartyWallFailedBatchCount++;
+                    Interlocked.Increment(ref partyWallFailedBatchCount);
                     Serilog.Modify.Log(exception, "External components party walls not measured - county {CountyId}, offset {Offset}, the {ModelCount} buildings of the batch keep their party wall columns", countyId, offset, buildingModels.Count);
                     return null;
                 }

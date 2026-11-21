@@ -41,6 +41,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 SkipCompleted = postgreSQLBuildingDataExternalComponentsUpdateOptions.SkipCompleted;
                 PartyWalls = postgreSQLBuildingDataExternalComponentsUpdateOptions.PartyWalls;
                 PartyWallMaxDistance = postgreSQLBuildingDataExternalComponentsUpdateOptions.PartyWallMaxDistance;
+                MaxDegreeOfParallelism = postgreSQLBuildingDataExternalComponentsUpdateOptions.MaxDegreeOfParallelism;
                 CountyIds = postgreSQLBuildingDataExternalComponentsUpdateOptions.CountyIds == null ? null : [.. postgreSQLBuildingDataExternalComponentsUpdateOptions.CountyIds];
             }
         }
@@ -61,10 +62,17 @@ namespace DiGi.GIS.PostgreSQL.Classes
 
         /// <summary>
         /// Gets or sets the number of references read, classified and written together. Values below 1 are treated as 1.
-        /// <para>This bounds the memory of the run: only one batch of stored building models is held at a time, so a county of any size costs the same. Lower it when a batch of large models still weighs too much.</para>
+        /// <para>This bounds the memory of the run: up to <see cref="MaxDegreeOfParallelism"/> batches of stored building models are held at a time, so a county of any size costs the same. Lower it when that many batches of large models still weigh too much.</para>
         /// </summary>
         [JsonInclude, JsonPropertyName(nameof(BatchSize))]
         public int BatchSize { get; set; } = 1000;
+
+        /// <summary>
+        /// Gets or sets the largest number of batches of one county read, classified and written at the same time. A value of 0 or less uses half of the processors (<see cref="Core.Query.ProcessorCount(double)"/> with 0.5, at least 1); 1 runs one batch at a time.
+        /// <para>Counties stay one after another; the batches of a county run concurrently, which spreads a dense city over several cores and overlaps the database time of a rural county (DiGi-Organization/DiGi.GIS.PostgreSQL#154). Memory grows with this value times <see cref="BatchSize"/>.</para>
+        /// </summary>
+        [JsonInclude, JsonPropertyName(nameof(MaxDegreeOfParallelism))]
+        public int MaxDegreeOfParallelism { get; set; } = 0;
 
         /// <summary>
         /// Gets or sets a value indicating whether references whose building data row already carries an external components area total are stepped over.
