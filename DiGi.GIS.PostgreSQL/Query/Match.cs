@@ -188,6 +188,7 @@ namespace DiGi.GIS.PostgreSQL
 
         /// <summary>
         /// Finds the <see cref="StatisticalUnit"/> matching the specified territorial name, code, and administrative type.
+        /// <para>A <see cref="Enums.AdministrativeArealType.Municipality"/> is matched by its code over every unit first, and by its name only when no code matches: a gmina that changed its type or county since the census is named by two units, the historical one holding no data from then on (DiGi-Organization/DiGi.GIS.PostgreSQL#149).</para>
         /// <para>A <see cref="Enums.AdministrativeArealType.Subdivision"/> matches nothing here: its name alone does not say where it is (DiGi-Organization/DiGi.GIS.PostgreSQL#148). Match a subdivision with its path, <see cref="Match(StatisticalUnit?, AdministrativeAreal2DReference?, AdministrativeAreal2DReferencePath?, IEnumerable{string?}?)"/>.</para>
         /// </summary>
         /// <param name="rootStatisticalUnit">The root statistical unit hierarchy.</param>
@@ -333,6 +334,33 @@ namespace DiGi.GIS.PostgreSQL
                     normalizedAdminName = normalizedAdminName.Substring(2).Trim();
                 }
 
+                // The code first, over every unit, and only then the name: a gmina that changed its type or its county since the
+                // census keeps its name on two BDL units - the historical one, holding no data from then on, and the current one
+                // its TERYT code names - and a name tried unit by unit took whichever came first. Czerwińsk nad Wisłą
+                // (071422520042, rural until 2024) was matched instead of 071422520043, which holds the 2021 census and the
+                // population, and 117 municipalities nationwide the same way (DiGi.GIS.PostgreSQL#149).
+                if (!string.IsNullOrWhiteSpace(cleanCode))
+                {
+                    foreach (StatisticalUnit municipality in municipalities)
+                    {
+                        if (municipality.UnitCode?.GetPrefix() is string mPrefix && (cleanCode.StartsWith(mPrefix, StringComparison.CurrentCulture) || mPrefix.StartsWith(cleanCode, StringComparison.CurrentCulture)))
+                        {
+                            return municipality;
+                        }
+
+                        // Map TERYT 7-digit code (Voivodeship 2 + County 2 + Municipality 3) to BDL 12-digit unit code
+                        string? mFullCode = municipality.UnitCode?.Code;
+                        if (mFullCode is not null && mFullCode.Length == 12 && cleanCode.Length == 7)
+                        {
+                            string terytSlice = string.Concat(mFullCode.AsSpan(2, 2), mFullCode.AsSpan(7, 2), mFullCode.AsSpan(9, 3));
+                            if (terytSlice == cleanCode)
+                            {
+                                return municipality;
+                            }
+                        }
+                    }
+                }
+
                 foreach (StatisticalUnit municipality in municipalities)
                 {
                     string mName = municipality.Name?.Trim().ToUpperInvariant() ?? string.Empty;
@@ -353,25 +381,6 @@ namespace DiGi.GIS.PostgreSQL
                     if (mName == normalizedAdminName || mName == cleanName)
                     {
                         return municipality;
-                    }
-
-                    string? mFullCode = municipality.UnitCode?.Code;
-                    if (!string.IsNullOrWhiteSpace(cleanCode))
-                    {
-                        if (municipality.UnitCode?.GetPrefix() is string mPrefix && (cleanCode.StartsWith(mPrefix, StringComparison.CurrentCulture) || mPrefix.StartsWith(cleanCode, StringComparison.CurrentCulture)))
-                        {
-                            return municipality;
-                        }
-
-                        // Map TERYT 7-digit code (Voivodeship 2 + County 2 + Municipality 3) to BDL 12-digit unit code
-                        if (mFullCode is not null && mFullCode.Length == 12 && cleanCode.Length == 7)
-                        {
-                            string terytSlice = string.Concat(mFullCode.AsSpan(2, 2), mFullCode.AsSpan(7, 2), mFullCode.AsSpan(9, 3));
-                            if (terytSlice == cleanCode)
-                            {
-                                return municipality;
-                            }
-                        }
                     }
                 }
 

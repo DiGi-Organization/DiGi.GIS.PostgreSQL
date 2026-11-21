@@ -3849,6 +3849,8 @@ The matching [DiGi\.GIS\.Classes\.StatisticalUnit](https://learn.microsoft.com/e
 
 Finds the [DiGi\.GIS\.Classes\.StatisticalUnit](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.statisticalunit 'DiGi\.GIS\.Classes\.StatisticalUnit') matching the specified territorial name, code, and administrative type\.
 
+A [Municipality](DiGi.GIS.PostgreSQL.Enums.md#DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType.Municipality 'DiGi\.GIS\.PostgreSQL\.Enums\.AdministrativeArealType\.Municipality') is matched by its code over every unit first, and by its name only when no code matches: a gmina that changed its type or county since the census is named by two units, the historical one holding no data from then on (DiGi-Organization/DiGi.GIS.PostgreSQL#149).
+
 A [Subdivision](DiGi.GIS.PostgreSQL.Enums.md#DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType.Subdivision 'DiGi\.GIS\.PostgreSQL\.Enums\.AdministrativeArealType\.Subdivision') matches nothing here: its name alone does not say where it is (DiGi-Organization/DiGi.GIS.PostgreSQL#148). Match a subdivision with its path, [Match\(this StatisticalUnit, AdministrativeAreal2DReference, AdministrativeAreal2DReferencePath, IEnumerable&lt;string&gt;\)](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Query.Match(thisDiGi.GIS.Classes.StatisticalUnit,DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DReference,DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DReferencePath,System.Collections.Generic.IEnumerable_string_) 'DiGi\.GIS\.PostgreSQL\.Query\.Match\(this DiGi\.GIS\.Classes\.StatisticalUnit, DiGi\.GIS\.PostgreSQL\.Classes\.AdministrativeAreal2DReference, DiGi\.GIS\.PostgreSQL\.Classes\.AdministrativeAreal2DReferencePath, System\.Collections\.Generic\.IEnumerable\<string\>\)').
 
 ```csharp
