@@ -58,6 +58,13 @@ namespace DiGi.GIS.PostgreSQL.Classes
         [JsonInclude, JsonPropertyName(nameof(LastCreatedAt))]
         private readonly DateTimeOffset? lastCreatedAt;
 
+        // A summary serialized before the method and the input variant were recorded is of Monthly and Generated (1), the only ones there were (DiGi-Organization/DiGi.GIS.PostgreSQL#152).
+        [JsonInclude, JsonPropertyName(nameof(InputVariant))]
+        private readonly int inputVariant = 1;
+
+        [JsonInclude, JsonPropertyName(nameof(Method))]
+        private readonly int method = 1;
+
         [JsonInclude, JsonPropertyName(nameof(MethodVersion))]
         private readonly int methodVersion;
 
@@ -83,7 +90,9 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// Initializes a new instance of the <see cref="BuildingHeatDemandCountyResult"/> class.
         /// </summary>
         /// <param name="countyId">The id of the county part.</param>
-        /// <param name="methodVersion">The method version of the results.</param>
+        /// <param name="method">The integer of the <c>HeatDemandMethod</c> of the results (1 = Monthly).</param>
+        /// <param name="methodVersion">The method version of the results, within <paramref name="method"/>.</param>
+        /// <param name="inputVariant">The integer of the <c>HeatDemandInputVariant</c> of the results (1 = Generated).</param>
         /// <param name="buildingType">The building type the calculation used.</param>
         /// <param name="yearBuiltBandIndex">The index of the year-built band: 0 below the first bound (or every year when no bound was given), i from the bound i - 1 to the bound i, the bound count from the last bound up; null for the buildings without a year built.</param>
         /// <param name="yearBuiltMin">The first year of the band, inclusive; null when the band is open below or holds the buildings without a year built.</param>
@@ -106,7 +115,9 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// <param name="lastCreatedAt">When the last of the results was written.</param>
         public BuildingHeatDemandCountyResult(
             int countyId,
+            int method,
             int methodVersion,
+            int inputVariant,
             BuildingType buildingType,
             int? yearBuiltBandIndex,
             short? yearBuiltMin,
@@ -130,7 +141,9 @@ namespace DiGi.GIS.PostgreSQL.Classes
             : base()
         {
             this.countyId = countyId;
+            this.method = method;
             this.methodVersion = methodVersion;
+            this.inputVariant = inputVariant;
             this.buildingType = buildingType;
             this.yearBuiltBandIndex = yearBuiltBandIndex;
             this.yearBuiltMin = yearBuiltMin;
@@ -163,7 +176,9 @@ namespace DiGi.GIS.PostgreSQL.Classes
             if (buildingHeatDemandCountyResult is not null)
             {
                 countyId = buildingHeatDemandCountyResult.countyId;
+                method = buildingHeatDemandCountyResult.method;
                 methodVersion = buildingHeatDemandCountyResult.methodVersion;
+                inputVariant = buildingHeatDemandCountyResult.inputVariant;
                 buildingType = buildingHeatDemandCountyResult.buildingType;
                 yearBuiltBandIndex = buildingHeatDemandCountyResult.yearBuiltBandIndex;
                 yearBuiltMin = buildingHeatDemandCountyResult.yearBuiltMin;
@@ -287,7 +302,19 @@ namespace DiGi.GIS.PostgreSQL.Classes
         public DateTimeOffset? LastCreatedAt => lastCreatedAt;
 
         /// <summary>
-        /// Gets the method version of the results.
+        /// Gets the integer of the <c>DiGi.GIS.Analytical.Energy.Enums.HeatDemandInputVariant</c> of the results (1 = Generated): a summary never mixes input variants (DiGi-Organization/DiGi.GIS.PostgreSQL#152). An integer, because this assembly references no energy assembly.
+        /// </summary>
+        [JsonIgnore]
+        public int InputVariant => inputVariant;
+
+        /// <summary>
+        /// Gets the integer of the <c>DiGi.Analytical.Building.Energy.Enums.HeatDemandMethod</c> of the results (1 = Monthly): a summary never mixes methods (DiGi-Organization/DiGi.GIS.PostgreSQL#152). An integer, because this assembly references no energy assembly.
+        /// </summary>
+        [JsonIgnore]
+        public int Method => method;
+
+        /// <summary>
+        /// Gets the method version of the results, the revision within <see cref="Method"/>.
         /// </summary>
         [JsonIgnore]
         public int MethodVersion => methodVersion;

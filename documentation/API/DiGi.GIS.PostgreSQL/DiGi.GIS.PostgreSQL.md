@@ -2813,54 +2813,68 @@ The tolerance used for the closest point calculation\.
 [Building](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.Building 'DiGi\.GIS\.PostgreSQL\.Classes\.Building')  
 The most relevant [Building](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.Building 'DiGi\.GIS\.PostgreSQL\.Classes\.Building'), or null if the collection is null, empty or no candidate could be resolved\.
 
-<a name='DiGi.GIS.PostgreSQL.Query.BuildingHeatDemandCountyResultsAsync(thisNpgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_int_,System.Nullable_int_,System.Collections.Generic.IEnumerable_short_,int,System.Threading.CancellationToken)'></a>
+<a name='DiGi.GIS.PostgreSQL.Query.BuildingHeatDemandCountyResultsAsync(thisNpgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_int_,System.Nullable_int_,System.Collections.Generic.IEnumerable_short_,int,int,int,System.Threading.CancellationToken)'></a>
 
-## Query\.BuildingHeatDemandCountyResultsAsync\(this NpgsqlConnection, IEnumerable\<int\>, Nullable\<int\>, IEnumerable\<short\>, int, CancellationToken\) Method
+## Query\.BuildingHeatDemandCountyResultsAsync\(this NpgsqlConnection, IEnumerable\<int\>, Nullable\<int\>, IEnumerable\<short\>, int, int, int, CancellationToken\) Method
 
-Asynchronously summarises the stored heat demand of the given county parts, one row per county part, method version, building type and year\-built band \(DiGi\.GIS\.PostgreSQL\#146, for DiGi\-Organization/DiGi\.Analytical\#10\)\.
+Asynchronously summarises the stored heat demand of one method and one input variant in the given county parts, one row per county part, method version, building type and year\-built band \(DiGi\.GIS\.PostgreSQL\#146, for DiGi\-Organization/DiGi\.Analytical\#10\)\.
+
+Results of another method or input variant never enter the summary (DiGi-Organization/DiGi.GIS.PostgreSQL#152): [method](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Query.BuildingHeatDemandCountyResultsAsync(thisNpgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_int_,System.Nullable_int_,System.Collections.Generic.IEnumerable_short_,int,int,int,System.Threading.CancellationToken).method 'DiGi\.GIS\.PostgreSQL\.Query\.BuildingHeatDemandCountyResultsAsync\(this Npgsql\.NpgsqlConnection, System\.Collections\.Generic\.IEnumerable\<int\>, System\.Nullable\<int\>, System\.Collections\.Generic\.IEnumerable\<short\>, int, int, int, System\.Threading\.CancellationToken\)\.method') and [inputVariant](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Query.BuildingHeatDemandCountyResultsAsync(thisNpgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_int_,System.Nullable_int_,System.Collections.Generic.IEnumerable_short_,int,int,int,System.Threading.CancellationToken).inputVariant 'DiGi\.GIS\.PostgreSQL\.Query\.BuildingHeatDemandCountyResultsAsync\(this Npgsql\.NpgsqlConnection, System\.Collections\.Generic\.IEnumerable\<int\>, System\.Nullable\<int\>, System\.Collections\.Generic\.IEnumerable\<short\>, int, int, int, System\.Threading\.CancellationToken\)\.inputVariant') are the integers of `HeatDemandMethod` and `HeatDemandInputVariant`, taken as integers because this assembly references no energy assembly; their defaults are `Monthly` (1) and `Generated` (1).
 
 Plain SQL over the columns and the `object` JSONB of [BuildingHeatDemand](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.TableName.BuildingHeatDemand 'DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.BuildingHeatDemand'), so a host that serves it needs no energy engine. The building type and the year built are the ones the calculation stored (`BuildingType`, `YearBuilt`); the quality counts come from its `HeatDemandResult` (`ExcludedComponents`, `GlazingFallbackCount`, `MissingIrradiationCount`), a missing or null value counting as 0.
 
-The bands: [yearBuiltBounds](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Query.BuildingHeatDemandCountyResultsAsync(thisNpgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_int_,System.Nullable_int_,System.Collections.Generic.IEnumerable_short_,int,System.Threading.CancellationToken).yearBuiltBounds 'DiGi\.GIS\.PostgreSQL\.Query\.BuildingHeatDemandCountyResultsAsync\(this Npgsql\.NpgsqlConnection, System\.Collections\.Generic\.IEnumerable\<int\>, System\.Nullable\<int\>, System\.Collections\.Generic\.IEnumerable\<short\>, int, System\.Threading\.CancellationToken\)\.yearBuiltBounds') is sorted and de-duplicated; band 0 is below the first bound, band i from the bound i - 1 to the year before the bound i, the last band from the last bound up. Without bounds every year is band 0. A result without a year built is its own band, index null.
+The bands: [yearBuiltBounds](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Query.BuildingHeatDemandCountyResultsAsync(thisNpgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_int_,System.Nullable_int_,System.Collections.Generic.IEnumerable_short_,int,int,int,System.Threading.CancellationToken).yearBuiltBounds 'DiGi\.GIS\.PostgreSQL\.Query\.BuildingHeatDemandCountyResultsAsync\(this Npgsql\.NpgsqlConnection, System\.Collections\.Generic\.IEnumerable\<int\>, System\.Nullable\<int\>, System\.Collections\.Generic\.IEnumerable\<short\>, int, int, int, System\.Threading\.CancellationToken\)\.yearBuiltBounds') is sorted and de-duplicated; band 0 is below the first bound, band i from the bound i - 1 to the year before the bound i, the last band from the last bound up. Without bounds every year is band 0. A result without a year built is its own band, index null.
 
 Separate statement texts for a scoped and an unscoped read and for a method version or none, so a scoped read prunes to its partitions (`Coding - PostgreSQL.md` §3).
 
 ```csharp
-public static System.Threading.Tasks.Task<System.Collections.Generic.List<DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult>?> BuildingHeatDemandCountyResultsAsync(this Npgsql.NpgsqlConnection? npgsqlConnection, System.Collections.Generic.IEnumerable<int>? countyIds, System.Nullable<int> methodVersion=null, System.Collections.Generic.IEnumerable<short>? yearBuiltBounds=null, int commandTimeout=600, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+public static System.Threading.Tasks.Task<System.Collections.Generic.List<DiGi.GIS.PostgreSQL.Classes.BuildingHeatDemandCountyResult>?> BuildingHeatDemandCountyResultsAsync(this Npgsql.NpgsqlConnection? npgsqlConnection, System.Collections.Generic.IEnumerable<int>? countyIds, System.Nullable<int> methodVersion=null, System.Collections.Generic.IEnumerable<short>? yearBuiltBounds=null, int method=1, int inputVariant=1, int commandTimeout=600, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
 ```
 #### Parameters
 
-<a name='DiGi.GIS.PostgreSQL.Query.BuildingHeatDemandCountyResultsAsync(thisNpgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_int_,System.Nullable_int_,System.Collections.Generic.IEnumerable_short_,int,System.Threading.CancellationToken).npgsqlConnection'></a>
+<a name='DiGi.GIS.PostgreSQL.Query.BuildingHeatDemandCountyResultsAsync(thisNpgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_int_,System.Nullable_int_,System.Collections.Generic.IEnumerable_short_,int,int,int,System.Threading.CancellationToken).npgsqlConnection'></a>
 
 `npgsqlConnection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
 
 The open [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection') of the Storage database\. This value can be null\.
 
-<a name='DiGi.GIS.PostgreSQL.Query.BuildingHeatDemandCountyResultsAsync(thisNpgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_int_,System.Nullable_int_,System.Collections.Generic.IEnumerable_short_,int,System.Threading.CancellationToken).countyIds'></a>
+<a name='DiGi.GIS.PostgreSQL.Query.BuildingHeatDemandCountyResultsAsync(thisNpgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_int_,System.Nullable_int_,System.Collections.Generic.IEnumerable_short_,int,int,int,System.Threading.CancellationToken).countyIds'></a>
 
 `countyIds` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
 
 The county parts to summarise; null for every part that holds results\.
 
-<a name='DiGi.GIS.PostgreSQL.Query.BuildingHeatDemandCountyResultsAsync(thisNpgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_int_,System.Nullable_int_,System.Collections.Generic.IEnumerable_short_,int,System.Threading.CancellationToken).methodVersion'></a>
+<a name='DiGi.GIS.PostgreSQL.Query.BuildingHeatDemandCountyResultsAsync(thisNpgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_int_,System.Nullable_int_,System.Collections.Generic.IEnumerable_short_,int,int,int,System.Threading.CancellationToken).methodVersion'></a>
 
 `methodVersion` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
-The method version to summarise; null for every version, one row each\.
+The method version to summarise, within [method](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Query.BuildingHeatDemandCountyResultsAsync(thisNpgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_int_,System.Nullable_int_,System.Collections.Generic.IEnumerable_short_,int,int,int,System.Threading.CancellationToken).method 'DiGi\.GIS\.PostgreSQL\.Query\.BuildingHeatDemandCountyResultsAsync\(this Npgsql\.NpgsqlConnection, System\.Collections\.Generic\.IEnumerable\<int\>, System\.Nullable\<int\>, System\.Collections\.Generic\.IEnumerable\<short\>, int, int, int, System\.Threading\.CancellationToken\)\.method'); null for every version, one row each\.
 
-<a name='DiGi.GIS.PostgreSQL.Query.BuildingHeatDemandCountyResultsAsync(thisNpgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_int_,System.Nullable_int_,System.Collections.Generic.IEnumerable_short_,int,System.Threading.CancellationToken).yearBuiltBounds'></a>
+<a name='DiGi.GIS.PostgreSQL.Query.BuildingHeatDemandCountyResultsAsync(thisNpgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_int_,System.Nullable_int_,System.Collections.Generic.IEnumerable_short_,int,int,int,System.Threading.CancellationToken).yearBuiltBounds'></a>
 
 `yearBuiltBounds` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[System\.Int16](https://learn.microsoft.com/en-us/dotnet/api/system.int16 'System\.Int16')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
 
 The bounds of the year\-built bands, such as the first years of a typology's construction periods; null or empty for one band of every year\.
 
-<a name='DiGi.GIS.PostgreSQL.Query.BuildingHeatDemandCountyResultsAsync(thisNpgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_int_,System.Nullable_int_,System.Collections.Generic.IEnumerable_short_,int,System.Threading.CancellationToken).commandTimeout'></a>
+<a name='DiGi.GIS.PostgreSQL.Query.BuildingHeatDemandCountyResultsAsync(thisNpgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_int_,System.Nullable_int_,System.Collections.Generic.IEnumerable_short_,int,int,int,System.Threading.CancellationToken).method'></a>
+
+`method` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The integer of the `HeatDemandMethod` to summarise; 1 = Monthly\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.BuildingHeatDemandCountyResultsAsync(thisNpgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_int_,System.Nullable_int_,System.Collections.Generic.IEnumerable_short_,int,int,int,System.Threading.CancellationToken).inputVariant'></a>
+
+`inputVariant` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The integer of the `HeatDemandInputVariant` to summarise; 1 = Generated\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.BuildingHeatDemandCountyResultsAsync(thisNpgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_int_,System.Nullable_int_,System.Collections.Generic.IEnumerable_short_,int,int,int,System.Threading.CancellationToken).commandTimeout'></a>
 
 `commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
 
 The timeout in seconds for the command\. A value of 0 disables the timeout\.
 
-<a name='DiGi.GIS.PostgreSQL.Query.BuildingHeatDemandCountyResultsAsync(thisNpgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_int_,System.Nullable_int_,System.Collections.Generic.IEnumerable_short_,int,System.Threading.CancellationToken).cancellationToken'></a>
+<a name='DiGi.GIS.PostgreSQL.Query.BuildingHeatDemandCountyResultsAsync(thisNpgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_int_,System.Nullable_int_,System.Collections.Generic.IEnumerable_short_,int,int,int,System.Threading.CancellationToken).cancellationToken'></a>
 
 `cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
 

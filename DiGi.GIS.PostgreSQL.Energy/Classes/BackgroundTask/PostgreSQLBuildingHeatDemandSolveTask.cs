@@ -143,14 +143,14 @@ namespace DiGi.GIS.PostgreSQL.Energy.Classes
         }
 
         /// <inheritdoc />
-        protected override async Task<HashSet<string>?> ReadCompletedReferencesAsync(int countyId, int methodVersion, int commandTimeout, CancellationToken cancellationToken)
+        protected override async Task<HashSet<string>?> ReadCompletedReferencesAsync(int countyId, DiGi.Analytical.Building.Energy.Enums.HeatDemandMethod heatDemandMethod, int methodVersion, Analytical.Energy.Enums.HeatDemandInputVariant heatDemandInputVariant, int commandTimeout, CancellationToken cancellationToken)
         {
             if (buildingHeatDemandPostgreSQLConverter is null)
             {
                 return null;
             }
 
-            return await buildingHeatDemandPostgreSQLConverter.GetReferencesAsync(countyId, methodVersion, commandTimeout, cancellationToken);
+            return await buildingHeatDemandPostgreSQLConverter.GetReferencesAsync(countyId, methodVersion, heatDemandMethod, heatDemandInputVariant, commandTimeout, cancellationToken);
         }
 
         /// <inheritdoc />

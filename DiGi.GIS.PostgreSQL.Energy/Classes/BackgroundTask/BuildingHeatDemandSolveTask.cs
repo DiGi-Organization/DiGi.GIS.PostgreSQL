@@ -76,7 +76,7 @@ namespace DiGi.GIS.PostgreSQL.Energy.Classes
         public long ProcessedCountyCount { get; private set; }
 
         /// <summary>
-        /// Gets the number of buildings stepped over during the last run because a result of the current method version was already stored (<see cref="PostgreSQLBuildingHeatDemandSolveOptions.SkipCompleted"/>).
+        /// Gets the number of buildings stepped over during the last run because a result of the run's method, method version and input variant was already stored (<see cref="PostgreSQLBuildingHeatDemandSolveOptions.SkipCompleted"/>).
         /// </summary>
         public long SkippedCompletedCount { get; private set; }
 
@@ -120,7 +120,11 @@ namespace DiGi.GIS.PostgreSQL.Energy.Classes
             double solarRadius = GIS.Analytical.Solar.Query.SolarRadiusKey(PostgreSQLBuildingHeatDemandSolveOptions.SolarRadius);
             bool skipCompleted = PostgreSQLBuildingHeatDemandSolveOptions.SkipCompleted;
             ConstructionFlavour constructionFlavour = PostgreSQLBuildingHeatDemandSolveOptions.ConstructionFlavour;
+            // What this run calculates, and so what a stored result must match to be stepped over: a result of another method,
+            // version or input variant is not this run's (DiGi-Organization/DiGi.GIS.PostgreSQL#152).
+            DiGi.Analytical.Building.Energy.Enums.HeatDemandMethod heatDemandMethod = DiGi.Analytical.Building.Energy.Enums.HeatDemandMethod.Monthly;
             int methodVersion = DiGi.Analytical.Building.Energy.Constants.Default.HeatDemandMethodVersion;
+            HeatDemandInputVariant heatDemandInputVariant = HeatDemandInputVariant.Generated;
             int maxDegreeOfParallelism = PostgreSQLBuildingHeatDemandSolveOptions.MaxDegreeOfParallelism > 0 ? PostgreSQLBuildingHeatDemandSolveOptions.MaxDegreeOfParallelism : Math.Max(1, Core.Query.ProcessorCount(0.5));
 
             // The transport logs its own reason for refusing.
@@ -157,11 +161,13 @@ namespace DiGi.GIS.PostgreSQL.Energy.Classes
             HashSet<int>? countyIds = PostgreSQLBuildingHeatDemandSolveOptions.CountyIds;
 
             Serilog.Modify.Log(
-                "{Type}: starting over {CountyCount} counties, scope {CountyScope}, method version {MethodVersion}, construction flavour {ConstructionFlavour}, construction library {ConstructionLibraryVersion}, solar radius {SolarRadius} m, neighbour radius {NeighbourRadius} m, tile {TileSize} m, batch size {BatchSize}, building cap {BuildingCountMax}, skip completed {SkipCompleted}, degree of parallelism {DegreeOfParallelism}",
+                "{Type}: starting over {CountyCount} counties, scope {CountyScope}, method {HeatDemandMethod} version {MethodVersion}, input variant {HeatDemandInputVariant}, construction flavour {ConstructionFlavour}, construction library {ConstructionLibraryVersion}, solar radius {SolarRadius} m, neighbour radius {NeighbourRadius} m, tile {TileSize} m, batch size {BatchSize}, building cap {BuildingCountMax}, skip completed {SkipCompleted}, degree of parallelism {DegreeOfParallelism}",
                 type,
                 countyReferences.Count,
                 countyIds is null ? "all" : string.Join(", ", countyIds),
+                heatDemandMethod,
                 methodVersion,
+                heatDemandInputVariant,
                 constructionFlavour,
                 constructionLibrary.Version ?? "unknown",
                 solarRadius,
@@ -197,7 +203,7 @@ namespace DiGi.GIS.PostgreSQL.Energy.Classes
                     HashSet<string> references_Completed = [];
                     if (skipCompleted)
                     {
-                        references_Completed = await ReadCompletedReferencesAsync(countyId, methodVersion, commandTimeout, cancellationToken) ?? throw new InvalidOperationException("the stored results could not be read");
+                        references_Completed = await ReadCompletedReferencesAsync(countyId, heatDemandMethod, methodVersion, heatDemandInputVariant, commandTimeout, cancellationToken) ?? throw new InvalidOperationException("the stored results could not be read");
                     }
 
                     List<Building2DCentroid> building2DCentroids_Pending = [];
@@ -564,14 +570,16 @@ namespace DiGi.GIS.PostgreSQL.Energy.Classes
         protected abstract Task<List<BuildingSolarRadiationResult>?> ReadBuildingSolarRadiationResultsAsync(int countyId, List<string> references, double? radius, int commandTimeout, CancellationToken cancellationToken);
 
         /// <summary>
-        /// Reads the references of one county part that already hold a result of the given method version.
+        /// Reads the references of one county part that already hold a result of the given method, method version and input variant; a result differing in any of the three does not count (DiGi-Organization/DiGi.GIS.PostgreSQL#152).
         /// </summary>
         /// <param name="countyId">The id of the county part.</param>
-        /// <param name="methodVersion">The method version.</param>
+        /// <param name="heatDemandMethod">The method.</param>
+        /// <param name="methodVersion">The method version, within <paramref name="heatDemandMethod"/>.</param>
+        /// <param name="heatDemandInputVariant">The input variant.</param>
         /// <param name="commandTimeout">The timeout in seconds of the read; 0 disables it.</param>
         /// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
         /// <returns>A task whose result holds the references, or null when the read failed.</returns>
-        protected abstract Task<HashSet<string>?> ReadCompletedReferencesAsync(int countyId, int methodVersion, int commandTimeout, CancellationToken cancellationToken);
+        protected abstract Task<HashSet<string>?> ReadCompletedReferencesAsync(int countyId, DiGi.Analytical.Building.Energy.Enums.HeatDemandMethod heatDemandMethod, int methodVersion, HeatDemandInputVariant heatDemandInputVariant, int commandTimeout, CancellationToken cancellationToken);
 
         /// <summary>
         /// Reads the county parts the run may walk.

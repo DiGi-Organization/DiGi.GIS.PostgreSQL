@@ -22,7 +22,9 @@ Asynchronously creates the [BuildingHeatDemand](DiGi.GIS.PostgreSQL.Energy.Const
 
 One row holds one building's `BuildingHeatDemandResult`: the `object` column carries the whole result, the nested monthly heat demand and the provenance included, and the summary columns (`heating_energy_need`, `heating_energy_need_per_area`, `design_heat_load`) and the provenance keys (weather and solar source, construction flavour and library version) repeat what queries filter and aggregate on.
 
-The key `(county_id, building_model_id, method_version)` is unique, `NULLS NOT DISTINCT` although every column of it is NOT NULL, so the index stays correct if a column ever becomes nullable. Every statement is idempotent.
+The key `(county_id, building_model_id, method, method_version, input_variant)` is unique (DiGi-Organization/DiGi.GIS.PostgreSQL#152, Heat Demand Method Identity DiGi-Organization/DiGi.GIS.Analytical#19): `method` and `input_variant` are the integers of the result's `HeatDemandMethod` and `HeatDemandInputVariant`, so results of different methods or input variants are stored side by side. `NULLS NOT DISTINCT` although every column of it is NOT NULL, so the index stays correct if a column ever becomes nullable.
+
+Every statement is idempotent, and the method also migrates a table created before the two columns: they are added with the default 1 (`Monthly`, `Generated` - the only method and input variant there were), which fills every existing row, and the default is dropped so a write must name both; the key moves from `(county_id, building_model_id, method_version)` to the new one. The migration runs only while a column is missing, so the writes that call this method take no table lock once it is done.
 
 ```csharp
 public static System.Threading.Tasks.Task<bool> TableAsync_BuildingHeatDemand(this Npgsql.NpgsqlConnection? npgsqlConnection, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
