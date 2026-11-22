@@ -161,6 +161,11 @@
         public const string StatisticalDataCollection = "statistical_data_collection";
 
         /// <summary>
+        /// The name of the GUS census population grid table: one row per cell of the 1 km population grid of one census year, carrying the cell identifier, the census year, the population (null where statistical secrecy hides it) and the cell outline in EPSG:2180 (DiGi.GIS.PostgreSQL#106). Not partitioned - the grid is national and a county comparison reads it by bounding box. On the Main database, beside <see cref="Building2D"/>.
+        /// </summary>
+        public const string PopulationGrid = "population_grid_1km";
+
+        /// <summary>
         /// The name of the building shape labelling sample table: one row per footprint of a fixed, ordered sample, unique on (<c>sample_key</c>, <c>county_id</c>, <c>reference</c>) and on (<c>sample_key</c>, <c>ordinal</c>), carrying the solver shape at sampling time (DiGi.GIS.PostgreSQL#135). On the Main database.
         /// </summary>
         public const string BuildingShapeSample = "building_shape_sample";

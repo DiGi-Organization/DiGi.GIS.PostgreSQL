@@ -42,6 +42,73 @@ public const string PostgreSQL_Storage = "GIS_PostgreSQL_Storage.conf";
 #### Field Value
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
+<a name='DiGi.GIS.PostgreSQL.Constants.PopulationDensity'></a>
+
+## PopulationDensity Class
+
+Provides the population\-per\-cell boundaries of the density classes of [PopulationDensityClass](DiGi.GIS.PostgreSQL.Enums.md#DiGi.GIS.PostgreSQL.Enums.PopulationDensityClass 'DiGi\.GIS\.PostgreSQL\.Enums\.PopulationDensityClass') \(DiGi\.GIS\.PostgreSQL\#106\)\.
+
+The census grid cell is 1 km², so a cell's population is its population density per square kilometre and the bands read directly against persons/km². The boundaries are upper bounds: a class holds every value up to and including its maximum, and the next class starts one person above it.
+
+```csharp
+public static class PopulationDensity
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → PopulationDensity
+### Fields
+
+<a name='DiGi.GIS.PostgreSQL.Constants.PopulationDensity.High_Maximum'></a>
+
+## PopulationDensity\.High\_Maximum Field
+
+The inclusive upper bound, in persons per km², of the [High](DiGi.GIS.PostgreSQL.Enums.md#DiGi.GIS.PostgreSQL.Enums.PopulationDensityClass.High 'DiGi\.GIS\.PostgreSQL\.Enums\.PopulationDensityClass\.High') class \(5000\)\.
+
+```csharp
+public const int High_Maximum = 5000;
+```
+
+#### Field Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.PostgreSQL.Constants.PopulationDensity.Low_Maximum'></a>
+
+## PopulationDensity\.Low\_Maximum Field
+
+The inclusive upper bound, in persons per km², of the [Low](DiGi.GIS.PostgreSQL.Enums.md#DiGi.GIS.PostgreSQL.Enums.PopulationDensityClass.Low 'DiGi\.GIS\.PostgreSQL\.Enums\.PopulationDensityClass\.Low') class \(200\)\.
+
+```csharp
+public const int Low_Maximum = 200;
+```
+
+#### Field Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.PostgreSQL.Constants.PopulationDensity.Medium_Maximum'></a>
+
+## PopulationDensity\.Medium\_Maximum Field
+
+The inclusive upper bound, in persons per km², of the [Medium](DiGi.GIS.PostgreSQL.Enums.md#DiGi.GIS.PostgreSQL.Enums.PopulationDensityClass.Medium 'DiGi\.GIS\.PostgreSQL\.Enums\.PopulationDensityClass\.Medium') class \(1000\)\.
+
+```csharp
+public const int Medium_Maximum = 1000;
+```
+
+#### Field Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.PostgreSQL.Constants.PopulationDensity.VeryLow_Maximum'></a>
+
+## PopulationDensity\.VeryLow\_Maximum Field
+
+The inclusive upper bound, in persons per km², of the [VeryLow](DiGi.GIS.PostgreSQL.Enums.md#DiGi.GIS.PostgreSQL.Enums.PopulationDensityClass.VeryLow 'DiGi\.GIS\.PostgreSQL\.Enums\.PopulationDensityClass\.VeryLow') class \(50\)\.
+
+```csharp
+public const int VeryLow_Maximum = 50;
+```
+
+#### Field Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
 <a name='DiGi.GIS.PostgreSQL.Constants.PrimarySource'></a>
 
 ## PrimarySource Class
@@ -494,6 +561,19 @@ The name of the Overture footprint table: one row per footprint of one Overture 
 
 ```csharp
 public const string Overture_Building2D = "overture_building_2d";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.PostgreSQL.Constants.TableName.PopulationGrid'></a>
+
+## TableName\.PopulationGrid Field
+
+The name of the GUS census population grid table: one row per cell of the 1 km population grid of one census year, carrying the cell identifier, the census year, the population \(null where statistical secrecy hides it\) and the cell outline in EPSG:2180 \(DiGi\.GIS\.PostgreSQL\#106\)\. Not partitioned \- the grid is national and a county comparison reads it by bounding box\. On the Main database, beside [Building2D](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.TableName.Building2D 'DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.Building2D')\.
+
+```csharp
+public const string PopulationGrid = "population_grid_1km";
 ```
 
 #### Field Value

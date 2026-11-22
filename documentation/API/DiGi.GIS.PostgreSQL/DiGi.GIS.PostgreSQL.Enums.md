@@ -144,6 +144,69 @@ Another interpreter drew the polygon; only the one who drew it may remove it\.
 
 Another interpreter has labelled the polygon; removing it would delete their labels, so it stays\.
 
+<a name='DiGi.GIS.PostgreSQL.Enums.PopulationDensityClass'></a>
+
+## PopulationDensityClass Enum
+
+The population density class a census grid cell falls into, by its population per 1 km² cell \(DiGi\.GIS\.PostgreSQL\#106\)\.
+
+[Masked](DiGi.GIS.PostgreSQL.Enums.md#DiGi.GIS.PostgreSQL.Enums.PopulationDensityClass.Masked 'DiGi\.GIS\.PostgreSQL\.Enums\.PopulationDensityClass\.Masked') is a cell whose value statistical secrecy hides - a missing value, not a zero - and [Zero](DiGi.GIS.PostgreSQL.Enums.md#DiGi.GIS.PostgreSQL.Enums.PopulationDensityClass.Zero 'DiGi\.GIS\.PostgreSQL\.Enums\.PopulationDensityClass\.Zero') is a cell the census reports as empty. The two are kept apart so a comparison can exclude the masked cells from its metrics and say how many it excluded, while an empty cell stays a real observation of an error of exactly the modelled sum.
+
+The band boundaries are [PopulationDensity](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.PopulationDensity 'DiGi\.GIS\.PostgreSQL\.Constants\.PopulationDensity'); they are a reporting classification of the census population, never of the modelled one.
+
+```csharp
+public enum PopulationDensityClass
+```
+### Fields
+
+<a name='DiGi.GIS.PostgreSQL.Enums.PopulationDensityClass.Undefined'></a>
+
+`Undefined` 0
+
+The class is not known \- a value outside every band, for example a negative population no census publishes\.
+
+<a name='DiGi.GIS.PostgreSQL.Enums.PopulationDensityClass.Masked'></a>
+
+`Masked` 1
+
+The cell's population is hidden by statistical secrecy; the stored value is null\.
+
+<a name='DiGi.GIS.PostgreSQL.Enums.PopulationDensityClass.Zero'></a>
+
+`Zero` 2
+
+The census reports the cell as empty\.
+
+<a name='DiGi.GIS.PostgreSQL.Enums.PopulationDensityClass.VeryLow'></a>
+
+`VeryLow` 3
+
+Up to and including 50 persons per km²\.
+
+<a name='DiGi.GIS.PostgreSQL.Enums.PopulationDensityClass.Low'></a>
+
+`Low` 4
+
+51 to 200 persons per km²\.
+
+<a name='DiGi.GIS.PostgreSQL.Enums.PopulationDensityClass.Medium'></a>
+
+`Medium` 5
+
+201 to 1000 persons per km²\.
+
+<a name='DiGi.GIS.PostgreSQL.Enums.PopulationDensityClass.High'></a>
+
+`High` 6
+
+1001 to 5000 persons per km²\.
+
+<a name='DiGi.GIS.PostgreSQL.Enums.PopulationDensityClass.VeryHigh'></a>
+
+`VeryHigh` 7
+
+Above 5000 persons per km²\.
+
 <a name='DiGi.GIS.PostgreSQL.Enums.UpdateRejectionReason'></a>
 
 ## UpdateRejectionReason Enum

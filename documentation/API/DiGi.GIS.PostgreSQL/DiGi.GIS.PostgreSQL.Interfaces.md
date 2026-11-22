@@ -29,6 +29,7 @@ Derived
 ↳ [OrtoAreaPostgreSQLConverter](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaPostgreSQLConverter')  
 ↳ [OrtoDatasPostgreSQLConverter](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoDatasPostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoDatasPostgreSQLConverter')  
 ↳ [OrtoSheetPostgreSQLConverter](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoSheetPostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoSheetPostgreSQLConverter')  
+↳ [PopulationGridPostgreSQLConverter](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Classes\.PopulationGridPostgreSQLConverter')  
 ↳ [ReferencedObjectPostgreSQLConverter&lt;TReferencedObject,TUniqueObject&gt;](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.ReferencedObjectPostgreSQLConverter_TReferencedObject,TUniqueObject_ 'DiGi\.GIS\.PostgreSQL\.Classes\.ReferencedObjectPostgreSQLConverter\<TReferencedObject,TUniqueObject\>')  
 ↳ [StatisticalDataCollectionPostgreSQLConverter](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.StatisticalDataCollectionPostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Classes\.StatisticalDataCollectionPostgreSQLConverter')  
 ↳ [TerrainPointPostgreSQLConverter](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.TerrainPointPostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Classes\.TerrainPointPostgreSQLConverter')  
@@ -60,6 +61,7 @@ Derived
 ↳ [Building2DPostgreSQLConverter](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.Building2DPostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Classes\.Building2DPostgreSQLConverter')  
 ↳ [BuildingPostgreSQLConverter](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.BuildingPostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Classes\.BuildingPostgreSQLConverter')  
 ↳ [OrtoDatasPostgreSQLConverter](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoDatasPostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoDatasPostgreSQLConverter')  
+↳ [PopulationGridPostgreSQLConverter](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Classes\.PopulationGridPostgreSQLConverter')  
 ↳ [ReferencedObjectPostgreSQLConverter&lt;TReferencedObject,TUniqueObject&gt;](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.ReferencedObjectPostgreSQLConverter_TReferencedObject,TUniqueObject_ 'DiGi\.GIS\.PostgreSQL\.Classes\.ReferencedObjectPostgreSQLConverter\<TReferencedObject,TUniqueObject\>')  
 ↳ [TerrainPointPostgreSQLConverter](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.TerrainPointPostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Classes\.TerrainPointPostgreSQLConverter')
 
@@ -91,6 +93,8 @@ Derived
 ↳ [OrtoAreaPostgreSQLConverter](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoAreaPostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoAreaPostgreSQLConverter')  
 ↳ [OrtoDatasPostgreSQLConverter](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoDatasPostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoDatasPostgreSQLConverter')  
 ↳ [OrtoSheetPostgreSQLConverter](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoSheetPostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoSheetPostgreSQLConverter')  
+↳ [PopulationGridCell](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PopulationGridCell 'DiGi\.GIS\.PostgreSQL\.Classes\.PopulationGridCell')  
+↳ [PopulationGridPostgreSQLConverter](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Classes\.PopulationGridPostgreSQLConverter')  
 ↳ [PostgreSQLAdministrativeAreal2DCreateDatabaseTask](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLAdministrativeAreal2DCreateDatabaseTask 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLAdministrativeAreal2DCreateDatabaseTask')  
 ↳ [PostgreSQLAdministrativeAreal2DCreateTableTask](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLAdministrativeAreal2DCreateTableTask 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLAdministrativeAreal2DCreateTableTask')  
 ↳ [PostgreSQLAdministrativeAreal2DRefreshTask](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLAdministrativeAreal2DRefreshTask 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLAdministrativeAreal2DRefreshTask')  
@@ -176,6 +180,9 @@ Derived
 ↳ [OrtoDatasQueueResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoDatasQueueResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoDatasQueueResult')  
 ↳ [OrtoDatasSubdivisionResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoDatasSubdivisionResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoDatasSubdivisionResult')  
 ↳ [OrtoSheetUpdateResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoSheetUpdateResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoSheetUpdateResult')  
+↳ [PopulationGridCell](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PopulationGridCell 'DiGi\.GIS\.PostgreSQL\.Classes\.PopulationGridCell')  
+↳ [PopulationGridComparisonItem](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PopulationGridComparisonItem 'DiGi\.GIS\.PostgreSQL\.Classes\.PopulationGridComparisonItem')  
+↳ [PopulationGridComparisonResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PopulationGridComparisonResult 'DiGi\.GIS\.PostgreSQL\.Classes\.PopulationGridComparisonResult')  
 ↳ [PostgreSQLBuilding2DReferencedObjectsCountyPartRefreshResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLBuilding2DReferencedObjectsCountyPartRefreshResult 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLBuilding2DReferencedObjectsCountyPartRefreshResult')  
 ↳ [PostgreSQLBuilding2DRefreshResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLBuilding2DRefreshResult 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLBuilding2DRefreshResult')  
 ↳ [PostgreSQLCollectOrtoAreaTableEvidenceResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLCollectOrtoAreaTableEvidenceResult 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLCollectOrtoAreaTableEvidenceResult')  
@@ -210,6 +217,7 @@ public interface ITableObject : DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLObj
 ```
 
 Derived  
+↳ [PopulationGridCell](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PopulationGridCell 'DiGi\.GIS\.PostgreSQL\.Classes\.PopulationGridCell')  
 ↳ [TableSerializableObject&lt;TSerializableObject&gt;](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.TableSerializableObject_TSerializableObject_ 'DiGi\.GIS\.PostgreSQL\.Classes\.TableSerializableObject\<TSerializableObject\>')  
 ↳ [TerrainPoint](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.TerrainPoint 'DiGi\.GIS\.PostgreSQL\.Classes\.TerrainPoint')  
 ↳ [ITableSerializableObject](DiGi.GIS.PostgreSQL.Interfaces.md#DiGi.GIS.PostgreSQL.Interfaces.ITableSerializableObject 'DiGi\.GIS\.PostgreSQL\.Interfaces\.ITableSerializableObject')  

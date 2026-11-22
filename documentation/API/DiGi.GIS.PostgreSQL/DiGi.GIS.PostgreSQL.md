@@ -573,6 +573,98 @@ The county part the series is filed under\.
 [System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[OrtoDataAcquisition](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoDataAcquisition 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoDataAcquisition')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')  
 The rows ordered by year, or null when the series or its reference is missing\.
 
+<a name='DiGi.GIS.PostgreSQL.Create.PopulationDensityClass(System.Nullable_int_)'></a>
+
+## Create\.PopulationDensityClass\(Nullable\<int\>\) Method
+
+Gets the density class a census grid cell falls into, from the population the census counted in it \(DiGi\.GIS\.PostgreSQL\#106\)\.
+
+The class is a property of the census value alone, never of the modelled sum: comparing a model against a classification the model itself would place is circular. A null population is [Masked](DiGi.GIS.PostgreSQL.Enums.md#DiGi.GIS.PostgreSQL.Enums.PopulationDensityClass.Masked 'DiGi\.GIS\.PostgreSQL\.Enums\.PopulationDensityClass\.Masked') - statistical secrecy hides the value, which is not the same as the census reporting an empty cell - and a value outside every band is [Undefined](DiGi.GIS.PostgreSQL.Enums.md#DiGi.GIS.PostgreSQL.Enums.PopulationDensityClass.Undefined 'DiGi\.GIS\.PostgreSQL\.Enums\.PopulationDensityClass\.Undefined'). The bands are the upper bounds of [PopulationDensity](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.PopulationDensity 'DiGi\.GIS\.PostgreSQL\.Constants\.PopulationDensity').
+
+```csharp
+public static DiGi.GIS.PostgreSQL.Enums.PopulationDensityClass PopulationDensityClass(System.Nullable<int> population);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Create.PopulationDensityClass(System.Nullable_int_).population'></a>
+
+`population` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The population of the cell, or null where statistical secrecy hides it\.
+
+#### Returns
+[PopulationDensityClass](DiGi.GIS.PostgreSQL.Enums.md#DiGi.GIS.PostgreSQL.Enums.PopulationDensityClass 'DiGi\.GIS\.PostgreSQL\.Enums\.PopulationDensityClass')  
+The density class of the cell\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.PopulationGridComparisonResultAsync(thisDiGi.GIS.PostgreSQL.Classes.Building2DPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.Building2DOccupancyDataPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DPostgreSQLConverter,int,int,int,System.Threading.CancellationToken)'></a>
+
+## Create\.PopulationGridComparisonResultAsync\(this Building2DPostgreSQLConverter, Building2DOccupancyDataPostgreSQLConverter, PopulationGridPostgreSQLConverter, AdministrativeAreal2DPostgreSQLConverter, int, int, int, CancellationToken\) Method
+
+Compares the modelled building occupancy of one county partition against one census year's 1 km population grid, cell by cell \(DiGi\.GIS\.PostgreSQL\#106\)\.
+
+The compared cells are the union of two rules: the cells whose centre lies inside the county outline, and the cells holding at least one of the county's building centres. The first keeps the cells the census fills but the model does not reach - a border cell whose populated half belongs to the neighbour, or a cell of unoccupied buildings - so their modelled sum of zero stays a real error rather than a silent omission; the second keeps every cell the county's buildings actually land in, including a border cell whose centre falls outside the outline. County buildings whose centre lies in no stored cell (a masked or absent cell, or outside the grid's coverage) are counted in [BuildingOutsideCellCount](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PopulationGridComparisonResult.BuildingOutsideCellCount 'DiGi\.GIS\.PostgreSQL\.Classes\.PopulationGridComparisonResult\.BuildingOutsideCellCount') instead of being dropped.
+
+Reads run sequentially on their own connections without fanning out per building: occupancy arrives in batches of one thousand references through `Building2DReferencedObjectPostgreSQLConverter.GetItemsByReferencesAsync`, and the cell join runs in memory over the bounding-box prefiltered cells - the schema has no PostGIS, so the point-in-cell tests are C# geometry tests of the same kind [IdsByPoint2Ds\(this IDictionary&lt;int,PolygonalFace2D&gt;, IReadOnlyList&lt;Point2D&gt;, double\)](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Query.IdsByPoint2Ds(thisSystem.Collections.Generic.IDictionary_int,DiGi.Geometry.Planar.Classes.PolygonalFace2D_,System.Collections.Generic.IReadOnlyList_DiGi.Geometry.Planar.Classes.Point2D_,double) 'DiGi\.GIS\.PostgreSQL\.Query\.IdsByPoint2Ds\(this System\.Collections\.Generic\.IDictionary\<int,DiGi\.Geometry\.Planar\.Classes\.PolygonalFace2D\>, System\.Collections\.Generic\.IReadOnlyList\<DiGi\.Geometry\.Planar\.Classes\.Point2D\>, double\)') makes.
+
+Cells hidden by statistical secrecy carry no census value: they are compared as rows with a null error and a [Masked](DiGi.GIS.PostgreSQL.Enums.md#DiGi.GIS.PostgreSQL.Enums.PopulationDensityClass.Masked 'DiGi\.GIS\.PostgreSQL\.Enums\.PopulationDensityClass\.Masked') class, counted in [MaskedCellCount](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PopulationGridComparisonResult.MaskedCellCount 'DiGi\.GIS\.PostgreSQL\.Classes\.PopulationGridComparisonResult\.MaskedCellCount') and left out of every metric. The metrics themselves are [Mae\(this IReadOnlyList&lt;PopulationGridComparisonItem&gt;\)](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Query.Mae(thisSystem.Collections.Generic.IReadOnlyList_DiGi.GIS.PostgreSQL.Classes.PopulationGridComparisonItem_) 'DiGi\.GIS\.PostgreSQL\.Query\.Mae\(this System\.Collections\.Generic\.IReadOnlyList\<DiGi\.GIS\.PostgreSQL\.Classes\.PopulationGridComparisonItem\>\)'), [Bias\(this IReadOnlyList&lt;PopulationGridComparisonItem&gt;\)](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Query.Bias(thisSystem.Collections.Generic.IReadOnlyList_DiGi.GIS.PostgreSQL.Classes.PopulationGridComparisonItem_) 'DiGi\.GIS\.PostgreSQL\.Query\.Bias\(this System\.Collections\.Generic\.IReadOnlyList\<DiGi\.GIS\.PostgreSQL\.Classes\.PopulationGridComparisonItem\>\)') and [R2\(this IReadOnlyList&lt;PopulationGridComparisonItem&gt;\)](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Query.R2(thisSystem.Collections.Generic.IReadOnlyList_DiGi.GIS.PostgreSQL.Classes.PopulationGridComparisonItem_) 'DiGi\.GIS\.PostgreSQL\.Query\.R2\(this System\.Collections\.Generic\.IReadOnlyList\<DiGi\.GIS\.PostgreSQL\.Classes\.PopulationGridComparisonItem\>\)').
+
+```csharp
+public static System.Threading.Tasks.Task<DiGi.GIS.PostgreSQL.Classes.PopulationGridComparisonResult?> PopulationGridComparisonResultAsync(this DiGi.GIS.PostgreSQL.Classes.Building2DPostgreSQLConverter? building2DPostgreSQLConverter, DiGi.GIS.PostgreSQL.Classes.Building2DOccupancyDataPostgreSQLConverter? building2DOccupancyDataPostgreSQLConverter, DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter? populationGridPostgreSQLConverter, DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DPostgreSQLConverter? administrativeAreal2DPostgreSQLConverter, int countyId, int censusYear, int commandTimeout=600, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Create.PopulationGridComparisonResultAsync(thisDiGi.GIS.PostgreSQL.Classes.Building2DPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.Building2DOccupancyDataPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DPostgreSQLConverter,int,int,int,System.Threading.CancellationToken).building2DPostgreSQLConverter'></a>
+
+`building2DPostgreSQLConverter` [Building2DPostgreSQLConverter](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.Building2DPostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Classes\.Building2DPostgreSQLConverter')
+
+The converter reading the building centres\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.PopulationGridComparisonResultAsync(thisDiGi.GIS.PostgreSQL.Classes.Building2DPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.Building2DOccupancyDataPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DPostgreSQLConverter,int,int,int,System.Threading.CancellationToken).building2DOccupancyDataPostgreSQLConverter'></a>
+
+`building2DOccupancyDataPostgreSQLConverter` [Building2DOccupancyDataPostgreSQLConverter](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.Building2DOccupancyDataPostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Classes\.Building2DOccupancyDataPostgreSQLConverter')
+
+The converter reading the stored per\-building occupancy\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.PopulationGridComparisonResultAsync(thisDiGi.GIS.PostgreSQL.Classes.Building2DPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.Building2DOccupancyDataPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DPostgreSQLConverter,int,int,int,System.Threading.CancellationToken).populationGridPostgreSQLConverter'></a>
+
+`populationGridPostgreSQLConverter` [PopulationGridPostgreSQLConverter](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Classes\.PopulationGridPostgreSQLConverter')
+
+The converter reading the census grid\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.PopulationGridComparisonResultAsync(thisDiGi.GIS.PostgreSQL.Classes.Building2DPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.Building2DOccupancyDataPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DPostgreSQLConverter,int,int,int,System.Threading.CancellationToken).administrativeAreal2DPostgreSQLConverter'></a>
+
+`administrativeAreal2DPostgreSQLConverter` [AdministrativeAreal2DPostgreSQLConverter](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DPostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Classes\.AdministrativeAreal2DPostgreSQLConverter')
+
+The converter reading the county outline\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.PopulationGridComparisonResultAsync(thisDiGi.GIS.PostgreSQL.Classes.Building2DPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.Building2DOccupancyDataPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DPostgreSQLConverter,int,int,int,System.Threading.CancellationToken).countyId'></a>
+
+`countyId` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The identifier of the county partition to compare \- an identifier, never a TERYT code, which names every part of a multi\-part county at once\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.PopulationGridComparisonResultAsync(thisDiGi.GIS.PostgreSQL.Classes.Building2DPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.Building2DOccupancyDataPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DPostgreSQLConverter,int,int,int,System.Threading.CancellationToken).censusYear'></a>
+
+`censusYear` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The census year of the grid to compare against \(for example 2021\)\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.PopulationGridComparisonResultAsync(thisDiGi.GIS.PostgreSQL.Classes.Building2DPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.Building2DOccupancyDataPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DPostgreSQLConverter,int,int,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of each command\. A value of 0 disables the timeout\. Defaults to 600 seconds\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.PopulationGridComparisonResultAsync(thisDiGi.GIS.PostgreSQL.Classes.Building2DPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.Building2DOccupancyDataPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DPostgreSQLConverter,int,int,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken') to observe while waiting for the task to complete\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[PopulationGridComparisonResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PopulationGridComparisonResult 'DiGi\.GIS\.PostgreSQL\.Classes\.PopulationGridComparisonResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result contains the comparison, or null when a converter, the county outline or a table is missing, or when the county cannot be read\.
+
 <a name='DiGi.GIS.PostgreSQL.Create.Reference(DiGi.Analytical.Building.Classes.BuildingModel,DiGi.Analytical.Building.Interfaces.IBuildingGuidObject,System.Nullable_int_)'></a>
 
 ## Create\.Reference\(BuildingModel, IBuildingGuidObject, Nullable\<int\>\) Method
@@ -1653,6 +1745,41 @@ The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dot
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A task that represents the asynchronous operation\. The task result is true if the table exists or was created; otherwise, false\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_PopulationGrid(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken)'></a>
+
+## Create\.TableAsync\_PopulationGrid\(this NpgsqlConnection, int, CancellationToken\) Method
+
+Asynchronously creates the census population grid table in the PostgreSQL database\.
+
+One row per cell of the GUS 1 km population grid of one census year (DiGi.GIS.PostgreSQL#106). `population` is null where statistical secrecy hides the cell's value - a hidden cell is never stored as zero, because a comparison reading it as zero would invent an error of exactly the modelled sum. The envelope columns (`min_x` … `max_y`, EPSG:2180, easting in X) carry the cell box for the GiST prefilter and `object` carries the whole [DiGi\.Geometry\.Planar\.Classes\.PolygonalFace2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.polygonalface2d 'DiGi\.Geometry\.Planar\.Classes\.PolygonalFace2D'), so a point-in-cell test runs in C# the way every other geometry read in this repository does - the schema has no PostGIS. The table lives on the Main database, beside `building_2d`, because a comparison statement reads the grid, the buildings, the occupancy and the county outline on one database (DiGi.GIS.PostgreSQL#106). Every statement is idempotent.
+
+```csharp
+public static System.Threading.Tasks.Task<bool> TableAsync_PopulationGrid(this Npgsql.NpgsqlConnection? npgsqlConnection, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_PopulationGrid(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken).npgsqlConnection'></a>
+
+`npgsqlConnection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
+
+The [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection') instance used to execute the command\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_PopulationGrid(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_PopulationGrid(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken') to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result is true if the table was created successfully; otherwise, false\.
 
 <a name='DiGi.GIS.PostgreSQL.Create.TableAsync_StatisticalDataCollection(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken)'></a>
 
@@ -2809,6 +2936,29 @@ The administrative areal type of the ancestor being named\.
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')  
 The leading slice of [code](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Query.AdministrativeCodeKey(string,DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType).code 'DiGi\.GIS\.PostgreSQL\.Query\.AdministrativeCodeKey\(string, DiGi\.GIS\.PostgreSQL\.Enums\.AdministrativeArealType\)\.code') naming the ancestor, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when the type has no code relation or the code is too short to reach it\.
 
+<a name='DiGi.GIS.PostgreSQL.Query.Bias(thisSystem.Collections.Generic.IReadOnlyList_DiGi.GIS.PostgreSQL.Classes.PopulationGridComparisonItem_)'></a>
+
+## Query\.Bias\(this IReadOnlyList\<PopulationGridComparisonItem\>\) Method
+
+Gets the bias of a census grid comparison: the mean of `modelled − census` over the cells whose census value is present \(DiGi\.GIS\.PostgreSQL\#106\)\.
+
+Positive means the model puts more people into the compared cells than the census counted, negative means fewer - the direction a mean absolute error cannot show. Cells hidden by statistical secrecy are skipped, and the result is null when no cell carries a census value.
+
+```csharp
+public static System.Nullable<double> Bias(this System.Collections.Generic.IReadOnlyList<DiGi.GIS.PostgreSQL.Classes.PopulationGridComparisonItem>? populationGridComparisonItems);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Query.Bias(thisSystem.Collections.Generic.IReadOnlyList_DiGi.GIS.PostgreSQL.Classes.PopulationGridComparisonItem_).populationGridComparisonItems'></a>
+
+`populationGridComparisonItems` [System\.Collections\.Generic\.IReadOnlyList&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ireadonlylist-1 'System\.Collections\.Generic\.IReadOnlyList\`1')[PopulationGridComparisonItem](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PopulationGridComparisonItem 'DiGi\.GIS\.PostgreSQL\.Classes\.PopulationGridComparisonItem')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ireadonlylist-1 'System\.Collections\.Generic\.IReadOnlyList\`1')
+
+The per\-cell rows of the comparison\.
+
+#### Returns
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')  
+The mean error in persons, or null when no cell carries a census value\.
+
 <a name='DiGi.GIS.PostgreSQL.Query.Building(thisSystem.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.Building_,DiGi.Geometry.Spatial.Classes.Point3D,double)'></a>
 
 ## Query\.Building\(this IEnumerable\<Building\>, Point3D, double\) Method
@@ -3690,6 +3840,29 @@ The name to check\.
 [System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')  
 True when the name is one of the five footprint tables or the GHS\-OBAT centroid table; otherwise, false\.
 
+<a name='DiGi.GIS.PostgreSQL.Query.Mae(thisSystem.Collections.Generic.IReadOnlyList_DiGi.GIS.PostgreSQL.Classes.PopulationGridComparisonItem_)'></a>
+
+## Query\.Mae\(this IReadOnlyList\<PopulationGridComparisonItem\>\) Method
+
+Gets the mean absolute error of a census grid comparison: the average of `|modelled − census|` over the cells whose census value is present \(DiGi\.GIS\.PostgreSQL\#106\)\.
+
+Cells hidden by statistical secrecy carry no census value and are skipped - they are counted by [MaskedCellCount](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PopulationGridComparisonResult.MaskedCellCount 'DiGi\.GIS\.PostgreSQL\.Classes\.PopulationGridComparisonResult\.MaskedCellCount'), not measured against a zero. The result is null when no cell carries a census value, which is the absence of a comparison rather than a perfect one.
+
+```csharp
+public static System.Nullable<double> Mae(this System.Collections.Generic.IReadOnlyList<DiGi.GIS.PostgreSQL.Classes.PopulationGridComparisonItem>? populationGridComparisonItems);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Query.Mae(thisSystem.Collections.Generic.IReadOnlyList_DiGi.GIS.PostgreSQL.Classes.PopulationGridComparisonItem_).populationGridComparisonItems'></a>
+
+`populationGridComparisonItems` [System\.Collections\.Generic\.IReadOnlyList&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ireadonlylist-1 'System\.Collections\.Generic\.IReadOnlyList\`1')[PopulationGridComparisonItem](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PopulationGridComparisonItem 'DiGi\.GIS\.PostgreSQL\.Classes\.PopulationGridComparisonItem')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ireadonlylist-1 'System\.Collections\.Generic\.IReadOnlyList\`1')
+
+The per\-cell rows of the comparison\.
+
+#### Returns
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')  
+The mean absolute error in persons, or null when no cell carries a census value\.
+
 <a name='DiGi.GIS.PostgreSQL.Query.Match(thisDiGi.GIS.Classes.StatisticalUnit,DiGi.GIS.Classes.AdministrativeAreal2D)'></a>
 
 ## Query\.Match\(this StatisticalUnit, AdministrativeAreal2D\) Method
@@ -4436,6 +4609,31 @@ The per\-object provenance, or null when the dataset defines none for the row\.
 #### Returns
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')  
 One of the [PrimarySource](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.PrimarySource 'DiGi\.GIS\.PostgreSQL\.Constants\.PrimarySource') values; never null\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.R2(thisSystem.Collections.Generic.IReadOnlyList_DiGi.GIS.PostgreSQL.Classes.PopulationGridComparisonItem_)'></a>
+
+## Query\.R2\(this IReadOnlyList\<PopulationGridComparisonItem\>\) Method
+
+Gets the predictive coefficient of determination of a census grid comparison: `1 − Σe² / Σ(census − mean)²` over the cells whose census value is present \(DiGi\.GIS\.PostgreSQL\#106\)\.
+
+The definition is the predictive one - the residual sum of squares against the census values' own variance - so the figure may be negative: a model that is worse than the mean of the census values scores below zero, and it is reported that way rather than clamped. It is a different number from a squared Pearson correlation, and the paper has to say which one it cites.
+
+The result is null when fewer than two cells carry a census value (the variance of one value is zero by definition) or when the census values carry no variance at all - a county of identical cells has nothing for a model to explain.
+
+```csharp
+public static System.Nullable<double> R2(this System.Collections.Generic.IReadOnlyList<DiGi.GIS.PostgreSQL.Classes.PopulationGridComparisonItem>? populationGridComparisonItems);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Query.R2(thisSystem.Collections.Generic.IReadOnlyList_DiGi.GIS.PostgreSQL.Classes.PopulationGridComparisonItem_).populationGridComparisonItems'></a>
+
+`populationGridComparisonItems` [System\.Collections\.Generic\.IReadOnlyList&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ireadonlylist-1 'System\.Collections\.Generic\.IReadOnlyList\`1')[PopulationGridComparisonItem](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PopulationGridComparisonItem 'DiGi\.GIS\.PostgreSQL\.Classes\.PopulationGridComparisonItem')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ireadonlylist-1 'System\.Collections\.Generic\.IReadOnlyList\`1')
+
+The per\-cell rows of the comparison\.
+
+#### Returns
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')  
+The coefficient of determination, which may be negative, or null when it cannot be derived\.
 
 <a name='DiGi.GIS.PostgreSQL.Query.RandomBuilding2DReferenceWithoutUserYearBuiltAsync(thisDiGi.GIS.PostgreSQL.Classes.OrtoDatasPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.YearBuiltDataPostgreSQLConverter,System.Collections.Generic.IEnumerable_int_,int,int,int,System.Threading.CancellationToken)'></a>
 
