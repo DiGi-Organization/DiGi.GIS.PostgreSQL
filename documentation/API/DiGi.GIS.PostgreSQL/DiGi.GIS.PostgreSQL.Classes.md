@@ -27847,6 +27847,20 @@ public PopulationGridPostgreSQLConverter(DiGi.PostgreSQL.Classes.ConnectionData?
 `connectionData` [DiGi\.PostgreSQL\.Classes\.ConnectionData](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.classes.connectiondata 'DiGi\.PostgreSQL\.Classes\.ConnectionData')
 
 The [DiGi\.PostgreSQL\.Classes\.ConnectionData](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.classes.connectiondata 'DiGi\.PostgreSQL\.Classes\.ConnectionData') containing the connection settings required to establish a connection to the PostgreSQL database\. This value can be null\.
+### Fields
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter.CellResolution'></a>
+
+## PopulationGridPostgreSQLConverter\.CellResolution Field
+
+The grid resolution, in metres, of the cells this table holds: the NSP 1 km export\.
+
+```csharp
+private const int CellResolution = 1000;
+```
+
+#### Field Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
 ### Properties
 
 <a name='DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter.TableName'></a>
@@ -27862,6 +27876,118 @@ public static string TableName { get; }
 #### Property Value
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 ### Methods
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter.Cell(System.Text.Json.JsonElement,int,GeoAPI.CoordinateSystems.Transformations.ICoordinateTransformation)'></a>
+
+## PopulationGridPostgreSQLConverter\.Cell\(JsonElement, int, ICoordinateTransformation\) Method
+
+Converts one GeoJSON feature of the census grid export into a [PopulationGridCell](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PopulationGridCell 'DiGi\.GIS\.PostgreSQL\.Classes\.PopulationGridCell') whose outline is the full lattice square the cell's `code` names, reprojected to EPSG:2180\.
+
+Everything the reader does not recognise fails with the feature's identifier and the reason: a changed export schema must stop the import rather than be guessed at. The `crs` of the collection is checked before any feature is read; the lattice of the code decides the geometry, so the export's own coordinates - jittered, and clipped at the border - are never parsed.
+
+```csharp
+private static DiGi.GIS.PostgreSQL.Classes.PopulationGridCell Cell(System.Text.Json.JsonElement feature, int censusYear, GeoAPI.CoordinateSystems.Transformations.ICoordinateTransformation coordinateTransformation);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter.Cell(System.Text.Json.JsonElement,int,GeoAPI.CoordinateSystems.Transformations.ICoordinateTransformation).feature'></a>
+
+`feature` [System\.Text\.Json\.JsonElement](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.jsonelement 'System\.Text\.Json\.JsonElement')
+
+The feature to convert\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter.Cell(System.Text.Json.JsonElement,int,GeoAPI.CoordinateSystems.Transformations.ICoordinateTransformation).censusYear'></a>
+
+`censusYear` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The census year stored on the cell\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter.Cell(System.Text.Json.JsonElement,int,GeoAPI.CoordinateSystems.Transformations.ICoordinateTransformation).coordinateTransformation'></a>
+
+`coordinateTransformation` [GeoAPI\.CoordinateSystems\.Transformations\.ICoordinateTransformation](https://learn.microsoft.com/en-us/dotnet/api/geoapi.coordinatesystems.transformations.icoordinatetransformation 'GeoAPI\.CoordinateSystems\.Transformations\.ICoordinateTransformation')
+
+The EPSG:3035 to EPSG:2180 transformation to project the lattice square with\.
+
+#### Returns
+[PopulationGridCell](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PopulationGridCell 'DiGi\.GIS\.PostgreSQL\.Classes\.PopulationGridCell')  
+The cell\.
+
+#### Exceptions
+
+[System\.IO\.InvalidDataException](https://learn.microsoft.com/en-us/dotnet/api/system.io.invaliddataexception 'System\.IO\.InvalidDataException')  
+The feature is not a grid cell this import can read\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter.ClearAsync(int,int,System.Threading.CancellationToken)'></a>
+
+## PopulationGridPostgreSQLConverter\.ClearAsync\(int, int, CancellationToken\) Method
+
+Asynchronously deletes the stored rows of one census year, automatically managing the connection\.
+
+```csharp
+public System.Threading.Tasks.Task<System.Nullable<long>> ClearAsync(int censusYear, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter.ClearAsync(int,int,System.Threading.CancellationToken).censusYear'></a>
+
+`censusYear` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The census year whose rows are deleted\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter.ClearAsync(int,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter.ClearAsync(int,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The cancellation token to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result contains the number of rows deleted, or null when the connection is null; a table that does not exist yet deletes nothing\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter.ClearAsync(Npgsql.NpgsqlConnection,int,int,System.Threading.CancellationToken)'></a>
+
+## PopulationGridPostgreSQLConverter\.ClearAsync\(NpgsqlConnection, int, int, CancellationToken\) Method
+
+Asynchronously deletes the stored rows of one census year\.
+
+```csharp
+public static System.Threading.Tasks.Task<System.Nullable<long>> ClearAsync(Npgsql.NpgsqlConnection? npgsqlConnection, int censusYear, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter.ClearAsync(Npgsql.NpgsqlConnection,int,int,System.Threading.CancellationToken).npgsqlConnection'></a>
+
+`npgsqlConnection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
+
+The [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection') used to connect to the database\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter.ClearAsync(Npgsql.NpgsqlConnection,int,int,System.Threading.CancellationToken).censusYear'></a>
+
+`censusYear` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The census year whose rows are deleted\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter.ClearAsync(Npgsql.NpgsqlConnection,int,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter.ClearAsync(Npgsql.NpgsqlConnection,int,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The cancellation token to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result contains the number of rows deleted, or null when the connection is null; a table that does not exist yet deletes nothing\.
 
 <a name='DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter.GetCellsByBoundingBox2DAsync(DiGi.Geometry.Planar.Classes.BoundingBox2D,int,double,int,System.Threading.CancellationToken)'></a>
 
@@ -27960,6 +28086,167 @@ The cancellation token to monitor for cancellation requests\.
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[PopulationGridCell](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PopulationGridCell 'DiGi\.GIS\.PostgreSQL\.Classes\.PopulationGridCell')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A task that represents the asynchronous operation\. The task result contains the cells, empty when none reaches the box, or null when the connection or the box is null or the table does not exist yet\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter.PopulateAsync(Npgsql.NpgsqlConnection,string,System.Nullable_int_,bool,int,System.IProgress_long_,int,System.Threading.CancellationToken)'></a>
+
+## PopulationGridPostgreSQLConverter\.PopulateAsync\(NpgsqlConnection, string, Nullable\<int\>, bool, int, IProgress\<long\>, int, CancellationToken\) Method
+
+Asynchronously imports a downloaded GeoJSON export of the census grid into the table\.
+
+The file is read and validated in full first, so a malformed download cannot clear or overwrite anything; [clear](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter.PopulateAsync(Npgsql.NpgsqlConnection,string,System.Nullable_int_,bool,int,System.IProgress_long_,int,System.Threading.CancellationToken).clear 'DiGi\.GIS\.PostgreSQL\.Classes\.PopulationGridPostgreSQLConverter\.PopulateAsync\(Npgsql\.NpgsqlConnection, string, System\.Nullable\<int\>, bool, int, System\.IProgress\<long\>, int, System\.Threading\.CancellationToken\)\.clear') then deletes the census year's rows and the upsert writes the new ones in batches. A run that fails midway leaves the cells it wrote, and a re-run converges on them because the write is keyed on `(cell_id, census_year)`.
+
+```csharp
+public static System.Threading.Tasks.Task<System.Nullable<long>> PopulateAsync(Npgsql.NpgsqlConnection? npgsqlConnection, string? path, System.Nullable<int> censusYear, bool clear=false, int batchSize=1000, System.IProgress<long>? progress=null, int commandTimeout=600, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter.PopulateAsync(Npgsql.NpgsqlConnection,string,System.Nullable_int_,bool,int,System.IProgress_long_,int,System.Threading.CancellationToken).npgsqlConnection'></a>
+
+`npgsqlConnection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
+
+The [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection') used to connect to the database\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter.PopulateAsync(Npgsql.NpgsqlConnection,string,System.Nullable_int_,bool,int,System.IProgress_long_,int,System.Threading.CancellationToken).path'></a>
+
+`path` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The path of the GeoJSON export\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter.PopulateAsync(Npgsql.NpgsqlConnection,string,System.Nullable_int_,bool,int,System.IProgress_long_,int,System.Threading.CancellationToken).censusYear'></a>
+
+`censusYear` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The census year the grid was counted in \(for example 2021\); required\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter.PopulateAsync(Npgsql.NpgsqlConnection,string,System.Nullable_int_,bool,int,System.IProgress_long_,int,System.Threading.CancellationToken).clear'></a>
+
+`clear` [System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')
+
+Whether the census year's stored rows are deleted after the file has been read and validated, before the import writes\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter.PopulateAsync(Npgsql.NpgsqlConnection,string,System.Nullable_int_,bool,int,System.IProgress_long_,int,System.Threading.CancellationToken).batchSize'></a>
+
+`batchSize` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The number of cells sent per insert command\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter.PopulateAsync(Npgsql.NpgsqlConnection,string,System.Nullable_int_,bool,int,System.IProgress_long_,int,System.Threading.CancellationToken).progress'></a>
+
+`progress` [System\.IProgress&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.iprogress-1 'System\.IProgress\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.iprogress-1 'System\.IProgress\`1')
+
+Progress reporter carrying the number of cells written\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter.PopulateAsync(Npgsql.NpgsqlConnection,string,System.Nullable_int_,bool,int,System.IProgress_long_,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of each command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter.PopulateAsync(Npgsql.NpgsqlConnection,string,System.Nullable_int_,bool,int,System.IProgress_long_,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The cancellation token to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result contains the number of cells written, 0 for an empty export, or null when the connection, the path or the census year is missing\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter.PopulateAsync(string,System.Nullable_int_,bool,int,System.IProgress_long_,int,System.Threading.CancellationToken)'></a>
+
+## PopulationGridPostgreSQLConverter\.PopulateAsync\(string, Nullable\<int\>, bool, int, IProgress\<long\>, int, CancellationToken\) Method
+
+Asynchronously imports a downloaded GeoJSON export of the census grid into the table, automatically managing the connection\.
+
+```csharp
+public System.Threading.Tasks.Task<System.Nullable<long>> PopulateAsync(string? path, System.Nullable<int> censusYear, bool clear=false, int batchSize=1000, System.IProgress<long>? progress=null, int commandTimeout=600, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter.PopulateAsync(string,System.Nullable_int_,bool,int,System.IProgress_long_,int,System.Threading.CancellationToken).path'></a>
+
+`path` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The path of the GeoJSON export\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter.PopulateAsync(string,System.Nullable_int_,bool,int,System.IProgress_long_,int,System.Threading.CancellationToken).censusYear'></a>
+
+`censusYear` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The census year the grid was counted in \(for example 2021\); required\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter.PopulateAsync(string,System.Nullable_int_,bool,int,System.IProgress_long_,int,System.Threading.CancellationToken).clear'></a>
+
+`clear` [System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')
+
+Whether the census year's stored rows are deleted after the file has been read and validated, before the import writes\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter.PopulateAsync(string,System.Nullable_int_,bool,int,System.IProgress_long_,int,System.Threading.CancellationToken).batchSize'></a>
+
+`batchSize` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The number of cells sent per insert command\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter.PopulateAsync(string,System.Nullable_int_,bool,int,System.IProgress_long_,int,System.Threading.CancellationToken).progress'></a>
+
+`progress` [System\.IProgress&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.iprogress-1 'System\.IProgress\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.iprogress-1 'System\.IProgress\`1')
+
+Progress reporter carrying the number of cells written\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter.PopulateAsync(string,System.Nullable_int_,bool,int,System.IProgress_long_,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of each command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter.PopulateAsync(string,System.Nullable_int_,bool,int,System.IProgress_long_,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The cancellation token to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result contains the number of cells written, 0 for an empty export, or null when the connection, the path or the census year is missing\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter.ReadCells(string,System.Nullable_int_,System.Threading.CancellationToken)'></a>
+
+## PopulationGridPostgreSQLConverter\.ReadCells\(string, Nullable\<int\>, CancellationToken\) Method
+
+Reads every cell of a downloaded GeoJSON export of the census grid into memory\.
+
+The export is a FeatureCollection on EPSG:3035 (checked when the file declares a `crs` member), and each feature's `code` names its cell on that lattice - `CRS3035RES1000m<northing>E<easting>` - together with the cell's south-west corner. <b>The stored outline is the whole 1 km square the code names, not the outline the export carries:</b> the export clips about 4 100 border cells to the national boundary and splits 100 of them into several parts, while the code always describes the complete lattice cell, which is what a point-in-cell assignment needs. The square is built on the lattice and reprojected to EPSG:2180 with `GIS.Create.EPSG2180TransformationFromEPSG3035()`.
+
+`tot` is the population: a missing `tot` property or a value that is not an integer fails the run loudly (the export's schema changed), while a `null``tot` is a value hidden by statistical secrecy and is stored as a null population - never as a zero. The sex and age breakdowns (`tot_male`, `tot_0_14`, ...) carry nulls in about a fifth of the cells of the real export and are not read at all.
+
+Everything is materialised: the 2021 export is ~190 MB of JSON and ~316 000 cells, so a run needs a few hundred MB of working set. [PopulateAsync\(NpgsqlConnection, string, Nullable&lt;int&gt;, bool, int, IProgress&lt;long&gt;, int, CancellationToken\)](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter.PopulateAsync(Npgsql.NpgsqlConnection,string,System.Nullable_int_,bool,int,System.IProgress_long_,int,System.Threading.CancellationToken) 'DiGi\.GIS\.PostgreSQL\.Classes\.PopulationGridPostgreSQLConverter\.PopulateAsync\(Npgsql\.NpgsqlConnection, string, System\.Nullable\<int\>, bool, int, System\.IProgress\<long\>, int, System\.Threading\.CancellationToken\)') is the path for the import; this method is the parse that facts and small exports use.
+
+```csharp
+public static System.Collections.Generic.List<DiGi.GIS.PostgreSQL.Classes.PopulationGridCell>? ReadCells(string? path, System.Nullable<int> censusYear, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter.ReadCells(string,System.Nullable_int_,System.Threading.CancellationToken).path'></a>
+
+`path` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The path of the GeoJSON export\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter.ReadCells(string,System.Nullable_int_,System.Threading.CancellationToken).censusYear'></a>
+
+`censusYear` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The census year the grid was counted in \(for example 2021\), stored on every cell\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter.ReadCells(string,System.Nullable_int_,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The cancellation token, observed every 4096 features\.
+
+#### Returns
+[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[PopulationGridCell](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PopulationGridCell 'DiGi\.GIS\.PostgreSQL\.Classes\.PopulationGridCell')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')  
+The cells in file order, or null when the path is missing or the census year was not given\. A malformed file throws with the reason and the offending feature\.
 
 <a name='DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter.UpsertAsync(Npgsql.NpgsqlConnection,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.PopulationGridCell_,int,int,System.Threading.CancellationToken)'></a>
 
@@ -33048,6 +33335,258 @@ A cancellation token that can be used to cancel the operation\.
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A task representing the asynchronous operation\. Returns true when every year was read in full; otherwise, false\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLPopulationGridImportTask'></a>
+
+## PostgreSQLPopulationGridImportTask Class
+
+Imports a downloaded GeoJSON export of the GUS 1 km census population grid into [PopulationGrid](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.TableName.PopulationGrid 'DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.PopulationGrid') \(DiGi\.GIS\.PostgreSQL\#106\)\.
+
+The file is obtained by hand from the Geostatistics Portal - the portal's regulations forbid automated downloading - and handed to [PopulateAsync\(string, Nullable&lt;int&gt;, bool, int, IProgress&lt;long&gt;, int, CancellationToken\)](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter.PopulateAsync(string,System.Nullable_int_,bool,int,System.IProgress_long_,int,System.Threading.CancellationToken) 'DiGi\.GIS\.PostgreSQL\.Classes\.PopulationGridPostgreSQLConverter\.PopulateAsync\(string, System\.Nullable\<int\>, bool, int, System\.IProgress\<long\>, int, System\.Threading\.CancellationToken\)'), which reads and validates it in full before anything is cleared or written. A run refuses, with the reason in the log, when [SourcePath](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLPopulationGridImportTaskOptions.SourcePath 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLPopulationGridImportTaskOptions\.SourcePath') or [CensusYear](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLPopulationGridImportTaskOptions.CensusYear 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLPopulationGridImportTaskOptions\.CensusYear') is missing or the file is not there.
+
+Tray registration lives in `DiGi.GIS.PostgreSQL.UI` and is filed with the production run (DiGi.GIS.PostgreSQL#156); this class is the task itself.
+
+```csharp
+public class PostgreSQLPopulationGridImportTask : DiGi.Core.Classes.ReportableBackgroundTask<long>, DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLObject, DiGi.Core.Interfaces.IObject
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [DiGi\.Core\.Classes\.BackgroundTask](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.backgroundtask 'DiGi\.Core\.Classes\.BackgroundTask') → [DiGi\.Core\.Classes\.CancelableBackgroundTask](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.cancelablebackgroundtask 'DiGi\.Core\.Classes\.CancelableBackgroundTask') → [DiGi\.Core\.Classes\.ReportableBackgroundTask&lt;](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.reportablebackgroundtask-1 'DiGi\.Core\.Classes\.ReportableBackgroundTask\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.reportablebackgroundtask-1 'DiGi\.Core\.Classes\.ReportableBackgroundTask\`1') → PostgreSQLPopulationGridImportTask
+
+Implements [IGISPostgreSQLObject](DiGi.GIS.PostgreSQL.Interfaces.md#DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLObject 'DiGi\.GIS\.PostgreSQL\.Interfaces\.IGISPostgreSQLObject'), [DiGi\.Core\.Interfaces\.IObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iobject 'DiGi\.Core\.Interfaces\.IObject')
+### Constructors
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLPopulationGridImportTask.PostgreSQLPopulationGridImportTask(DiGi.GIS.PostgreSQL.Classes.GISPostgreSQLConverterManager)'></a>
+
+## PostgreSQLPopulationGridImportTask\(GISPostgreSQLConverterManager\) Constructor
+
+Initializes a new instance of the [PostgreSQLPopulationGridImportTask](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLPopulationGridImportTask 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLPopulationGridImportTask') class from a manager\.
+
+```csharp
+public PostgreSQLPopulationGridImportTask(DiGi.GIS.PostgreSQL.Classes.GISPostgreSQLConverterManager gISPostgreSQLConverterManager);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLPopulationGridImportTask.PostgreSQLPopulationGridImportTask(DiGi.GIS.PostgreSQL.Classes.GISPostgreSQLConverterManager).gISPostgreSQLConverterManager'></a>
+
+`gISPostgreSQLConverterManager` [GISPostgreSQLConverterManager](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.GISPostgreSQLConverterManager 'DiGi\.GIS\.PostgreSQL\.Classes\.GISPostgreSQLConverterManager')
+
+The GIS converter manager containing the census grid converter\.
+
+#### Exceptions
+
+[System\.ArgumentNullException](https://learn.microsoft.com/en-us/dotnet/api/system.argumentnullexception 'System\.ArgumentNullException')  
+The manager is null\.
+
+[System\.InvalidOperationException](https://learn.microsoft.com/en-us/dotnet/api/system.invalidoperationexception 'System\.InvalidOperationException')  
+The census grid converter is not registered in the manager\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLPopulationGridImportTask.PostgreSQLPopulationGridImportTask(DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter)'></a>
+
+## PostgreSQLPopulationGridImportTask\(PopulationGridPostgreSQLConverter\) Constructor
+
+Initializes a new instance of the [PostgreSQLPopulationGridImportTask](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLPopulationGridImportTask 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLPopulationGridImportTask') class with a converter\.
+
+```csharp
+public PostgreSQLPopulationGridImportTask(DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter populationGridPostgreSQLConverter);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLPopulationGridImportTask.PostgreSQLPopulationGridImportTask(DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter).populationGridPostgreSQLConverter'></a>
+
+`populationGridPostgreSQLConverter` [PopulationGridPostgreSQLConverter](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Classes\.PopulationGridPostgreSQLConverter')
+
+The [PopulationGridPostgreSQLConverter](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PopulationGridPostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Classes\.PopulationGridPostgreSQLConverter') used to write the grid\.
+
+#### Exceptions
+
+[System\.ArgumentNullException](https://learn.microsoft.com/en-us/dotnet/api/system.argumentnullexception 'System\.ArgumentNullException')  
+The converter is null\.
+### Properties
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLPopulationGridImportTask.ImportedCount'></a>
+
+## PostgreSQLPopulationGridImportTask\.ImportedCount Property
+
+Gets the number of grid cells the last run wrote, 0 when it refused or failed\.
+
+```csharp
+public long ImportedCount { get; private set; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLPopulationGridImportTask.PostgreSQLPopulationGridImportTaskOptions'></a>
+
+## PostgreSQLPopulationGridImportTask\.PostgreSQLPopulationGridImportTaskOptions Property
+
+Gets or sets the options used to configure the census grid import\.
+
+```csharp
+public DiGi.GIS.PostgreSQL.Classes.PostgreSQLPopulationGridImportTaskOptions PostgreSQLPopulationGridImportTaskOptions { get; set; }
+```
+
+#### Property Value
+[PostgreSQLPopulationGridImportTaskOptions](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLPopulationGridImportTaskOptions 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLPopulationGridImportTaskOptions')
+### Methods
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLPopulationGridImportTask.ExecuteAsync(System.IProgress_long_,System.Threading.CancellationToken)'></a>
+
+## PostgreSQLPopulationGridImportTask\.ExecuteAsync\(IProgress\<long\>, CancellationToken\) Method
+
+Executes the census grid import: reads the export, optionally replaces the census year's stored rows and upserts the cells, reporting the written count\.
+
+```csharp
+protected override System.Threading.Tasks.Task<bool> ExecuteAsync(System.IProgress<long> progress, System.Threading.CancellationToken cancellationToken);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLPopulationGridImportTask.ExecuteAsync(System.IProgress_long_,System.Threading.CancellationToken).progress'></a>
+
+`progress` [System\.IProgress&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.iprogress-1 'System\.IProgress\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.iprogress-1 'System\.IProgress\`1')
+
+A progress reporter reporting the number of cells written\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLPopulationGridImportTask.ExecuteAsync(System.IProgress_long_,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token for monitoring cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task representing the asynchronous operation\. Returns true when at least one cell was written; otherwise, false\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLPopulationGridImportTaskOptions'></a>
+
+## PostgreSQLPopulationGridImportTaskOptions Class
+
+Provides options for importing a downloaded GeoJSON export of the GUS 1 km census population grid into [PopulationGrid](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.TableName.PopulationGrid 'DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.PopulationGrid') \(DiGi\.GIS\.PostgreSQL\#106\)\.
+
+[SourcePath](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLPopulationGridImportTaskOptions.SourcePath 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLPopulationGridImportTaskOptions\.SourcePath') and [CensusYear](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLPopulationGridImportTaskOptions.CensusYear 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLPopulationGridImportTaskOptions\.CensusYear') are required and the run refuses without them, naming the missing one in the log: the census year is the year the grid was counted in (2021 for the NSP 2021 export), never the download year, and it is what the imported rows are filed under. [Clear](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLPopulationGridImportTaskOptions.Clear 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLPopulationGridImportTaskOptions\.Clear') makes the run a clean replace of that census year's rows - the file is fully read and validated before anything is cleared, so a malformed download leaves the stored grid untouched; a run that fails midway after a clear leaves the cells written so far, and a re-run converges on them because the write is an upsert keyed on `(cell_id, census_year)`.
+
+```csharp
+public class PostgreSQLPopulationGridImportTaskOptions : DiGi.Core.Classes.SerializableOptions
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [DiGi\.Core\.Classes\.Object](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.object 'DiGi\.Core\.Classes\.Object') → [DiGi\.Core\.Classes\.SerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.serializableobject 'DiGi\.Core\.Classes\.SerializableObject') → [DiGi\.Core\.Classes\.SerializableOptions](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.serializableoptions 'DiGi\.Core\.Classes\.SerializableOptions') → PostgreSQLPopulationGridImportTaskOptions
+### Constructors
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLPopulationGridImportTaskOptions.PostgreSQLPopulationGridImportTaskOptions()'></a>
+
+## PostgreSQLPopulationGridImportTaskOptions\(\) Constructor
+
+Initializes a new instance of the [PostgreSQLPopulationGridImportTaskOptions](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLPopulationGridImportTaskOptions 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLPopulationGridImportTaskOptions') class\.
+
+```csharp
+public PostgreSQLPopulationGridImportTaskOptions();
+```
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLPopulationGridImportTaskOptions.PostgreSQLPopulationGridImportTaskOptions(DiGi.GIS.PostgreSQL.Classes.PostgreSQLPopulationGridImportTaskOptions)'></a>
+
+## PostgreSQLPopulationGridImportTaskOptions\(PostgreSQLPopulationGridImportTaskOptions\) Constructor
+
+Initializes a new instance of the [PostgreSQLPopulationGridImportTaskOptions](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLPopulationGridImportTaskOptions 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLPopulationGridImportTaskOptions') class by copying another instance\.
+
+```csharp
+public PostgreSQLPopulationGridImportTaskOptions(DiGi.GIS.PostgreSQL.Classes.PostgreSQLPopulationGridImportTaskOptions postgreSQLPopulationGridImportTaskOptions);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLPopulationGridImportTaskOptions.PostgreSQLPopulationGridImportTaskOptions(DiGi.GIS.PostgreSQL.Classes.PostgreSQLPopulationGridImportTaskOptions).postgreSQLPopulationGridImportTaskOptions'></a>
+
+`postgreSQLPopulationGridImportTaskOptions` [PostgreSQLPopulationGridImportTaskOptions](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLPopulationGridImportTaskOptions 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLPopulationGridImportTaskOptions')
+
+The source options to copy\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLPopulationGridImportTaskOptions.PostgreSQLPopulationGridImportTaskOptions(System.Text.Json.Nodes.JsonObject)'></a>
+
+## PostgreSQLPopulationGridImportTaskOptions\(JsonObject\) Constructor
+
+Initializes a new instance of the [PostgreSQLPopulationGridImportTaskOptions](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLPopulationGridImportTaskOptions 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLPopulationGridImportTaskOptions') class from a JSON object\.
+
+```csharp
+public PostgreSQLPopulationGridImportTaskOptions(System.Text.Json.Nodes.JsonObject jsonObject);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLPopulationGridImportTaskOptions.PostgreSQLPopulationGridImportTaskOptions(System.Text.Json.Nodes.JsonObject).jsonObject'></a>
+
+`jsonObject` [System\.Text\.Json\.Nodes\.JsonObject](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.nodes.jsonobject 'System\.Text\.Json\.Nodes\.JsonObject')
+
+The JSON object containing the options\.
+### Properties
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLPopulationGridImportTaskOptions.BatchSize'></a>
+
+## PostgreSQLPopulationGridImportTaskOptions\.BatchSize Property
+
+Gets or sets the number of grid cells sent per insert command\. Defaults to 1000\.
+
+```csharp
+public int BatchSize { get; set; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLPopulationGridImportTaskOptions.CensusYear'></a>
+
+## PostgreSQLPopulationGridImportTaskOptions\.CensusYear Property
+
+Gets or sets the census year the grid was counted in \(2021 for the NSP 2021 export\)\. Required; the run refuses without it\.
+
+The year the file was downloaded is not this value: rows are filed under the census they count, so the same table can hold the NSP 2021 grid and, once published, an NSP 2011 one side by side.
+
+```csharp
+public System.Nullable<int> CensusYear { get; set; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLPopulationGridImportTaskOptions.Clear'></a>
+
+## PostgreSQLPopulationGridImportTaskOptions\.Clear Property
+
+Gets or sets whether the rows of [CensusYear](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLPopulationGridImportTaskOptions.CensusYear 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLPopulationGridImportTaskOptions\.CensusYear') are deleted before the import writes\. Defaults to false\.
+
+The file is read and validated in full before anything is cleared, so a malformed download cannot empty the stored grid. False keeps the import an upsert over whatever the year already holds.
+
+```csharp
+public bool Clear { get; set; }
+```
+
+#### Property Value
+[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLPopulationGridImportTaskOptions.CommandTimeout'></a>
+
+## PostgreSQLPopulationGridImportTaskOptions\.CommandTimeout Property
+
+Gets or sets the timeout in seconds for each database command\. Defaults to 600\.
+
+```csharp
+public int CommandTimeout { get; set; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLPopulationGridImportTaskOptions.SourcePath'></a>
+
+## PostgreSQLPopulationGridImportTaskOptions\.SourcePath Property
+
+Gets or sets the path of the downloaded GeoJSON export of the grid\. Required; the run refuses without it\.
+
+The file is obtained by hand from the Geostatistics Portal - the portal's regulations forbid automated downloading - and lives outside the repository, in the project's data input folder.
+
+```csharp
+public string? SourcePath { get; set; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 <a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLStatisticalDataCollectionCreateTableTask'></a>
 

@@ -1,12 +1,16 @@
 using DiGi.Geometry.Planar.Classes;
 using DiGi.GIS.PostgreSQL.Interfaces;
 using DiGi.PostgreSQL.Classes;
+using GeoAPI.CoordinateSystems.Transformations;
 using Npgsql;
 using NpgsqlTypes;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -262,6 +266,315 @@ namespace DiGi.GIS.PostgreSQL.Classes
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// The grid resolution, in metres, of the cells this table holds: the NSP 1 km export.
+        /// </summary>
+        private const int CellResolution = 1000;
+
+        /// <summary>
+        /// Reads every cell of a downloaded GeoJSON export of the census grid into memory.
+        /// <para>The export is a FeatureCollection on EPSG:3035 (checked when the file declares a <c>crs</c> member), and each feature's <c>code</c> names its cell on that lattice - <c>CRS3035RES1000m&lt;northing&gt;E&lt;easting&gt;</c> - together with the cell's south-west corner. <b>The stored outline is the whole 1 km square the code names, not the outline the export carries:</b> the export clips about 4 100 border cells to the national boundary and splits 100 of them into several parts, while the code always describes the complete lattice cell, which is what a point-in-cell assignment needs. The square is built on the lattice and reprojected to EPSG:2180 with <c>GIS.Create.EPSG2180TransformationFromEPSG3035()</c>.</para>
+        /// <para><c>tot</c> is the population: a missing <c>tot</c> property or a value that is not an integer fails the run loudly (the export's schema changed), while a <c>null</c> <c>tot</c> is a value hidden by statistical secrecy and is stored as a null population - never as a zero. The sex and age breakdowns (<c>tot_male</c>, <c>tot_0_14</c>, ...) carry nulls in about a fifth of the cells of the real export and are not read at all.</para>
+        /// <para>Everything is materialised: the 2021 export is ~190 MB of JSON and ~316 000 cells, so a run needs a few hundred MB of working set. <see cref="PopulateAsync(NpgsqlConnection?, string?, int?, bool, int, IProgress{long}?, int, CancellationToken)"/> is the path for the import; this method is the parse that facts and small exports use.</para>
+        /// </summary>
+        /// <param name="path">The path of the GeoJSON export.</param>
+        /// <param name="censusYear">The census year the grid was counted in (for example 2021), stored on every cell.</param>
+        /// <param name="cancellationToken">The cancellation token, observed every 4096 features.</param>
+        /// <returns>The cells in file order, or null when the path is missing or the census year was not given. A malformed file throws with the reason and the offending feature.</returns>
+        public static List<PopulationGridCell>? ReadCells(string? path, int? censusYear, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(path) || censusYear is not int censusYear_Value)
+            {
+                return null;
+            }
+
+            if (!File.Exists(path))
+            {
+                return null;
+            }
+
+            ICoordinateTransformation? coordinateTransformation = GIS.Create.EPSG2180TransformationFromEPSG3035();
+            if (coordinateTransformation is null)
+            {
+                return null;
+            }
+
+            using FileStream fileStream = File.OpenRead(path);
+            using JsonDocument jsonDocument = JsonDocument.Parse(fileStream);
+
+            JsonElement root = jsonDocument.RootElement;
+            if (root.ValueKind != JsonValueKind.Object
+                || !root.TryGetProperty("type", out JsonElement typeElement)
+                || !string.Equals(typeElement.GetString(), "FeatureCollection", StringComparison.Ordinal))
+            {
+                throw new InvalidDataException($"The file is not a GeoJSON FeatureCollection: {path}");
+            }
+
+            if (root.TryGetProperty("crs", out JsonElement crsElement)
+                && crsElement.ValueKind == JsonValueKind.Object
+                && crsElement.TryGetProperty("properties", out JsonElement crsProperties)
+                && crsProperties.ValueKind == JsonValueKind.Object
+                && crsProperties.TryGetProperty("name", out JsonElement crsNameElement)
+                && crsNameElement.ValueKind == JsonValueKind.String
+                && crsNameElement.GetString() is string crsName
+                && !crsName.EndsWith("3035", StringComparison.Ordinal))
+            {
+                throw new InvalidDataException($"The file declares '{crsName}' while the census grid is published on EPSG:3035: {path}");
+            }
+
+            if (!root.TryGetProperty("features", out JsonElement featuresElement) || featuresElement.ValueKind != JsonValueKind.Array)
+            {
+                throw new InvalidDataException($"The FeatureCollection carries no features array: {path}");
+            }
+
+            List<PopulationGridCell> populationGridCells = [];
+            int index = 0;
+            foreach (JsonElement feature in featuresElement.EnumerateArray())
+            {
+                if ((index++ & 0xFFF) == 0)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                }
+
+                populationGridCells.Add(Cell(feature, censusYear_Value, coordinateTransformation));
+            }
+
+            return populationGridCells;
+        }
+
+        /// <summary>
+        /// Asynchronously imports a downloaded GeoJSON export of the census grid into the table, automatically managing the connection.
+        /// </summary>
+        /// <param name="path">The path of the GeoJSON export.</param>
+        /// <param name="censusYear">The census year the grid was counted in (for example 2021); required.</param>
+        /// <param name="clear">Whether the census year's stored rows are deleted after the file has been read and validated, before the import writes.</param>
+        /// <param name="batchSize">The number of cells sent per insert command.</param>
+        /// <param name="progress">Progress reporter carrying the number of cells written.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of each command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The cancellation token to monitor for cancellation requests.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the number of cells written, 0 for an empty export, or null when the connection, the path or the census year is missing.</returns>
+        public async Task<long?> PopulateAsync(string? path, int? censusYear, bool clear = false, int batchSize = 1000, IProgress<long>? progress = null, int commandTimeout = 600, CancellationToken cancellationToken = default)
+        {
+            await using NpgsqlConnection? npgsqlConnection = DiGi.PostgreSQL.Create.NpgsqlConnection(ConnectionData);
+            if (npgsqlConnection is null)
+            {
+                return null;
+            }
+
+            await npgsqlConnection.OpenAsync(cancellationToken);
+            return await PopulateAsync(npgsqlConnection, path, censusYear, clear, batchSize, progress, commandTimeout, cancellationToken);
+        }
+
+        /// <summary>
+        /// Asynchronously imports a downloaded GeoJSON export of the census grid into the table.
+        /// <para>The file is read and validated in full first, so a malformed download cannot clear or overwrite anything; <paramref name="clear"/> then deletes the census year's rows and the upsert writes the new ones in batches. A run that fails midway leaves the cells it wrote, and a re-run converges on them because the write is keyed on <c>(cell_id, census_year)</c>.</para>
+        /// </summary>
+        /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> used to connect to the database.</param>
+        /// <param name="path">The path of the GeoJSON export.</param>
+        /// <param name="censusYear">The census year the grid was counted in (for example 2021); required.</param>
+        /// <param name="clear">Whether the census year's stored rows are deleted after the file has been read and validated, before the import writes.</param>
+        /// <param name="batchSize">The number of cells sent per insert command.</param>
+        /// <param name="progress">Progress reporter carrying the number of cells written.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of each command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The cancellation token to monitor for cancellation requests.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the number of cells written, 0 for an empty export, or null when the connection, the path or the census year is missing.</returns>
+        public static async Task<long?> PopulateAsync(
+            NpgsqlConnection? npgsqlConnection,
+            string? path,
+            int? censusYear,
+            bool clear = false,
+            int batchSize = 1000,
+            IProgress<long>? progress = null,
+            int commandTimeout = 600,
+            CancellationToken cancellationToken = default)
+        {
+            if (npgsqlConnection is null)
+            {
+                return null;
+            }
+
+            List<PopulationGridCell>? populationGridCells = ReadCells(path, censusYear, cancellationToken);
+            if (populationGridCells is null)
+            {
+                return null;
+            }
+
+            if (clear && censusYear is int censusYear_Value)
+            {
+                long? clearedCount = await ClearAsync(npgsqlConnection, censusYear_Value, commandTimeout, cancellationToken);
+                if (clearedCount is null)
+                {
+                    return null;
+                }
+            }
+
+            long? writtenCount = await UpsertAsync(npgsqlConnection, populationGridCells, batchSize, commandTimeout, cancellationToken);
+            if (writtenCount is long writtenCount_Value)
+            {
+                progress?.Report(writtenCount_Value);
+            }
+
+            return writtenCount;
+        }
+
+        /// <summary>
+        /// Asynchronously deletes the stored rows of one census year, automatically managing the connection.
+        /// </summary>
+        /// <param name="censusYear">The census year whose rows are deleted.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The cancellation token to monitor for cancellation requests.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the number of rows deleted, or null when the connection is null; a table that does not exist yet deletes nothing.</returns>
+        public async Task<long?> ClearAsync(int censusYear, int commandTimeout = 30, CancellationToken cancellationToken = default)
+        {
+            await using NpgsqlConnection? npgsqlConnection = DiGi.PostgreSQL.Create.NpgsqlConnection(ConnectionData);
+            if (npgsqlConnection is null)
+            {
+                return null;
+            }
+
+            await npgsqlConnection.OpenAsync(cancellationToken);
+            return await ClearAsync(npgsqlConnection, censusYear, commandTimeout, cancellationToken);
+        }
+
+        /// <summary>
+        /// Asynchronously deletes the stored rows of one census year.
+        /// </summary>
+        /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> used to connect to the database.</param>
+        /// <param name="censusYear">The census year whose rows are deleted.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The cancellation token to monitor for cancellation requests.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the number of rows deleted, or null when the connection is null; a table that does not exist yet deletes nothing.</returns>
+        public static async Task<long?> ClearAsync(NpgsqlConnection? npgsqlConnection, int censusYear, int commandTimeout = 30, CancellationToken cancellationToken = default)
+        {
+            if (npgsqlConnection is null)
+            {
+                return null;
+            }
+
+            string commandText = $@"DELETE FROM {TableName} WHERE census_year = @census_year;";
+
+            try
+            {
+                await using NpgsqlCommand npgsqlCommand = new(commandText, npgsqlConnection);
+                npgsqlCommand.CommandTimeout = commandTimeout;
+                npgsqlCommand.Parameters.Add(new NpgsqlParameter("census_year", NpgsqlDbType.Smallint) { Value = (short)censusYear });
+
+                return await npgsqlCommand.ExecuteNonQueryAsync(cancellationToken);
+            }
+            catch (PostgresException postgresException) when (postgresException.SqlState == PostgresErrorCodes.UndefinedTable)
+            {
+                return 0;
+            }
+        }
+
+        /// <summary>
+        /// Converts one GeoJSON feature of the census grid export into a <see cref="PopulationGridCell"/> whose outline is the full lattice square the cell's <c>code</c> names, reprojected to EPSG:2180.
+        /// <para>Everything the reader does not recognise fails with the feature's identifier and the reason: a changed export schema must stop the import rather than be guessed at. The <c>crs</c> of the collection is checked before any feature is read; the lattice of the code decides the geometry, so the export's own coordinates - jittered, and clipped at the border - are never parsed.</para>
+        /// </summary>
+        /// <param name="feature">The feature to convert.</param>
+        /// <param name="censusYear">The census year stored on the cell.</param>
+        /// <param name="coordinateTransformation">The EPSG:3035 to EPSG:2180 transformation to project the lattice square with.</param>
+        /// <returns>The cell.</returns>
+        /// <exception cref="InvalidDataException">The feature is not a grid cell this import can read.</exception>
+        private static PopulationGridCell Cell(JsonElement feature, int censusYear, ICoordinateTransformation coordinateTransformation)
+        {
+            string context = "<unknown>";
+            if (feature.ValueKind == JsonValueKind.Object)
+            {
+                if (feature.TryGetProperty("id", out JsonElement idElement))
+                {
+                    context = idElement.ToString();
+                }
+                else if (feature.TryGetProperty("oid", out JsonElement oidElement))
+                {
+                    context = oidElement.ToString();
+                }
+            }
+            else
+            {
+                throw new InvalidDataException($"Feature {context}: expected a GeoJSON feature object, found {feature.ValueKind}.");
+            }
+
+            if (!feature.TryGetProperty("properties", out JsonElement properties) || properties.ValueKind != JsonValueKind.Object)
+            {
+                throw new InvalidDataException($"Feature {context}: carries no properties object.");
+            }
+
+            if (!properties.TryGetProperty("code", out JsonElement codeElement) || codeElement.ValueKind != JsonValueKind.String || string.IsNullOrWhiteSpace(codeElement.GetString()))
+            {
+                throw new InvalidDataException($"Feature {context}: carries no grid cell 'code'.");
+            }
+
+            string code = codeElement.GetString()!;
+
+            Match match = Regex.Match(code, @"^CRS(?<epsg>\d+)RES(?<resolution>\d+)mN(?<northing>\d+)E(?<easting>\d+)$", RegexOptions.CultureInvariant);
+            if (!match.Success)
+            {
+                throw new InvalidDataException($"Feature {context}: cell code '{code}' is not of the expected 'CRS3035RES1000m<northing>E<easting>' form.");
+            }
+
+            if (!string.Equals(match.Groups["epsg"].Value, "3035", StringComparison.Ordinal))
+            {
+                throw new InvalidDataException($"Feature {context}: cell code '{code}' is not on the EPSG:3035 lattice the census grid is published on.");
+            }
+
+            if (!int.TryParse(match.Groups["resolution"].Value, NumberStyles.None, CultureInfo.InvariantCulture, out int resolution) || resolution != CellResolution)
+            {
+                throw new InvalidDataException($"Feature {context}: cell code '{code}' is not a 1000 m cell of the 1 km grid this table holds.");
+            }
+
+            if (!int.TryParse(match.Groups["northing"].Value, NumberStyles.None, CultureInfo.InvariantCulture, out int northing)
+                || !int.TryParse(match.Groups["easting"].Value, NumberStyles.None, CultureInfo.InvariantCulture, out int easting))
+            {
+                throw new InvalidDataException($"Feature {context}: cell code '{code}' carries a corner outside the integer range of the lattice.");
+            }
+
+            int? population = null;
+            if (!properties.TryGetProperty("tot", out JsonElement totalElement))
+            {
+                throw new InvalidDataException($"Feature {context}: carries no 'tot' population property.");
+            }
+
+            switch (totalElement.ValueKind)
+            {
+                case JsonValueKind.Null:
+                    // Hidden by statistical secrecy: no value, which is stored as a null population and never as a zero.
+                    break;
+
+                case JsonValueKind.Number:
+                    if (!totalElement.TryGetInt32(out int total) || total < 0)
+                    {
+                        throw new InvalidDataException($"Feature {context}: 'tot' ({totalElement.GetRawText()}) is not a population count.");
+                    }
+
+                    population = total;
+                    break;
+
+                default:
+                    throw new InvalidDataException($"Feature {context}: 'tot' is {totalElement.ValueKind}, expected a number or null.");
+            }
+
+            PolygonalFace2D? polygonalFace2D = Geometry.Planar.Create.PolygonalFace2D(
+                new Point2D(easting, northing),
+                new Point2D(easting + resolution, northing),
+                new Point2D(easting + resolution, northing + resolution),
+                new Point2D(easting, northing + resolution),
+                new Point2D(easting, northing));
+
+            if (polygonalFace2D is null)
+            {
+                throw new InvalidDataException($"Feature {context}: cell '{code}' could not be turned into an outline.");
+            }
+
+            PolygonalFace2D? polygonalFace2D_2180 = polygonalFace2D.ToEPSG2180(coordinateTransformation);
+            if (polygonalFace2D_2180 is null)
+            {
+                throw new InvalidDataException($"Feature {context}: cell '{code}' does not fall inside the EPSG:2180 domain.");
+            }
+
+            return new PopulationGridCell(code, censusYear, population, polygonalFace2D_2180);
         }
     }
 }
