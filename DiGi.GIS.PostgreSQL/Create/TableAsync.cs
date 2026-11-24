@@ -556,7 +556,8 @@ namespace DiGi.GIS.PostgreSQL
                     row_count BIGINT,
                     created_at timestamptz DEFAULT now(),
                     UNIQUE NULLS NOT DISTINCT (dataset_key, version, download_date)
-                );";
+                );
+                ALTER TABLE {Constants.TableName.BuildingDataset} ADD COLUMN IF NOT EXISTS skipped_file_names JSONB;";
 
             try
             {

@@ -4982,6 +4982,55 @@ The cancellation token to observe\.
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.HashSet&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.hashset-1 'System\.Collections\.Generic\.HashSet\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.hashset-1 'System\.Collections\.Generic\.HashSet\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 The given rows together with every part of their codes; an empty set when no row is given; `null` when a lookup could not run\.
 
+<a name='DiGi.GIS.PostgreSQL.Query.SourcePathsOutOfScopeAsync(System.Collections.Generic.IEnumerable_string_,DiGi.GIS.IO.Enums.BuildingDataset,System.Collections.Generic.IEnumerable_DiGi.Geometry.Planar.Classes.BoundingBox2D_,double,System.Threading.CancellationToken)'></a>
+
+## Query\.SourcePathsOutOfScopeAsync\(IEnumerable\<string\>, BuildingDataset, IEnumerable\<BoundingBox2D\>, double, CancellationToken\) Method
+
+Selects the source files of an open building release that cannot reach an import's scope, so the import can leave them unread \(DiGi\.GIS\.PostgreSQL\#170\): a nationwide release read for a few counties otherwise spends most of its time on files that keep nothing\.
+
+Each file's own extent comes from [DiGi\.GIS\.IO\.Query\.SourceExtentAsync\(System\.String,DiGi\.GIS\.IO\.Enums\.BuildingDataset,System\.Threading\.CancellationToken\)](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.io.query.sourceextentasync#digi-gis-io-query-sourceextentasync(system-string-digi-gis-io-enums-buildingdataset-system-threading-cancellationtoken) 'DiGi\.GIS\.IO\.Query\.SourceExtentAsync\(System\.String,DiGi\.GIS\.IO\.Enums\.BuildingDataset,System\.Threading\.CancellationToken\)') in the file's reference system. It is carried into EPSG:2180 through the same transformations the import uses - sampled along its four edges, because a box does not stay a box under a change of projection - and the envelope of the samples is compared with every scope box grown by [margin](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Query.SourcePathsOutOfScopeAsync(System.Collections.Generic.IEnumerable_string_,DiGi.GIS.IO.Enums.BuildingDataset,System.Collections.Generic.IEnumerable_DiGi.Geometry.Planar.Classes.BoundingBox2D_,double,System.Threading.CancellationToken).margin 'DiGi\.GIS\.PostgreSQL\.Query\.SourcePathsOutOfScopeAsync\(System\.Collections\.Generic\.IEnumerable\<string\>, DiGi\.GIS\.IO\.Enums\.BuildingDataset, System\.Collections\.Generic\.IEnumerable\<DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D\>, double, System\.Threading\.CancellationToken\)\.margin'). A file is selected only when that envelope reaches none of them.
+
+Every doubt reads the file: no extent (CSV, PBF, a GeoPackage without a registered R-tree, a GeoParquet without a declared bbox), an unsupported reference system, a transformation that cannot be built or a sample that does not land on a finite point. Leaving a file out is therefore only ever a saving - the rows a run stores are the same either way - while the footprints of the files left out are counted nowhere, neither as out of scope nor as rejected.
+
+```csharp
+public static System.Threading.Tasks.Task<System.Collections.Generic.List<string>> SourcePathsOutOfScopeAsync(System.Collections.Generic.IEnumerable<string>? paths, DiGi.GIS.IO.Enums.BuildingDataset buildingDataset, System.Collections.Generic.IEnumerable<DiGi.Geometry.Planar.Classes.BoundingBox2D?>? boundingBox2Ds_Scope, double margin, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Query.SourcePathsOutOfScopeAsync(System.Collections.Generic.IEnumerable_string_,DiGi.GIS.IO.Enums.BuildingDataset,System.Collections.Generic.IEnumerable_DiGi.Geometry.Planar.Classes.BoundingBox2D_,double,System.Threading.CancellationToken).paths'></a>
+
+`paths` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The source files of the release\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.SourcePathsOutOfScopeAsync(System.Collections.Generic.IEnumerable_string_,DiGi.GIS.IO.Enums.BuildingDataset,System.Collections.Generic.IEnumerable_DiGi.Geometry.Planar.Classes.BoundingBox2D_,double,System.Threading.CancellationToken).buildingDataset'></a>
+
+`buildingDataset` [DiGi\.GIS\.IO\.Enums\.BuildingDataset](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.io.enums.buildingdataset 'DiGi\.GIS\.IO\.Enums\.BuildingDataset')
+
+The dataset the files belong to; it selects the format\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.SourcePathsOutOfScopeAsync(System.Collections.Generic.IEnumerable_string_,DiGi.GIS.IO.Enums.BuildingDataset,System.Collections.Generic.IEnumerable_DiGi.Geometry.Planar.Classes.BoundingBox2D_,double,System.Threading.CancellationToken).boundingBox2Ds_Scope'></a>
+
+`boundingBox2Ds_Scope` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.boundingbox2d 'DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The scope in EPSG:2180: the envelope of every county part in scope, or the scope bounding box\. A null envelope among them, a null or an empty scope selects nothing\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.SourcePathsOutOfScopeAsync(System.Collections.Generic.IEnumerable_string_,DiGi.GIS.IO.Enums.BuildingDataset,System.Collections.Generic.IEnumerable_DiGi.Geometry.Planar.Classes.BoundingBox2D_,double,System.Threading.CancellationToken).margin'></a>
+
+`margin` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The distance in metres a footprint filed under a file's extent may reach beyond it, plus the import's filing tolerance; a file whose extent comes this close to the scope is read\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.SourcePathsOutOfScopeAsync(System.Collections.Generic.IEnumerable_string_,DiGi.GIS.IO.Enums.BuildingDataset,System.Collections.Generic.IEnumerable_DiGi.Geometry.Planar.Classes.BoundingBox2D_,double,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken') to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task whose result is the files that cannot reach the scope, in the order given; empty when every file must be read\.
+
 <a name='DiGi.GIS.PostgreSQL.Query.SubdivisionCoveragesAsync(thisDiGi.GIS.PostgreSQL.Classes.OrtoDatasPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.Building2DPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2DPostgreSQLConverter,int,double,int,System.Threading.CancellationToken)'></a>
 
 ## Query\.SubdivisionCoveragesAsync\(this OrtoDatasPostgreSQLConverter, Building2DPostgreSQLConverter, AdministrativeAreal2DPostgreSQLConverter, int, double, int, CancellationToken\) Method

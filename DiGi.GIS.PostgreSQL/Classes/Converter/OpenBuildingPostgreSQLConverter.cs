@@ -9,6 +9,7 @@ using GeoAPI.CoordinateSystems.Transformations;
 using Npgsql;
 using NpgsqlTypes;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -22,7 +23,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
 {
     /// <summary>
     /// Stores the open building datasets: the <c>building_dataset</c> release register and the per-dataset footprint tables (EUBUCCO, Overture, OSM, DBSM, Microsoft, GHS-OBAT), on the Storage database, where the large data lives (DiGi.GIS.PostgreSQL#125, moved from Main by DiGi.GIS.PostgreSQL#168).
-    /// <para>The converter reads no table of the Main database: the county parts the import files against are handed to <see cref="ImportAsync(IAsyncEnumerable{Footprint}, BuildingDatasetRelease, IEnumerable{int}, IReadOnlyList{AdministrativeAreal2D}, BoundingBox2D?, IProgress{long}, OpenBuildingSourcePosition?, double, int, CancellationToken)"/> by the caller, which reads them from <c>administrative_areal_2d</c>.</para>
+    /// <para>The converter reads no table of the Main database: the county parts the import files against are handed to <see cref="ImportAsync(IAsyncEnumerable{Footprint}, BuildingDatasetRelease, IEnumerable{int}, IReadOnlyList{AdministrativeAreal2D}, BoundingBox2D?, IProgress{long}, OpenBuildingSourcePosition?, double, int, int, CancellationToken)"/> by the caller, which reads them from <c>administrative_areal_2d</c>.</para>
     /// <para>The import is one transaction over the whole release: the register row is upserted, the partitions in scope are truncated (the GHS-OBAT table deleted in scope), the footprints stream in through a binary COPY per partition, and the release's row count and attribute list are written before the commit. A run that fails or is cancelled therefore leaves the previous snapshot exactly as it was - the replace is all-or-nothing, and re-running the same release converges on one snapshot.</para>
     /// <para>Partitions and tables are created <b>before</b> the transaction opens, because partition creation takes an exclusive lock on the parent and holding that for the length of a multi-million-row import would block every reader of every county until the import finished (the rule <see cref="TerrainPointPostgreSQLConverter"/> documents). The scope's partitions are created up front too, so the truncation inside the transaction never meets a missing partition.</para>
     /// <para>Every table name this converter interpolates into SQL is resolved through <see cref="Query.IsOpenBuildingTableName(string?)"/> first - an identifier cannot be a parameter, so the stored list of names is the guard.</para>
@@ -43,6 +44,16 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// The number of footprints read after which the import logs one progress line, whatever the run keeps (DiGi.GIS.PostgreSQL#169).
         /// </summary>
         private const int count_Progress_Read = 1000000;
+
+        /// <summary>
+        /// The number of footprints converted as one unit of work (DiGi.GIS.PostgreSQL#170): large enough that handing a batch to a worker costs nothing next to converting it, small enough that the batches in flight stay a bounded, modest amount of memory.
+        /// </summary>
+        private const int count_Batch = 2000;
+
+        /// <summary>
+        /// The number of batches held per degree of parallelism - converting, converted and waiting to be consumed - before the reading loop waits for the oldest one (DiGi.GIS.PostgreSQL#170). Two keeps every worker busy while the run's own thread consumes and writes, and bounds the memory of a parallel run to this times the degree times <see cref="count_Batch"/> footprints.
+        /// </summary>
+        private const int count_BatchesInFlightPerDegree = 2;
 
         /// <summary>
         /// The number of footprints read between two evaluations of the time condition, so an interval-based progress line reads the clock this often rather than per footprint.
@@ -127,7 +138,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
         }
 
         /// <summary>
-        /// Asynchronously inserts or revises the release's row in <c>building_dataset</c> and returns its identifier.
+        /// Asynchronously inserts or revises the release's row in <c>building_dataset</c> - the skipped source files included (DiGi.GIS.PostgreSQL#170) - and returns its identifier.
         /// <para>The conflict target is <c>(dataset_key, version, download_date)</c>, the register's <c>NULLS NOT DISTINCT</c> unique key, so importing the same release twice revises one row and keeps the identifier the footprint rows already point at. The metadata a finished import knows - the row count and the attribute list - is written separately by the run itself, not here.</para>
         /// </summary>
         /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> used to execute the command. When it has an open transaction, the statement joins it.</param>
@@ -148,14 +159,15 @@ namespace DiGi.GIS.PostgreSQL.Classes
             }
 
             string commandText = $@"
-                INSERT INTO {Constants.TableName.BuildingDataset} (dataset_key, version, download_date, source_url, licence, source_observation_date, attribute_names, file_name, sha256, row_count)
-                VALUES (@dataset_key, @version, @download_date, @source_url, @licence, @source_observation_date, @attribute_names, @file_name, @sha256, @row_count)
+                INSERT INTO {Constants.TableName.BuildingDataset} (dataset_key, version, download_date, source_url, licence, source_observation_date, attribute_names, file_name, sha256, row_count, skipped_file_names)
+                VALUES (@dataset_key, @version, @download_date, @source_url, @licence, @source_observation_date, @attribute_names, @file_name, @sha256, @row_count, @skipped_file_names)
                 ON CONFLICT (dataset_key, version, download_date) DO UPDATE SET
                     source_url = EXCLUDED.source_url,
                     licence = EXCLUDED.licence,
                     source_observation_date = EXCLUDED.source_observation_date,
                     file_name = EXCLUDED.file_name,
-                    sha256 = EXCLUDED.sha256
+                    sha256 = EXCLUDED.sha256,
+                    skipped_file_names = EXCLUDED.skipped_file_names
                 RETURNING id;";
 
             try
@@ -173,6 +185,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 npgsqlCommand.Parameters.Add(new NpgsqlParameter("file_name", NpgsqlDbType.Text) { Value = (object?)buildingDatasetRelease.FileName ?? DBNull.Value });
                 npgsqlCommand.Parameters.Add(new NpgsqlParameter("sha256", NpgsqlDbType.Text) { Value = (object?)buildingDatasetRelease.Sha256 ?? DBNull.Value });
                 npgsqlCommand.Parameters.Add(new NpgsqlParameter("row_count", NpgsqlDbType.Bigint) { Value = buildingDatasetRelease.RowCount is long rowCount ? rowCount : (object?)DBNull.Value });
+                npgsqlCommand.Parameters.Add(new NpgsqlParameter("skipped_file_names", NpgsqlDbType.Jsonb) { Value = buildingDatasetRelease.SkippedFileNames is { Count: > 0 } skippedFileNames ? JsonSerializer.Serialize(skippedFileNames) : DBNull.Value });
 
                 object? result = await npgsqlCommand.ExecuteScalarAsync(cancellationToken);
                 return result is null || result is DBNull ? null : System.Convert.ToInt32(result, CultureInfo.CurrentCulture);
@@ -283,7 +296,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
         }
 
         /// <summary>
-        /// Asynchronously reads the <c>building_dataset</c> release register: every release with its version, download date, licence, SHA-256, row count and attribute list.
+        /// Asynchronously reads the <c>building_dataset</c> release register: every release with its version, download date, licence, SHA-256, row count, attribute list and the source files its import left unread.
         /// <para>This is the evidence of paper 01, Table 2 and the data-availability statement: which release of which dataset the comparison used and when it was fetched. Rows are ordered by dataset key, then download date.</para>
         /// </summary>
         /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> used to execute the command.</param>
@@ -305,7 +318,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
 
             // One SQL text per scope rather than "@dataset_key IS NULL OR ...", as everywhere in this library.
             string commandText = $@"
-                SELECT id, dataset_key, version, download_date, source_url, licence, source_observation_date, attribute_names::text, file_name, sha256, row_count, created_at
+                SELECT id, dataset_key, version, download_date, source_url, licence, source_observation_date, attribute_names::text, file_name, sha256, row_count, created_at, skipped_file_names::text
                 FROM {Constants.TableName.BuildingDataset}
                 {(datasetKey is null ? string.Empty : "WHERE dataset_key = @dataset_key")}
                 ORDER BY dataset_key, download_date, version;";
@@ -340,6 +353,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
                     [nameof(BuildingDatasetRelease.Sha256)] = npgsqlDataReader.IsDBNull(9) ? null : npgsqlDataReader.GetString(9),
                     [nameof(BuildingDatasetRelease.RowCount)] = npgsqlDataReader.IsDBNull(10) ? null : npgsqlDataReader.GetInt64(10),
                     [nameof(BuildingDatasetRelease.CreatedAt)] = npgsqlDataReader.IsDBNull(11) ? null : npgsqlDataReader.GetDateTime(11),
+                    [nameof(BuildingDatasetRelease.SkippedFileNames)] = npgsqlDataReader.IsDBNull(12) ? null : JsonNode.Parse(npgsqlDataReader.GetString(12)),
                 };
 
                 result.Add(new BuildingDatasetRelease(jsonObject));
@@ -666,6 +680,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// <para>The run takes the county parts from its caller (they live on the Main database, this converter on Storage), reprojects each footprint with the transformation of its own source coordinate reference system (built lazily, once per run, as locals - never per footprint and never shared across runs), filters it against the scope, files it through <see cref="Query.OpenBuildingCountyId(BoundingBox2D, IPolygonal2D, Point2D, IDictionary{int, IPolygonal2D}, IDictionary{int, BoundingBox2D}, IDictionary{int, PolygonalFace2D}, ISet{int}, BoundingBox2D, double, out bool)"/> and buffers it; the buffer flushes through a binary COPY per partition every <c>rowCount_Flush</c> rows.</para>
         /// <para>A footprint the reprojection rejects (null input, non-finite vertex, short ring, out-of-domain result, unsupported source reference system) is counted with <see cref="UpdateRejectionReason.GeometryRejected"/> and never written; one that files nowhere is counted with <see cref="UpdateRejectionReason.CountyUnresolved"/>; one outside the run's scope is counted as filtered, not as a rejection. The GHS-OBAT table additionally refuses a row without a source identifier, because that identifier is its primary key.</para>
         /// <para>While the stream is open the run logs one progress line every <c>count_Progress_Read</c> footprints read or <c>timeSpan_Progress</c> elapsed, whichever comes first - the counters the loop already keeps plus the source file the stream is inside, so an open run shows how far along it is without a query (DiGi.GIS.PostgreSQL#169). The final line repeats the same counters, so it equals the last progress line plus the remainder.</para>
+        /// <para>The conversion - reprojection, filing, serialization - runs on up to <paramref name="maxDegreeOfParallelism"/> workers (DiGi.GIS.PostgreSQL#170): the stream is read in batches of <c>count_Batch</c> footprints, each batch is converted by a worker with its own transformations, and the batches are consumed strictly in read order by the run's own thread, which alone keeps the counters, the capped rejection sample, the progress lines and the buffer and writes the COPY on the run's one connection. A run therefore stores, counts, samples and logs the same at any degree; at most <c>count_BatchesInFlightPerDegree</c> times the degree batches are held at once. A worker that fails fails the run, and a stop cancels the workers: either way every worker is awaited and the transaction is left uncommitted.</para>
         /// </summary>
         /// <param name="footprints">The footprints to import, in their source coordinate reference system; null imports nothing and answers null.</param>
         /// <param name="buildingDatasetRelease">The release being imported; its dataset key selects the table and its three register columns are required.</param>
@@ -676,6 +691,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// <param name="sourcePosition">The shared position the run's footprint stream fills in as each source file starts, so a progress line can name the file and its position (n of N); null logs the counters without one.</param>
         /// <param name="tolerance">The distance a footprint may lie outside a county part and still count as intersecting it.</param>
         /// <param name="commandTimeout">The timeout in seconds for the execution of the commands. A value of 0 disables the timeout.</param>
+        /// <param name="maxDegreeOfParallelism">The most batches converted at once; zero or less uses half the processors, one converts on the run's own thread.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> to monitor for cancellation requests.</param>
         /// <returns>A task whose result carries the register row id, the rows stored, the footprints filtered and the footprints rejected, or null when the run could not start (bad arguments, unreadable schema, no counties to file against).</returns>
         public async Task<OpenBuildingImportResult?> ImportAsync(
@@ -688,6 +704,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             OpenBuildingSourcePosition? sourcePosition = null,
             double tolerance = Core.Constants.Tolerance.MacroDistance,
             int commandTimeout = 600,
+            int maxDegreeOfParallelism = 1,
             CancellationToken cancellationToken = default)
         {
             if (footprints is null || buildingDatasetRelease is null || countyIds is null)
@@ -859,12 +876,6 @@ namespace DiGi.GIS.PostgreSQL.Classes
                     Dictionary<int, List<OpenBuildingRow>> rows_ByCountyId = [];
                     int bufferedCount = 0;
 
-                    // The transformations of this run, built once per source coordinate reference system and
-                    // held as locals: per call is the cost DiGi.GIS#21 removed, and a static would share state
-                    // across runs (Coding - General.md).
-                    ICoordinateTransformation? transformation_4326 = null;
-                    ICoordinateTransformation? transformation_3035 = null;
-
                     void Reject(string? sourceId, UpdateRejectionReason updateRejectionReason)
                     {
                         rejectionCount++;
@@ -875,111 +886,283 @@ namespace DiGi.GIS.PostgreSQL.Classes
                         }
                     }
 
-                    await foreach (Footprint? footprint in footprints.WithCancellation(cancellationToken))
+                    // The transformations of this run, one pair per converting worker (DiGi.GIS.PostgreSQL#170): built
+                    // lazily per source reference system and reused for every batch that worker converts - never per
+                    // footprint (the cost DiGi.GIS#21 removed), never static, never shared by two batches converting
+                    // at once, because the thread safety of a ProjNet transformation is not established. Index 0 is
+                    // EPSG:4326, index 1 EPSG:3035. The pool lives and dies with the run.
+                    ConcurrentBag<ICoordinateTransformation?[]> coordinateTransformationsPool = [];
+
+                    // Converts one batch - reprojection, county filing, serialization - into one outcome per
+                    // footprint, index-aligned with the batch. It touches nothing the consumer writes: the county
+                    // structures and the scope are only read, so batches convert in parallel safely.
+                    (OpenBuildingRow? Row, UpdateRejectionReason? UpdateRejectionReason)[] ConvertBatch(List<Footprint?> footprints_Batch, CancellationToken cancellationToken_Batch)
                     {
-                        // Progress first, before this footprint is counted: the branches below leave the
-                        // iteration with continue, so a check at the end of the body would be skipped by
-                        // exactly the out-of-scope and rejected footprints that make a run slow to show
-                        // progress (DiGi.GIS.PostgreSQL#169). The time condition is read only every
-                        // count_Progress_Check footprints, so no clock is read per footprint.
-                        readCount++;
-
-                        if (readCount - readCount_LastProgress >= count_Progress_Read || (readCount % count_Progress_Check == 0 && stopwatch.Elapsed - timeSpan_LastProgress >= timeSpan_Progress))
+                        if (!coordinateTransformationsPool.TryTake(out ICoordinateTransformation?[]? coordinateTransformations))
                         {
-                            // read, kept (written plus still buffered), out of scope and rejected always add up
-                            // to the read count, so the final line equals this one plus the remainder.
-                            Serilog.Modify.Log(
-                                Serilog.Enums.LogEventLevel.Information,
-                                "{Type}: {DatasetKey}/{Version} - {ReadCount} read, {KeptCount} kept ({RowCount} written), {FilteredCount} out of scope, {RejectionCount} rejected, {SourcePath} ({SourceIndex} of {SourceCount}), {ElapsedSeconds:0} s elapsed, {ReadPerSecond:0} footprints/s",
-                                nameof(ImportAsync), buildingDatasetRelease.DatasetKey!, buildingDatasetRelease.Version!,
-                                readCount, readCount - filteredCount - rejectionCount, rowCount, filteredCount, rejectionCount,
-                                sourcePosition?.Path ?? "(starting)", sourcePosition?.Index ?? 0, sourcePosition?.Count ?? 0,
-                                stopwatch.Elapsed.TotalSeconds, readCount / Math.Max(stopwatch.Elapsed.TotalSeconds, 1));
-
-                            readCount_LastProgress = readCount;
-                            timeSpan_LastProgress = stopwatch.Elapsed;
+                            coordinateTransformations = new ICoordinateTransformation?[2];
                         }
 
-                        if (footprint is null)
+                        try
                         {
-                            Reject(null, UpdateRejectionReason.Undefined);
-                            continue;
-                        }
+                            (OpenBuildingRow? Row, UpdateRejectionReason? UpdateRejectionReason)[] result = new (OpenBuildingRow?, UpdateRejectionReason?)[footprints_Batch.Count];
 
-                        ICoordinateTransformation? coordinateTransformation;
-                        switch (footprint.SourceSrid)
-                        {
-                            case 4326:
-                                transformation_4326 ??= GIS.Create.EPSG2180TransformationFromEPSG4326();
-                                coordinateTransformation = transformation_4326;
-                                break;
-
-                            case 3035:
-                                transformation_3035 ??= GIS.Create.EPSG2180TransformationFromEPSG3035();
-                                coordinateTransformation = transformation_3035;
-                                break;
-
-                            default:
-                                coordinateTransformation = null;
-                                break;
-                        }
-
-                        OpenBuildingRow? openBuildingRow = CreateRow(footprint, coordinateTransformation, polygonal2Ds_ByCountyId, boundingBox2Ds_ByCountyId, polygonalFace2Ds_ByCountyId, countyIds_Scope, boundingBox2D_Scope, tolerance, out UpdateRejectionReason? updateRejectionReason);
-
-                        if (openBuildingRow is null)
-                        {
-                            if (updateRejectionReason is UpdateRejectionReason updateRejectionReason_Temp)
+                            for (int i = 0; i < footprints_Batch.Count; i++)
                             {
-                                Reject(footprint.SourceId, updateRejectionReason_Temp);
-                            }
-                            else
-                            {
-                                // Null row without a reason: the footprint was outside this run's scope, which
-                                // is the expected residue of a nationwide file read for pilot areas - not a loss.
-                                filteredCount++;
+                                cancellationToken_Batch.ThrowIfCancellationRequested();
+
+                                Footprint? footprint = footprints_Batch[i];
+                                if (footprint is null)
+                                {
+                                    // Counted by the consumer, which rejects a null footprint before anything else.
+                                    continue;
+                                }
+
+                                ICoordinateTransformation? coordinateTransformation;
+                                switch (footprint.SourceSrid)
+                                {
+                                    case 4326:
+                                        coordinateTransformations[0] ??= GIS.Create.EPSG2180TransformationFromEPSG4326();
+                                        coordinateTransformation = coordinateTransformations[0];
+                                        break;
+
+                                    case 3035:
+                                        coordinateTransformations[1] ??= GIS.Create.EPSG2180TransformationFromEPSG3035();
+                                        coordinateTransformation = coordinateTransformations[1];
+                                        break;
+
+                                    default:
+                                        coordinateTransformation = null;
+                                        break;
+                                }
+
+                                OpenBuildingRow? openBuildingRow = CreateRow(footprint, coordinateTransformation, polygonal2Ds_ByCountyId, boundingBox2Ds_ByCountyId, polygonalFace2Ds_ByCountyId, countyIds_Scope, boundingBox2D_Scope, tolerance, out UpdateRejectionReason? updateRejectionReason);
+                                result[i] = (openBuildingRow, updateRejectionReason);
                             }
 
-                            continue;
+                            return result;
                         }
-
-                        if (isGhsObat && string.IsNullOrWhiteSpace(openBuildingRow.SourceId))
+                        finally
                         {
-                            // The table is keyed by the link identifier, so a row without one cannot be stored
-                            // or de-duplicated. Source tables all carry one; this guards the general case.
-                            Reject(footprint.SourceId, UpdateRejectionReason.Undefined);
-                            continue;
+                            coordinateTransformationsPool.Add(coordinateTransformations);
                         }
+                    }
 
-                        if (countyIds_PartitionUnavailable.Contains(openBuildingRow.CountyId))
-                        {
-                            Reject(openBuildingRow.SourceId, UpdateRejectionReason.PartitionUnavailable);
-                            continue;
-                        }
+                    // The source file of the footprint being consumed. Batches are read ahead of the footprint the
+                    // consumer is on, so the stream's shared position has already moved on: every batch records
+                    // where it crossed into a new file, and the consumer follows those records instead.
+                    string? sourcePath = null;
+                    int sourceIndex = 0;
+                    int sourceCount = 0;
 
-                        // The register's attribute list is the union of the run's rows; the bag is read here as
-                        // well as in CreateRow because it is the loop's own tallies, not the row, that need it.
-                        if (footprint.Attributes is JsonObject attributes)
+                    // Consumes one converted batch in read order on the run's own thread: the counters, the capped
+                    // rejection sample, the attribute list, the buffer, the flushes and the progress lines all have
+                    // this single writer (DiGi.GIS.PostgreSQL#169, #170), so a run converting in parallel tallies,
+                    // samples and logs exactly what a run at degree one does.
+                    async Task ConsumeAsync(List<Footprint?> footprints_Batch, List<(int Offset, string? Path, int Index, int Count)> positions_Batch, (OpenBuildingRow? Row, UpdateRejectionReason? UpdateRejectionReason)[] outcomes)
+                    {
+                        int position = 0;
+
+                        for (int i = 0; i < footprints_Batch.Count; i++)
                         {
-                            foreach (KeyValuePair<string, JsonNode?> pair in attributes)
+                            while (position < positions_Batch.Count && positions_Batch[position].Offset <= i)
                             {
-                                attributeNames.Add(pair.Key);
+                                sourcePath = positions_Batch[position].Path;
+                                sourceIndex = positions_Batch[position].Index;
+                                sourceCount = positions_Batch[position].Count;
+                                position++;
+                            }
+
+                            // Progress first, before this footprint is counted: the branches below leave the
+                            // iteration with continue, so a check at the end of the body would be skipped by
+                            // exactly the out-of-scope and rejected footprints that make a run slow to show
+                            // progress (DiGi.GIS.PostgreSQL#169). The time condition is read only every
+                            // count_Progress_Check footprints, so no clock is read per footprint.
+                            readCount++;
+
+                            if (readCount - readCount_LastProgress >= count_Progress_Read || (readCount % count_Progress_Check == 0 && stopwatch.Elapsed - timeSpan_LastProgress >= timeSpan_Progress))
+                            {
+                                // read, kept (written plus still buffered), out of scope and rejected always add up
+                                // to the read count, so the final line equals this one plus the remainder.
+                                Serilog.Modify.Log(
+                                    Serilog.Enums.LogEventLevel.Information,
+                                    "{Type}: {DatasetKey}/{Version} - {ReadCount} read, {KeptCount} kept ({RowCount} written), {FilteredCount} out of scope, {RejectionCount} rejected, {SourcePath} ({SourceIndex} of {SourceCount}), {ElapsedSeconds:0} s elapsed, {ReadPerSecond:0} footprints/s",
+                                    nameof(ImportAsync), buildingDatasetRelease.DatasetKey!, buildingDatasetRelease.Version!,
+                                    readCount, readCount - filteredCount - rejectionCount, rowCount, filteredCount, rejectionCount,
+                                    sourcePath ?? "(starting)", sourceIndex, sourceCount,
+                                    stopwatch.Elapsed.TotalSeconds, readCount / Math.Max(stopwatch.Elapsed.TotalSeconds, 1));
+
+                                readCount_LastProgress = readCount;
+                                timeSpan_LastProgress = stopwatch.Elapsed;
+                            }
+
+                            Footprint? footprint = footprints_Batch[i];
+                            if (footprint is null)
+                            {
+                                Reject(null, UpdateRejectionReason.Undefined);
+                                continue;
+                            }
+
+                            OpenBuildingRow? openBuildingRow = outcomes[i].Row;
+
+                            if (openBuildingRow is null)
+                            {
+                                if (outcomes[i].UpdateRejectionReason is UpdateRejectionReason updateRejectionReason_Temp)
+                                {
+                                    Reject(footprint.SourceId, updateRejectionReason_Temp);
+                                }
+                                else
+                                {
+                                    // Null row without a reason: the footprint was outside this run's scope, which
+                                    // is the expected residue of a nationwide file read for pilot areas - not a loss.
+                                    filteredCount++;
+                                }
+
+                                continue;
+                            }
+
+                            if (isGhsObat && string.IsNullOrWhiteSpace(openBuildingRow.SourceId))
+                            {
+                                // The table is keyed by the link identifier, so a row without one cannot be stored
+                                // or de-duplicated. Source tables all carry one; this guards the general case.
+                                Reject(footprint.SourceId, UpdateRejectionReason.Undefined);
+                                continue;
+                            }
+
+                            if (countyIds_PartitionUnavailable.Contains(openBuildingRow.CountyId))
+                            {
+                                Reject(openBuildingRow.SourceId, UpdateRejectionReason.PartitionUnavailable);
+                                continue;
+                            }
+
+                            // The register's attribute list is the union of the run's rows; the bag is read here as
+                            // well as in CreateRow because it is the loop's own tallies, not the row, that need it.
+                            if (footprint.Attributes is JsonObject attributes)
+                            {
+                                foreach (KeyValuePair<string, JsonNode?> pair in attributes)
+                                {
+                                    attributeNames.Add(pair.Key);
+                                }
+                            }
+
+                            if (!rows_ByCountyId.TryGetValue(openBuildingRow.CountyId, out List<OpenBuildingRow>? rows))
+                            {
+                                rows = [];
+                                rows_ByCountyId[openBuildingRow.CountyId] = rows;
+                            }
+
+                            rows.Add(openBuildingRow);
+                            bufferedCount++;
+
+                            if (bufferedCount >= rowCount_Flush)
+                            {
+                                rowCount += await FlushAsync(npgsqlConnection, tableName, isGhsObat, datasetId.Value, rows_ByCountyId, cancellationToken);
+                                bufferedCount = 0;
+                                progress?.Report(rowCount);
+                            }
+                        }
+                    }
+
+                    // The pipeline (DiGi.GIS.PostgreSQL#170): this loop reads the stream into batches, hands each
+                    // batch to a worker to convert and queues the conversion; the oldest conversion is consumed - in
+                    // read order - once the queue holds count_BatchesInFlight of them. Reading, consuming and the
+                    // COPY stay on this one thread and the one connection of the run's transaction; only the
+                    // conversion runs in parallel. At degree one a batch is converted here and consumed at once.
+                    int degreeOfParallelism = maxDegreeOfParallelism > 0 ? maxDegreeOfParallelism : Math.Max(1, Core.Query.ProcessorCount(0.5));
+                    int count_BatchesInFlight = degreeOfParallelism == 1 ? 1 : count_BatchesInFlightPerDegree * degreeOfParallelism;
+
+                    Queue<(List<Footprint?> Footprints, List<(int Offset, string? Path, int Index, int Count)> Positions, Task<(OpenBuildingRow? Row, UpdateRejectionReason? UpdateRejectionReason)[]> Task)> batches = new();
+                    List<Footprint?> footprints_Read = new(count_Batch);
+                    List<(int Offset, string? Path, int Index, int Count)> positions_Read = [];
+                    int sourceIndex_Read = 0;
+
+                    using CancellationTokenSource cancellationTokenSource_Workers = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                    CancellationToken cancellationToken_Workers = cancellationTokenSource_Workers.Token;
+
+                    async Task DequeueAsync()
+                    {
+                        (List<Footprint?> footprints_Batch, List<(int Offset, string? Path, int Index, int Count)> positions_Batch, Task<(OpenBuildingRow? Row, UpdateRejectionReason? UpdateRejectionReason)[]> task) = batches.Peek();
+
+                        // A worker that failed fails the run here: the exception leaves the transaction uncommitted.
+                        (OpenBuildingRow? Row, UpdateRejectionReason? UpdateRejectionReason)[] outcomes = await task;
+                        batches.Dequeue();
+
+                        await ConsumeAsync(footprints_Batch, positions_Batch, outcomes);
+                    }
+
+                    async Task EnqueueAsync()
+                    {
+                        if (footprints_Read.Count == 0)
+                        {
+                            return;
+                        }
+
+                        List<Footprint?> footprints_Batch = footprints_Read;
+                        List<(int Offset, string? Path, int Index, int Count)> positions_Batch = positions_Read;
+                        footprints_Read = new(count_Batch);
+                        positions_Read = [];
+
+                        Task<(OpenBuildingRow? Row, UpdateRejectionReason? UpdateRejectionReason)[]> task = degreeOfParallelism == 1
+                            ? Task.FromResult(ConvertBatch(footprints_Batch, cancellationToken))
+                            : Task.Run(() => ConvertBatch(footprints_Batch, cancellationToken_Workers), cancellationToken_Workers);
+
+                        batches.Enqueue((footprints_Batch, positions_Batch, task));
+
+                        while (batches.Count >= count_BatchesInFlight)
+                        {
+                            await DequeueAsync();
+                        }
+                    }
+
+                    try
+                    {
+                        await foreach (Footprint? footprint in footprints.WithCancellation(cancellationToken))
+                        {
+                            // The stream moves the shared position before it yields a file's first footprint, so a
+                            // change of index here marks where this batch crosses into the next file.
+                            if (sourcePosition is not null && sourcePosition.Index != sourceIndex_Read)
+                            {
+                                sourceIndex_Read = sourcePosition.Index;
+                                positions_Read.Add((footprints_Read.Count, sourcePosition.Path, sourcePosition.Index, sourcePosition.Count));
+                            }
+
+                            footprints_Read.Add(footprint);
+
+                            if (footprints_Read.Count >= count_Batch)
+                            {
+                                await EnqueueAsync();
                             }
                         }
 
-                        if (!rows_ByCountyId.TryGetValue(openBuildingRow.CountyId, out List<OpenBuildingRow>? rows))
+                        await EnqueueAsync();
+
+                        while (batches.Count > 0)
                         {
-                            rows = [];
-                            rows_ByCountyId[openBuildingRow.CountyId] = rows;
+                            await DequeueAsync();
                         }
-
-                        rows.Add(openBuildingRow);
-                        bufferedCount++;
-
-                        if (bufferedCount >= rowCount_Flush)
+                    }
+                    finally
+                    {
+                        if (batches.Count > 0)
                         {
-                            rowCount += await FlushAsync(npgsqlConnection, tableName, isGhsObat, datasetId.Value, rows_ByCountyId, cancellationToken);
-                            bufferedCount = 0;
-                            progress?.Report(rowCount);
+                            // A failure or a stop left batches converting: stop them and wait for every one, so no
+                            // worker outlives the run. The failure already on its way out is the one reported.
+                            cancellationTokenSource_Workers.Cancel();
+
+                            foreach ((List<Footprint?> _, List<(int Offset, string? Path, int Index, int Count)> _, Task<(OpenBuildingRow? Row, UpdateRejectionReason? UpdateRejectionReason)[]> task) in batches)
+                            {
+                                try
+                                {
+                                    await task;
+                                }
+                                catch (OperationCanceledException)
+                                {
+                                }
+                                catch (Exception exception)
+                                {
+                                    Serilog.Modify.Log(exception, "{Type}: a batch still converting when the import of {DatasetKey}/{Version} stopped failed as well", nameof(ImportAsync), buildingDatasetRelease.DatasetKey!, buildingDatasetRelease.Version!);
+                                }
+                            }
                         }
                     }
 

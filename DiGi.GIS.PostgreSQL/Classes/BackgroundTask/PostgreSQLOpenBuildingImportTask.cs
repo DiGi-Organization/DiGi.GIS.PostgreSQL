@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,7 +18,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
 {
     /// <summary>
     /// Represents a background task that imports one release of an open building dataset - EUBUCCO, Overture, OSM, DBSM, Microsoft or GHS-OBAT - into its footprint table, with the release recorded in the <c>building_dataset</c> register (DiGi.GIS.PostgreSQL#125).
-    /// <para>The task owns the run: it validates the options, resolves the scope (county parts widened to their siblings, or a pilot-area bounding box resolved against the database), reads the county parts from the Main database once, opens the readers for the dataset's file format and hands the footprint stream, the county parts and the shared <see cref="OpenBuildingSourcePosition"/> to <see cref="OpenBuildingPostgreSQLConverter.ImportAsync(IAsyncEnumerable{Footprint}, BuildingDatasetRelease, IEnumerable{int}, IReadOnlyList{AdministrativeAreal2D}, BoundingBox2D?, IProgress{long}, OpenBuildingSourcePosition?, double, int, CancellationToken)"/>, which writes to the Storage database. The converter owns the load path, including the transformations: one per source coordinate reference system, built lazily as locals of the run - never per footprint, never shared between runs.</para>
+    /// <para>The task owns the run: it validates the options, resolves the scope (county parts widened to their siblings, or a pilot-area bounding box resolved against the database), reads the county parts from the Main database once, opens the readers for the dataset's file format and hands the footprint stream, the county parts and the shared <see cref="OpenBuildingSourcePosition"/> to <see cref="OpenBuildingPostgreSQLConverter.ImportAsync(IAsyncEnumerable{Footprint}, BuildingDatasetRelease, IEnumerable{int}, IReadOnlyList{AdministrativeAreal2D}, BoundingBox2D?, IProgress{long}, OpenBuildingSourcePosition?, double, int, int, CancellationToken)"/>, which writes to the Storage database. The converter owns the load path, including the transformations: one per source coordinate reference system, built lazily as locals of the run - never per footprint, never shared between runs.</para>
     /// <para>The bounding box is applied after the reprojection leg, never handed to a reader: every reader interprets a box in its own file's source coordinate reference system, and an EPSG:2180 box passed into an EPSG:3035 file would filter everything out silently. The OSM branch reads synchronously through <c>DiGi.OSM</c> and its reader-side rejection summary is read after the stream has been enumerated to its end, which is when that summary completes.</para>
     /// <para>A run reports success unless it was cancelled. Footprints outside the scope and footprints that file nowhere are tallied rather than gated on - a nationwide file read for pilot areas leaves a large ordinary residue, and gating on it would report a correct run as a failure while naming nothing.</para>
     /// </summary>
@@ -27,6 +28,11 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// Bulk imports and whole-county reads exceed the 30 second default; allow up to 10 minutes per statement.
         /// </summary>
         private const int commandTimeout = 600;
+
+        /// <summary>
+        /// The distance in metres a source file's extent may stay away from the scope and still be read (DiGi.GIS.PostgreSQL#170): it covers a building filed under a Microsoft tile but reaching beyond its edge, the filing tolerance and the 32-bit rounding of a GeoPackage R-tree, with room to spare.
+        /// </summary>
+        private const double distance_SourceExtentMargin = 1000;
 
         protected readonly GISPostgreSQLConverterManager gISPostgreSQLConverterManager;
 
@@ -53,6 +59,11 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// Gets the identifier of the register row the run upserted in building_dataset, or null when no run completed (DiGi.GIS.PostgreSQL#131). Read after the run, like the tallies.
         /// </summary>
         public int? DatasetId { get; private set; }
+
+        /// <summary>
+        /// Gets the source files the run left unread because their own extent cannot reach the scope (DiGi.GIS.PostgreSQL#170); empty when every file was read. Their footprints are counted nowhere - neither stored, out of scope nor rejected.
+        /// </summary>
+        public List<string> SkippedSourcePaths { get; private set; } = [];
 
         /// <summary>
         /// Gets the number of footprints the readers refused before the load path saw them (OSM PBF objects that could not become a footprint). Read after the run, when the reader summaries are complete.
@@ -82,6 +93,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             RejectionCount = 0;
             ReaderRejectionCount = 0;
             DatasetId = null;
+            SkippedSourcePaths = [];
 
             PostgreSQLOpenBuildingImportTaskOptions options = PostgreSQLOpenBuildingImportTaskOptions;
             if (options is null)
@@ -215,6 +227,48 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 return false;
             }
 
+            // Files that cannot reach the scope are left unread (DiGi.GIS.PostgreSQL#170): a nationwide release read
+            // for a few counties otherwise spends most of its time on files that keep nothing. The scope is the
+            // envelope of every county part in it - the stored envelope the import's own filing prefilter uses - or
+            // the scope box; a part the county list does not carry has no envelope, and then every file is read.
+            PostgreSQLOpenBuildingImportTaskOptions options_Read = options;
+            if (options.SkipSourcesOutOfScope && BuildingDatasetFromKey(datasetKey) is BuildingDataset buildingDataset_Skip)
+            {
+                List<BoundingBox2D?> boundingBox2Ds_Scope = [];
+                if (boundingBox2D_Scope is not null)
+                {
+                    boundingBox2Ds_Scope.Add(boundingBox2D_Scope);
+                }
+                else
+                {
+                    Dictionary<int, AdministrativeAreal2D> counties_ById = [];
+                    foreach (AdministrativeAreal2D county in counties)
+                    {
+                        counties_ById[county.Id] = county;
+                    }
+
+                    foreach (int countyId in countyIds_Scope)
+                    {
+                        boundingBox2Ds_Scope.Add(counties_ById.TryGetValue(countyId, out AdministrativeAreal2D? county) ? county.BoundingBox2D : null);
+                    }
+                }
+
+                SkippedSourcePaths = await Query.SourcePathsOutOfScopeAsync(sourcePaths, buildingDataset_Skip, boundingBox2Ds_Scope, distance_SourceExtentMargin, cancellationToken);
+
+                if (SkippedSourcePaths.Count > 0)
+                {
+                    HashSet<string> sourcePaths_Skipped = [.. SkippedSourcePaths];
+                    options_Read = new PostgreSQLOpenBuildingImportTaskOptions(options)
+                    {
+                        SourcePaths = [.. sourcePaths.Where(x => !sourcePaths_Skipped.Contains(x))],
+                    };
+
+                    Serilog.Modify.Log(
+                        "{Type}: {SkippedCount} of {PathCount} source file(s) of {DatasetKey} cannot reach the scope and are left unread: {SkippedFileNames}",
+                        nameof(PostgreSQLOpenBuildingImportTask), SkippedSourcePaths.Count, sourcePaths.Count, datasetKey!, string.Join(", ", RelativePaths(sourcePaths, SkippedSourcePaths)));
+                }
+            }
+
             List<BuildingReadResult> buildingReadResults = [];
 
             // The position the stream fills in as each source file starts and the converter reads back when
@@ -224,7 +278,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             IAsyncEnumerable<Footprint>? footprints;
             try
             {
-                footprints = Footprints(tableName, options, quadkeys, buildingReadResults, sourcePosition, cancellationToken);
+                footprints = Footprints(tableName, options_Read, quadkeys, buildingReadResults, sourcePosition, cancellationToken);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
@@ -252,11 +306,12 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 options.Licence,
                 options.SourceObservationDate,
                 options.FileName,
-                options.Sha256);
+                options.Sha256,
+                SkippedSourcePaths.Count == 0 ? null : RelativePaths(sourcePaths, SkippedSourcePaths));
 
             Serilog.Modify.Log(
-                "{Type} started: {DatasetKey}/{Version} from {PathCount} file(s), scope {Scope}, {CountyCount} county parts",
-                nameof(PostgreSQLOpenBuildingImportTask), datasetKey!, options.Version!, sourcePaths.Count,
+                "{Type} started: {DatasetKey}/{Version} from {PathCount} of {SourcePathCount} file(s), scope {Scope}, {CountyCount} county parts",
+                nameof(PostgreSQLOpenBuildingImportTask), datasetKey!, options.Version!, options_Read.SourcePaths!.Count, sourcePaths.Count,
                 boundingBox2D_Scope is null ? "county list" : "bounding box", countyIds_Scope.Count);
 
             OpenBuildingImportResult? openBuildingImportResult = await openBuildingPostgreSQLConverter.ImportAsync(
@@ -268,6 +323,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 progress,
                 sourcePosition,
                 commandTimeout: commandTimeout,
+                maxDegreeOfParallelism: options.MaxDegreeOfParallelism,
                 cancellationToken: cancellationToken);
 
             if (openBuildingImportResult is null)
@@ -360,6 +416,47 @@ namespace DiGi.GIS.PostgreSQL.Classes
             }
 
             return Concatenate(streams, paths, sourcePosition, cancellationToken);
+        }
+
+        /// <summary>
+        /// Names source files relative to the directory every source file of the run shares, so the register row and the log name a Microsoft chunk by its <c>quadkey=</c> directory rather than a machine path (DiGi.GIS.PostgreSQL#170).
+        /// </summary>
+        /// <param name="paths_All">Every source file of the run; their shared directory is the base.</param>
+        /// <param name="paths">The files to name.</param>
+        /// <returns>The relative paths with forward slashes, in the order of <paramref name="paths"/>; a file outside the shared directory keeps its file name.</returns>
+        private static List<string> RelativePaths(IEnumerable<string> paths_All, IEnumerable<string> paths)
+        {
+            char[] separators = ['\\', '/'];
+
+            string[]? segments_Common = null;
+            foreach (string path in paths_All)
+            {
+                string[] segments = (System.IO.Path.GetDirectoryName(System.IO.Path.GetFullPath(path)) ?? string.Empty).Split(separators, StringSplitOptions.RemoveEmptyEntries);
+                if (segments_Common is null)
+                {
+                    segments_Common = segments;
+                    continue;
+                }
+
+                int count = 0;
+                while (count < segments_Common.Length && count < segments.Length && string.Equals(segments_Common[count], segments[count], StringComparison.OrdinalIgnoreCase))
+                {
+                    count++;
+                }
+
+                segments_Common = segments_Common[..count];
+            }
+
+            List<string> result = [];
+            foreach (string path in paths)
+            {
+                string[] segments = System.IO.Path.GetFullPath(path).Split(separators, StringSplitOptions.RemoveEmptyEntries);
+                int count = segments_Common is null ? 0 : segments_Common.Length;
+
+                result.Add(count > 0 && count < segments.Length ? string.Join("/", segments[count..]) : System.IO.Path.GetFileName(path));
+            }
+
+            return result;
         }
 
         /// <summary>

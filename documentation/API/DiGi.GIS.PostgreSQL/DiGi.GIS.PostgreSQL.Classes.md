@@ -13636,7 +13636,7 @@ A task that represents the asynchronous operation\. The task result contains the
 
 One release of one open building dataset as the `building_dataset` register stores it: the dataset key, version, download date, licence and SHA\-256 the release was fetched under \(DiGi\.GIS\.PostgreSQL\#125\)\.
 
-One row is one release, unique on `(dataset_key, version, download_date)` under a `NULLS NOT DISTINCT` index, so re-importing the same release revises its row instead of adding one. The identifier of the row is what the footprint tables' `dataset_id` column names, and a run updates [RowCount](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease.RowCount 'DiGi\.GIS\.PostgreSQL\.Classes\.BuildingDatasetRelease\.RowCount') and [AttributeNames](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease.AttributeNames 'DiGi\.GIS\.PostgreSQL\.Classes\.BuildingDatasetRelease\.AttributeNames') once it knows them. The table lives on the Main database, beside `building_2d`.
+One row is one release, unique on `(dataset_key, version, download_date)` under a `NULLS NOT DISTINCT` index, so re-importing the same release revises its row instead of adding one. The identifier of the row is what the footprint tables' `dataset_id` column names, and a run updates [RowCount](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease.RowCount 'DiGi\.GIS\.PostgreSQL\.Classes\.BuildingDatasetRelease\.RowCount') and [AttributeNames](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease.AttributeNames 'DiGi\.GIS\.PostgreSQL\.Classes\.BuildingDatasetRelease\.AttributeNames') once it knows them. The table lives on the Storage database with the footprint tables (DiGi.GIS.PostgreSQL#168).
 
 ```csharp
 public class BuildingDatasetRelease : DiGi.Core.Classes.SerializableObject, DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLSerializableObject, DiGi.Core.Interfaces.ISerializableObject, DiGi.Core.Interfaces.ICloneableObject<DiGi.Core.Interfaces.ISerializableObject>, DiGi.Core.Interfaces.ICloneableObject, DiGi.Core.Interfaces.IObject
@@ -13664,64 +13664,70 @@ public BuildingDatasetRelease(DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease
 
 The source release to copy\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease.BuildingDatasetRelease(string,string,System.Nullable_System.DateTime_,string,string,string,string,string)'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease.BuildingDatasetRelease(string,string,System.Nullable_System.DateTime_,string,string,string,string,string,System.Collections.Generic.IEnumerable_string_)'></a>
 
-## BuildingDatasetRelease\(string, string, Nullable\<DateTime\>, string, string, string, string, string\) Constructor
+## BuildingDatasetRelease\(string, string, Nullable\<DateTime\>, string, string, string, string, string, IEnumerable\<string\>\) Constructor
 
 Initializes a new instance of the [BuildingDatasetRelease](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease 'DiGi\.GIS\.PostgreSQL\.Classes\.BuildingDatasetRelease') class\.
 
 ```csharp
-public BuildingDatasetRelease(string? datasetKey, string? version, System.Nullable<System.DateTime> downloadDate, string? sourceUrl=null, string? licence=null, string? sourceObservationDate=null, string? fileName=null, string? sha256=null);
+public BuildingDatasetRelease(string? datasetKey, string? version, System.Nullable<System.DateTime> downloadDate, string? sourceUrl=null, string? licence=null, string? sourceObservationDate=null, string? fileName=null, string? sha256=null, System.Collections.Generic.IEnumerable<string>? skippedFileNames=null);
 ```
 #### Parameters
 
-<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease.BuildingDatasetRelease(string,string,System.Nullable_System.DateTime_,string,string,string,string,string).datasetKey'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease.BuildingDatasetRelease(string,string,System.Nullable_System.DateTime_,string,string,string,string,string,System.Collections.Generic.IEnumerable_string_).datasetKey'></a>
 
 `datasetKey` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The dataset the release belongs to \(`eubucco`, `overture`, `osm`, `dbsm`, `microsoft`, `ghs_obat`\)\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease.BuildingDatasetRelease(string,string,System.Nullable_System.DateTime_,string,string,string,string,string).version'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease.BuildingDatasetRelease(string,string,System.Nullable_System.DateTime_,string,string,string,string,string,System.Collections.Generic.IEnumerable_string_).version'></a>
 
 `version` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The version string of the release \(`v0.2`, `2026-10-21.0`, `poland-YYMMDD`, `R2025`, `links-2026-08-13`, `R2024A`\)\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease.BuildingDatasetRelease(string,string,System.Nullable_System.DateTime_,string,string,string,string,string).downloadDate'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease.BuildingDatasetRelease(string,string,System.Nullable_System.DateTime_,string,string,string,string,string,System.Collections.Generic.IEnumerable_string_).downloadDate'></a>
 
 `downloadDate` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.DateTime](https://learn.microsoft.com/en-us/dotnet/api/system.datetime 'System\.DateTime')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
 The date the release was downloaded\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease.BuildingDatasetRelease(string,string,System.Nullable_System.DateTime_,string,string,string,string,string).sourceUrl'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease.BuildingDatasetRelease(string,string,System.Nullable_System.DateTime_,string,string,string,string,string,System.Collections.Generic.IEnumerable_string_).sourceUrl'></a>
 
 `sourceUrl` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The URL the release was downloaded from, or null when not recorded\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease.BuildingDatasetRelease(string,string,System.Nullable_System.DateTime_,string,string,string,string,string).licence'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease.BuildingDatasetRelease(string,string,System.Nullable_System.DateTime_,string,string,string,string,string,System.Collections.Generic.IEnumerable_string_).licence'></a>
 
 `licence` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The licence of the release, or null when not recorded\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease.BuildingDatasetRelease(string,string,System.Nullable_System.DateTime_,string,string,string,string,string).sourceObservationDate'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease.BuildingDatasetRelease(string,string,System.Nullable_System.DateTime_,string,string,string,string,string,System.Collections.Generic.IEnumerable_string_).sourceObservationDate'></a>
 
 `sourceObservationDate` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The observation date the source publishes for the release, or null when it publishes none\. Held as text because sources state it at different granularities\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease.BuildingDatasetRelease(string,string,System.Nullable_System.DateTime_,string,string,string,string,string).fileName'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease.BuildingDatasetRelease(string,string,System.Nullable_System.DateTime_,string,string,string,string,string,System.Collections.Generic.IEnumerable_string_).fileName'></a>
 
 `fileName` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The file name the release was downloaded as, or null when not recorded\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease.BuildingDatasetRelease(string,string,System.Nullable_System.DateTime_,string,string,string,string,string).sha256'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease.BuildingDatasetRelease(string,string,System.Nullable_System.DateTime_,string,string,string,string,string,System.Collections.Generic.IEnumerable_string_).sha256'></a>
 
 `sha256` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The SHA\-256 of the downloaded file, or null when not computed\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease.BuildingDatasetRelease(string,string,System.Nullable_System.DateTime_,string,string,string,string,string,System.Collections.Generic.IEnumerable_string_).skippedFileNames'></a>
+
+`skippedFileNames` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The source files of the release the import left unread because they cannot reach its scope, as paths relative to the directory the release's files share; null or empty when every file was read\.
 
 <a name='DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease.BuildingDatasetRelease(System.Text.Json.Nodes.JsonObject)'></a>
 
@@ -13859,6 +13865,21 @@ public string? Sha256 { get; }
 
 #### Property Value
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease.SkippedFileNames'></a>
+
+## BuildingDatasetRelease\.SkippedFileNames Property
+
+Gets the source files of the release the import left unread because they cannot reach its scope \(DiGi\.GIS\.PostgreSQL\#170\), as paths relative to the directory the release's files share, or null when every file was read\.
+
+The release itself - [FileName](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease.FileName 'DiGi\.GIS\.PostgreSQL\.Classes\.BuildingDatasetRelease\.FileName'), [Sha256](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease.Sha256 'DiGi\.GIS\.PostgreSQL\.Classes\.BuildingDatasetRelease\.Sha256') - is unchanged by what a run reads; this names what the run's row and out-of-scope counts do not cover.
+
+```csharp
+public System.Collections.Generic.List<string>? SkippedFileNames { get; }
+```
+
+#### Property Value
+[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')
 
 <a name='DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease.SourceObservationDate'></a>
 
@@ -18570,7 +18591,7 @@ public long RowCount { get; }
 
 Stores the open building datasets: the `building_dataset` release register and the per\-dataset footprint tables \(EUBUCCO, Overture, OSM, DBSM, Microsoft, GHS\-OBAT\), on the Storage database, where the large data lives \(DiGi\.GIS\.PostgreSQL\#125, moved from Main by DiGi\.GIS\.PostgreSQL\#168\)\.
 
-The converter reads no table of the Main database: the county parts the import files against are handed to [ImportAsync\(IAsyncEnumerable&lt;Footprint&gt;, BuildingDatasetRelease, IEnumerable&lt;int&gt;, IReadOnlyList&lt;AdministrativeAreal2D&gt;, BoundingBox2D, IProgress&lt;long&gt;, OpenBuildingSourcePosition, double, int, CancellationToken\)](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.ImportAsync(System.Collections.Generic.IAsyncEnumerable_DiGi.GIS.IO.Classes.Footprint_,DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease,System.Collections.Generic.IEnumerable_int_,System.Collections.Generic.IReadOnlyList_DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2D_,DiGi.Geometry.Planar.Classes.BoundingBox2D,System.IProgress_long_,DiGi.GIS.PostgreSQL.Classes.OpenBuildingSourcePosition,double,int,System.Threading.CancellationToken) 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingPostgreSQLConverter\.ImportAsync\(System\.Collections\.Generic\.IAsyncEnumerable\<DiGi\.GIS\.IO\.Classes\.Footprint\>, DiGi\.GIS\.PostgreSQL\.Classes\.BuildingDatasetRelease, System\.Collections\.Generic\.IEnumerable\<int\>, System\.Collections\.Generic\.IReadOnlyList\<DiGi\.GIS\.PostgreSQL\.Classes\.AdministrativeAreal2D\>, DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D, System\.IProgress\<long\>, DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingSourcePosition, double, int, System\.Threading\.CancellationToken\)') by the caller, which reads them from `administrative_areal_2d`.
+The converter reads no table of the Main database: the county parts the import files against are handed to [ImportAsync\(IAsyncEnumerable&lt;Footprint&gt;, BuildingDatasetRelease, IEnumerable&lt;int&gt;, IReadOnlyList&lt;AdministrativeAreal2D&gt;, BoundingBox2D, IProgress&lt;long&gt;, OpenBuildingSourcePosition, double, int, int, CancellationToken\)](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.ImportAsync(System.Collections.Generic.IAsyncEnumerable_DiGi.GIS.IO.Classes.Footprint_,DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease,System.Collections.Generic.IEnumerable_int_,System.Collections.Generic.IReadOnlyList_DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2D_,DiGi.Geometry.Planar.Classes.BoundingBox2D,System.IProgress_long_,DiGi.GIS.PostgreSQL.Classes.OpenBuildingSourcePosition,double,int,int,System.Threading.CancellationToken) 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingPostgreSQLConverter\.ImportAsync\(System\.Collections\.Generic\.IAsyncEnumerable\<DiGi\.GIS\.IO\.Classes\.Footprint\>, DiGi\.GIS\.PostgreSQL\.Classes\.BuildingDatasetRelease, System\.Collections\.Generic\.IEnumerable\<int\>, System\.Collections\.Generic\.IReadOnlyList\<DiGi\.GIS\.PostgreSQL\.Classes\.AdministrativeAreal2D\>, DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D, System\.IProgress\<long\>, DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingSourcePosition, double, int, int, System\.Threading\.CancellationToken\)') by the caller, which reads them from `administrative_areal_2d`.
 
 The import is one transaction over the whole release: the register row is upserted, the partitions in scope are truncated (the GHS-OBAT table deleted in scope), the footprints stream in through a binary COPY per partition, and the release's row count and attribute list are written before the commit. A run that fails or is cancelled therefore leaves the previous snapshot exactly as it was - the replace is all-or-nothing, and re-running the same release converges on one snapshot.
 
@@ -18604,6 +18625,32 @@ public OpenBuildingPostgreSQLConverter(DiGi.PostgreSQL.Classes.ConnectionData? c
 
 The [DiGi\.PostgreSQL\.Classes\.ConnectionData](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.classes.connectiondata 'DiGi\.PostgreSQL\.Classes\.ConnectionData') containing the connection settings required to establish a connection to the PostgreSQL database\. This value can be null\.
 ### Fields
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.count_Batch'></a>
+
+## OpenBuildingPostgreSQLConverter\.count\_Batch Field
+
+The number of footprints converted as one unit of work \(DiGi\.GIS\.PostgreSQL\#170\): large enough that handing a batch to a worker costs nothing next to converting it, small enough that the batches in flight stay a bounded, modest amount of memory\.
+
+```csharp
+private const int count_Batch = 2000;
+```
+
+#### Field Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.count_BatchesInFlightPerDegree'></a>
+
+## OpenBuildingPostgreSQLConverter\.count\_BatchesInFlightPerDegree Field
+
+The number of batches held per degree of parallelism \- converting, converted and waiting to be consumed \- before the reading loop waits for the oldest one \(DiGi\.GIS\.PostgreSQL\#170\)\. Two keeps every worker busy while the run's own thread consumes and writes, and bounds the memory of a parallel run to this times the degree times [count\_Batch](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.count_Batch 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingPostgreSQLConverter\.count\_Batch') footprints\.
+
+```csharp
+private const int count_BatchesInFlightPerDegree = 2;
+```
+
+#### Field Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
 
 <a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.count_Progress_Check'></a>
 
@@ -19055,7 +19102,7 @@ A task whose result is the number of matching register rows, or null when the co
 
 ## OpenBuildingPostgreSQLConverter\.GetReleasesAsync\(NpgsqlConnection, string, int, CancellationToken\) Method
 
-Asynchronously reads the `building_dataset` release register: every release with its version, download date, licence, SHA\-256, row count and attribute list\.
+Asynchronously reads the `building_dataset` release register: every release with its version, download date, licence, SHA\-256, row count, attribute list and the source files its import left unread\.
 
 This is the evidence of paper 01, Table 2 and the data-availability statement: which release of which dataset the comparison used and when it was fetched. Rows are ordered by dataset key, then download date.
 
@@ -19344,9 +19391,9 @@ The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dot
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[OpenBuildingCountyResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingCountyResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingCountyResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A task whose result is one [OpenBuildingCountyResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingCountyResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingCountyResult') per county part and release holding footprints, or null when no connection could be built, the key is unknown or the table does not exist\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.ImportAsync(System.Collections.Generic.IAsyncEnumerable_DiGi.GIS.IO.Classes.Footprint_,DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease,System.Collections.Generic.IEnumerable_int_,System.Collections.Generic.IReadOnlyList_DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2D_,DiGi.Geometry.Planar.Classes.BoundingBox2D,System.IProgress_long_,DiGi.GIS.PostgreSQL.Classes.OpenBuildingSourcePosition,double,int,System.Threading.CancellationToken)'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.ImportAsync(System.Collections.Generic.IAsyncEnumerable_DiGi.GIS.IO.Classes.Footprint_,DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease,System.Collections.Generic.IEnumerable_int_,System.Collections.Generic.IReadOnlyList_DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2D_,DiGi.Geometry.Planar.Classes.BoundingBox2D,System.IProgress_long_,DiGi.GIS.PostgreSQL.Classes.OpenBuildingSourcePosition,double,int,int,System.Threading.CancellationToken)'></a>
 
-## OpenBuildingPostgreSQLConverter\.ImportAsync\(IAsyncEnumerable\<Footprint\>, BuildingDatasetRelease, IEnumerable\<int\>, IReadOnlyList\<AdministrativeAreal2D\>, BoundingBox2D, IProgress\<long\>, OpenBuildingSourcePosition, double, int, CancellationToken\) Method
+## OpenBuildingPostgreSQLConverter\.ImportAsync\(IAsyncEnumerable\<Footprint\>, BuildingDatasetRelease, IEnumerable\<int\>, IReadOnlyList\<AdministrativeAreal2D\>, BoundingBox2D, IProgress\<long\>, OpenBuildingSourcePosition, double, int, int, CancellationToken\) Method
 
 Asynchronously imports one release: files every footprint of the stream under a county part and stores the release's rows, replacing the previous snapshot in scope as one transaction\.
 
@@ -19356,66 +19403,74 @@ A footprint the reprojection rejects (null input, non-finite vertex, short ring,
 
 While the stream is open the run logs one progress line every `count_Progress_Read` footprints read or `timeSpan_Progress` elapsed, whichever comes first - the counters the loop already keeps plus the source file the stream is inside, so an open run shows how far along it is without a query (DiGi.GIS.PostgreSQL#169). The final line repeats the same counters, so it equals the last progress line plus the remainder.
 
+The conversion - reprojection, filing, serialization - runs on up to [maxDegreeOfParallelism](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.ImportAsync(System.Collections.Generic.IAsyncEnumerable_DiGi.GIS.IO.Classes.Footprint_,DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease,System.Collections.Generic.IEnumerable_int_,System.Collections.Generic.IReadOnlyList_DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2D_,DiGi.Geometry.Planar.Classes.BoundingBox2D,System.IProgress_long_,DiGi.GIS.PostgreSQL.Classes.OpenBuildingSourcePosition,double,int,int,System.Threading.CancellationToken).maxDegreeOfParallelism 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingPostgreSQLConverter\.ImportAsync\(System\.Collections\.Generic\.IAsyncEnumerable\<DiGi\.GIS\.IO\.Classes\.Footprint\>, DiGi\.GIS\.PostgreSQL\.Classes\.BuildingDatasetRelease, System\.Collections\.Generic\.IEnumerable\<int\>, System\.Collections\.Generic\.IReadOnlyList\<DiGi\.GIS\.PostgreSQL\.Classes\.AdministrativeAreal2D\>, DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D, System\.IProgress\<long\>, DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingSourcePosition, double, int, int, System\.Threading\.CancellationToken\)\.maxDegreeOfParallelism') workers (DiGi.GIS.PostgreSQL#170): the stream is read in batches of `count_Batch` footprints, each batch is converted by a worker with its own transformations, and the batches are consumed strictly in read order by the run's own thread, which alone keeps the counters, the capped rejection sample, the progress lines and the buffer and writes the COPY on the run's one connection. A run therefore stores, counts, samples and logs the same at any degree; at most `count_BatchesInFlightPerDegree` times the degree batches are held at once. A worker that fails fails the run, and a stop cancels the workers: either way every worker is awaited and the transaction is left uncommitted.
+
 ```csharp
-public System.Threading.Tasks.Task<DiGi.GIS.PostgreSQL.Classes.OpenBuildingImportResult?> ImportAsync(System.Collections.Generic.IAsyncEnumerable<DiGi.GIS.IO.Classes.Footprint>? footprints, DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease? buildingDatasetRelease, System.Collections.Generic.IEnumerable<int>? countyIds, System.Collections.Generic.IReadOnlyList<DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2D>? administrativeAreal2Ds, DiGi.Geometry.Planar.Classes.BoundingBox2D? boundingBox2D_Scope=null, System.IProgress<long>? progress=null, DiGi.GIS.PostgreSQL.Classes.OpenBuildingSourcePosition? sourcePosition=null, double tolerance=0.001, int commandTimeout=600, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+public System.Threading.Tasks.Task<DiGi.GIS.PostgreSQL.Classes.OpenBuildingImportResult?> ImportAsync(System.Collections.Generic.IAsyncEnumerable<DiGi.GIS.IO.Classes.Footprint>? footprints, DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease? buildingDatasetRelease, System.Collections.Generic.IEnumerable<int>? countyIds, System.Collections.Generic.IReadOnlyList<DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2D>? administrativeAreal2Ds, DiGi.Geometry.Planar.Classes.BoundingBox2D? boundingBox2D_Scope=null, System.IProgress<long>? progress=null, DiGi.GIS.PostgreSQL.Classes.OpenBuildingSourcePosition? sourcePosition=null, double tolerance=0.001, int commandTimeout=600, int maxDegreeOfParallelism=1, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
 ```
 #### Parameters
 
-<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.ImportAsync(System.Collections.Generic.IAsyncEnumerable_DiGi.GIS.IO.Classes.Footprint_,DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease,System.Collections.Generic.IEnumerable_int_,System.Collections.Generic.IReadOnlyList_DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2D_,DiGi.Geometry.Planar.Classes.BoundingBox2D,System.IProgress_long_,DiGi.GIS.PostgreSQL.Classes.OpenBuildingSourcePosition,double,int,System.Threading.CancellationToken).footprints'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.ImportAsync(System.Collections.Generic.IAsyncEnumerable_DiGi.GIS.IO.Classes.Footprint_,DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease,System.Collections.Generic.IEnumerable_int_,System.Collections.Generic.IReadOnlyList_DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2D_,DiGi.Geometry.Planar.Classes.BoundingBox2D,System.IProgress_long_,DiGi.GIS.PostgreSQL.Classes.OpenBuildingSourcePosition,double,int,int,System.Threading.CancellationToken).footprints'></a>
 
 `footprints` [System\.Collections\.Generic\.IAsyncEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.iasyncenumerable-1 'System\.Collections\.Generic\.IAsyncEnumerable\`1')[DiGi\.GIS\.IO\.Classes\.Footprint](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.io.classes.footprint 'DiGi\.GIS\.IO\.Classes\.Footprint')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.iasyncenumerable-1 'System\.Collections\.Generic\.IAsyncEnumerable\`1')
 
 The footprints to import, in their source coordinate reference system; null imports nothing and answers null\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.ImportAsync(System.Collections.Generic.IAsyncEnumerable_DiGi.GIS.IO.Classes.Footprint_,DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease,System.Collections.Generic.IEnumerable_int_,System.Collections.Generic.IReadOnlyList_DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2D_,DiGi.Geometry.Planar.Classes.BoundingBox2D,System.IProgress_long_,DiGi.GIS.PostgreSQL.Classes.OpenBuildingSourcePosition,double,int,System.Threading.CancellationToken).buildingDatasetRelease'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.ImportAsync(System.Collections.Generic.IAsyncEnumerable_DiGi.GIS.IO.Classes.Footprint_,DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease,System.Collections.Generic.IEnumerable_int_,System.Collections.Generic.IReadOnlyList_DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2D_,DiGi.Geometry.Planar.Classes.BoundingBox2D,System.IProgress_long_,DiGi.GIS.PostgreSQL.Classes.OpenBuildingSourcePosition,double,int,int,System.Threading.CancellationToken).buildingDatasetRelease'></a>
 
 `buildingDatasetRelease` [BuildingDatasetRelease](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease 'DiGi\.GIS\.PostgreSQL\.Classes\.BuildingDatasetRelease')
 
 The release being imported; its dataset key selects the table and its three register columns are required\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.ImportAsync(System.Collections.Generic.IAsyncEnumerable_DiGi.GIS.IO.Classes.Footprint_,DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease,System.Collections.Generic.IEnumerable_int_,System.Collections.Generic.IReadOnlyList_DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2D_,DiGi.Geometry.Planar.Classes.BoundingBox2D,System.IProgress_long_,DiGi.GIS.PostgreSQL.Classes.OpenBuildingSourcePosition,double,int,System.Threading.CancellationToken).countyIds'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.ImportAsync(System.Collections.Generic.IAsyncEnumerable_DiGi.GIS.IO.Classes.Footprint_,DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease,System.Collections.Generic.IEnumerable_int_,System.Collections.Generic.IReadOnlyList_DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2D_,DiGi.Geometry.Planar.Classes.BoundingBox2D,System.IProgress_long_,DiGi.GIS.PostgreSQL.Classes.OpenBuildingSourcePosition,double,int,int,System.Threading.CancellationToken).countyIds'></a>
 
 `countyIds` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
 
 The identifiers of the county parts in scope \(already widened to the sibling parts of multi\-part counties\); null or empty answers null\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.ImportAsync(System.Collections.Generic.IAsyncEnumerable_DiGi.GIS.IO.Classes.Footprint_,DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease,System.Collections.Generic.IEnumerable_int_,System.Collections.Generic.IReadOnlyList_DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2D_,DiGi.Geometry.Planar.Classes.BoundingBox2D,System.IProgress_long_,DiGi.GIS.PostgreSQL.Classes.OpenBuildingSourcePosition,double,int,System.Threading.CancellationToken).administrativeAreal2Ds'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.ImportAsync(System.Collections.Generic.IAsyncEnumerable_DiGi.GIS.IO.Classes.Footprint_,DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease,System.Collections.Generic.IEnumerable_int_,System.Collections.Generic.IReadOnlyList_DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2D_,DiGi.Geometry.Planar.Classes.BoundingBox2D,System.IProgress_long_,DiGi.GIS.PostgreSQL.Classes.OpenBuildingSourcePosition,double,int,int,System.Threading.CancellationToken).administrativeAreal2Ds'></a>
 
 `administrativeAreal2Ds` [System\.Collections\.Generic\.IReadOnlyList&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ireadonlylist-1 'System\.Collections\.Generic\.IReadOnlyList\`1')[AdministrativeAreal2D](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2D 'DiGi\.GIS\.PostgreSQL\.Classes\.AdministrativeAreal2D')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ireadonlylist-1 'System\.Collections\.Generic\.IReadOnlyList\`1')
 
 Every county part of the country with its geometry, read by the caller from the Main database; the footprints are filed against them in memory\. Null or empty answers null\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.ImportAsync(System.Collections.Generic.IAsyncEnumerable_DiGi.GIS.IO.Classes.Footprint_,DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease,System.Collections.Generic.IEnumerable_int_,System.Collections.Generic.IReadOnlyList_DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2D_,DiGi.Geometry.Planar.Classes.BoundingBox2D,System.IProgress_long_,DiGi.GIS.PostgreSQL.Classes.OpenBuildingSourcePosition,double,int,System.Threading.CancellationToken).boundingBox2D_Scope'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.ImportAsync(System.Collections.Generic.IAsyncEnumerable_DiGi.GIS.IO.Classes.Footprint_,DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease,System.Collections.Generic.IEnumerable_int_,System.Collections.Generic.IReadOnlyList_DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2D_,DiGi.Geometry.Planar.Classes.BoundingBox2D,System.IProgress_long_,DiGi.GIS.PostgreSQL.Classes.OpenBuildingSourcePosition,double,int,int,System.Threading.CancellationToken).boundingBox2D_Scope'></a>
 
 `boundingBox2D_Scope` [DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.boundingbox2d 'DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D')
 
 The scope bounding box in EPSG:2180, or null for a run scoped by county list alone\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.ImportAsync(System.Collections.Generic.IAsyncEnumerable_DiGi.GIS.IO.Classes.Footprint_,DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease,System.Collections.Generic.IEnumerable_int_,System.Collections.Generic.IReadOnlyList_DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2D_,DiGi.Geometry.Planar.Classes.BoundingBox2D,System.IProgress_long_,DiGi.GIS.PostgreSQL.Classes.OpenBuildingSourcePosition,double,int,System.Threading.CancellationToken).progress'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.ImportAsync(System.Collections.Generic.IAsyncEnumerable_DiGi.GIS.IO.Classes.Footprint_,DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease,System.Collections.Generic.IEnumerable_int_,System.Collections.Generic.IReadOnlyList_DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2D_,DiGi.Geometry.Planar.Classes.BoundingBox2D,System.IProgress_long_,DiGi.GIS.PostgreSQL.Classes.OpenBuildingSourcePosition,double,int,int,System.Threading.CancellationToken).progress'></a>
 
 `progress` [System\.IProgress&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.iprogress-1 'System\.IProgress\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.iprogress-1 'System\.IProgress\`1')
 
 An optional reporter carrying the running total of rows written, reported at every flush\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.ImportAsync(System.Collections.Generic.IAsyncEnumerable_DiGi.GIS.IO.Classes.Footprint_,DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease,System.Collections.Generic.IEnumerable_int_,System.Collections.Generic.IReadOnlyList_DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2D_,DiGi.Geometry.Planar.Classes.BoundingBox2D,System.IProgress_long_,DiGi.GIS.PostgreSQL.Classes.OpenBuildingSourcePosition,double,int,System.Threading.CancellationToken).sourcePosition'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.ImportAsync(System.Collections.Generic.IAsyncEnumerable_DiGi.GIS.IO.Classes.Footprint_,DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease,System.Collections.Generic.IEnumerable_int_,System.Collections.Generic.IReadOnlyList_DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2D_,DiGi.Geometry.Planar.Classes.BoundingBox2D,System.IProgress_long_,DiGi.GIS.PostgreSQL.Classes.OpenBuildingSourcePosition,double,int,int,System.Threading.CancellationToken).sourcePosition'></a>
 
 `sourcePosition` [OpenBuildingSourcePosition](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingSourcePosition 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingSourcePosition')
 
 The shared position the run's footprint stream fills in as each source file starts, so a progress line can name the file and its position \(n of N\); null logs the counters without one\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.ImportAsync(System.Collections.Generic.IAsyncEnumerable_DiGi.GIS.IO.Classes.Footprint_,DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease,System.Collections.Generic.IEnumerable_int_,System.Collections.Generic.IReadOnlyList_DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2D_,DiGi.Geometry.Planar.Classes.BoundingBox2D,System.IProgress_long_,DiGi.GIS.PostgreSQL.Classes.OpenBuildingSourcePosition,double,int,System.Threading.CancellationToken).tolerance'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.ImportAsync(System.Collections.Generic.IAsyncEnumerable_DiGi.GIS.IO.Classes.Footprint_,DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease,System.Collections.Generic.IEnumerable_int_,System.Collections.Generic.IReadOnlyList_DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2D_,DiGi.Geometry.Planar.Classes.BoundingBox2D,System.IProgress_long_,DiGi.GIS.PostgreSQL.Classes.OpenBuildingSourcePosition,double,int,int,System.Threading.CancellationToken).tolerance'></a>
 
 `tolerance` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
 
 The distance a footprint may lie outside a county part and still count as intersecting it\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.ImportAsync(System.Collections.Generic.IAsyncEnumerable_DiGi.GIS.IO.Classes.Footprint_,DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease,System.Collections.Generic.IEnumerable_int_,System.Collections.Generic.IReadOnlyList_DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2D_,DiGi.Geometry.Planar.Classes.BoundingBox2D,System.IProgress_long_,DiGi.GIS.PostgreSQL.Classes.OpenBuildingSourcePosition,double,int,System.Threading.CancellationToken).commandTimeout'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.ImportAsync(System.Collections.Generic.IAsyncEnumerable_DiGi.GIS.IO.Classes.Footprint_,DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease,System.Collections.Generic.IEnumerable_int_,System.Collections.Generic.IReadOnlyList_DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2D_,DiGi.Geometry.Planar.Classes.BoundingBox2D,System.IProgress_long_,DiGi.GIS.PostgreSQL.Classes.OpenBuildingSourcePosition,double,int,int,System.Threading.CancellationToken).commandTimeout'></a>
 
 `commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
 
 The timeout in seconds for the execution of the commands\. A value of 0 disables the timeout\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.ImportAsync(System.Collections.Generic.IAsyncEnumerable_DiGi.GIS.IO.Classes.Footprint_,DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease,System.Collections.Generic.IEnumerable_int_,System.Collections.Generic.IReadOnlyList_DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2D_,DiGi.Geometry.Planar.Classes.BoundingBox2D,System.IProgress_long_,DiGi.GIS.PostgreSQL.Classes.OpenBuildingSourcePosition,double,int,System.Threading.CancellationToken).cancellationToken'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.ImportAsync(System.Collections.Generic.IAsyncEnumerable_DiGi.GIS.IO.Classes.Footprint_,DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease,System.Collections.Generic.IEnumerable_int_,System.Collections.Generic.IReadOnlyList_DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2D_,DiGi.Geometry.Planar.Classes.BoundingBox2D,System.IProgress_long_,DiGi.GIS.PostgreSQL.Classes.OpenBuildingSourcePosition,double,int,int,System.Threading.CancellationToken).maxDegreeOfParallelism'></a>
+
+`maxDegreeOfParallelism` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The most batches converted at once; zero or less uses half the processors, one converts on the run's own thread\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.ImportAsync(System.Collections.Generic.IAsyncEnumerable_DiGi.GIS.IO.Classes.Footprint_,DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease,System.Collections.Generic.IEnumerable_int_,System.Collections.Generic.IReadOnlyList_DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2D_,DiGi.Geometry.Planar.Classes.BoundingBox2D,System.IProgress_long_,DiGi.GIS.PostgreSQL.Classes.OpenBuildingSourcePosition,double,int,int,System.Threading.CancellationToken).cancellationToken'></a>
 
 `cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
 
@@ -19507,7 +19562,7 @@ A task that completes when the register row has been updated; a failure propagat
 
 ## OpenBuildingPostgreSQLConverter\.UpsertReleaseAsync\(NpgsqlConnection, BuildingDatasetRelease, int, CancellationToken\) Method
 
-Asynchronously inserts or revises the release's row in `building_dataset` and returns its identifier\.
+Asynchronously inserts or revises the release's row in `building_dataset` \- the skipped source files included \(DiGi\.GIS\.PostgreSQL\#170\) \- and returns its identifier\.
 
 The conflict target is `(dataset_key, version, download_date)`, the register's `NULLS NOT DISTINCT` unique key, so importing the same release twice revises one row and keeps the identifier the footprint rows already point at. The metadata a finished import knows - the row count and the attribute list - is written separately by the run itself, not here.
 
@@ -19731,7 +19786,7 @@ The source file an open building import is reading right now: its path, its 1\-b
 
 One instance travels both ways along the run - the task's footprint stream fills it in as each file starts, and the same instance is handed to [OpenBuildingPostgreSQLConverter](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingPostgreSQLConverter')'s `ImportAsync`, which reads it when it composes a progress line. The loop therefore names the file it is inside without the stream telling it per footprint.
 
-Writer and reader run on the same enumeration: the position is set by the enumerator the import loop is pulling, so the fields are never touched concurrently and need no synchronisation. Before the first file starts the position is empty - null path, index 0, count 0 - and a progress line reads "(starting)" then.
+Writer and reader run on the same enumeration: the position is set by the enumerator the import loop is pulling and read by that loop alone, right after each footprint arrives, so the fields are never touched concurrently and need no synchronisation. The loop reads ahead of the footprint it counts - it converts in batches (DiGi.GIS.PostgreSQL#170) - so it records in each batch where the stream crossed into a new file, and a progress line names the file of the footprint being counted rather than the one being read. Before the first file starts the position is empty - null path, index 0, count 0 - and a progress line reads "(starting)" then.
 
 ```csharp
 public class OpenBuildingSourcePosition
@@ -31959,7 +32014,7 @@ A task representing the asynchronous operation\. Returns true only if all four t
 
 Represents a background task that imports one release of an open building dataset \- EUBUCCO, Overture, OSM, DBSM, Microsoft or GHS\-OBAT \- into its footprint table, with the release recorded in the `building_dataset` register \(DiGi\.GIS\.PostgreSQL\#125\)\.
 
-The task owns the run: it validates the options, resolves the scope (county parts widened to their siblings, or a pilot-area bounding box resolved against the database), reads the county parts from the Main database once, opens the readers for the dataset's file format and hands the footprint stream, the county parts and the shared [OpenBuildingSourcePosition](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingSourcePosition 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingSourcePosition') to [ImportAsync\(IAsyncEnumerable&lt;Footprint&gt;, BuildingDatasetRelease, IEnumerable&lt;int&gt;, IReadOnlyList&lt;AdministrativeAreal2D&gt;, BoundingBox2D, IProgress&lt;long&gt;, OpenBuildingSourcePosition, double, int, CancellationToken\)](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.ImportAsync(System.Collections.Generic.IAsyncEnumerable_DiGi.GIS.IO.Classes.Footprint_,DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease,System.Collections.Generic.IEnumerable_int_,System.Collections.Generic.IReadOnlyList_DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2D_,DiGi.Geometry.Planar.Classes.BoundingBox2D,System.IProgress_long_,DiGi.GIS.PostgreSQL.Classes.OpenBuildingSourcePosition,double,int,System.Threading.CancellationToken) 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingPostgreSQLConverter\.ImportAsync\(System\.Collections\.Generic\.IAsyncEnumerable\<DiGi\.GIS\.IO\.Classes\.Footprint\>, DiGi\.GIS\.PostgreSQL\.Classes\.BuildingDatasetRelease, System\.Collections\.Generic\.IEnumerable\<int\>, System\.Collections\.Generic\.IReadOnlyList\<DiGi\.GIS\.PostgreSQL\.Classes\.AdministrativeAreal2D\>, DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D, System\.IProgress\<long\>, DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingSourcePosition, double, int, System\.Threading\.CancellationToken\)'), which writes to the Storage database. The converter owns the load path, including the transformations: one per source coordinate reference system, built lazily as locals of the run - never per footprint, never shared between runs.
+The task owns the run: it validates the options, resolves the scope (county parts widened to their siblings, or a pilot-area bounding box resolved against the database), reads the county parts from the Main database once, opens the readers for the dataset's file format and hands the footprint stream, the county parts and the shared [OpenBuildingSourcePosition](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingSourcePosition 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingSourcePosition') to [ImportAsync\(IAsyncEnumerable&lt;Footprint&gt;, BuildingDatasetRelease, IEnumerable&lt;int&gt;, IReadOnlyList&lt;AdministrativeAreal2D&gt;, BoundingBox2D, IProgress&lt;long&gt;, OpenBuildingSourcePosition, double, int, int, CancellationToken\)](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.ImportAsync(System.Collections.Generic.IAsyncEnumerable_DiGi.GIS.IO.Classes.Footprint_,DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease,System.Collections.Generic.IEnumerable_int_,System.Collections.Generic.IReadOnlyList_DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2D_,DiGi.Geometry.Planar.Classes.BoundingBox2D,System.IProgress_long_,DiGi.GIS.PostgreSQL.Classes.OpenBuildingSourcePosition,double,int,int,System.Threading.CancellationToken) 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingPostgreSQLConverter\.ImportAsync\(System\.Collections\.Generic\.IAsyncEnumerable\<DiGi\.GIS\.IO\.Classes\.Footprint\>, DiGi\.GIS\.PostgreSQL\.Classes\.BuildingDatasetRelease, System\.Collections\.Generic\.IEnumerable\<int\>, System\.Collections\.Generic\.IReadOnlyList\<DiGi\.GIS\.PostgreSQL\.Classes\.AdministrativeAreal2D\>, DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D, System\.IProgress\<long\>, DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingSourcePosition, double, int, int, System\.Threading\.CancellationToken\)'), which writes to the Storage database. The converter owns the load path, including the transformations: one per source coordinate reference system, built lazily as locals of the run - never per footprint, never shared between runs.
 
 The bounding box is applied after the reprojection leg, never handed to a reader: every reader interprets a box in its own file's source coordinate reference system, and an EPSG:2180 box passed into an EPSG:3035 file would filter everything out silently. The OSM branch reads synchronously through `DiGi.OSM` and its reader-side rejection summary is read after the stream has been enumerated to its end, which is when that summary completes.
 
@@ -32004,6 +32059,19 @@ private const int commandTimeout = 600;
 
 #### Field Value
 [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOpenBuildingImportTask.distance_SourceExtentMargin'></a>
+
+## PostgreSQLOpenBuildingImportTask\.distance\_SourceExtentMargin Field
+
+The distance in metres a source file's extent may stay away from the scope and still be read \(DiGi\.GIS\.PostgreSQL\#170\): it covers a building filed under a Microsoft tile but reaching beyond its edge, the filing tolerance and the 32\-bit rounding of a GeoPackage R\-tree, with room to spare\.
+
+```csharp
+private const double distance_SourceExtentMargin = 1000;
+```
+
+#### Field Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
 ### Properties
 
 <a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOpenBuildingImportTask.DatasetId'></a>
@@ -32083,6 +32151,19 @@ public long RowCount { get; private set; }
 
 #### Property Value
 [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOpenBuildingImportTask.SkippedSourcePaths'></a>
+
+## PostgreSQLOpenBuildingImportTask\.SkippedSourcePaths Property
+
+Gets the source files the run left unread because their own extent cannot reach the scope \(DiGi\.GIS\.PostgreSQL\#170\); empty when every file was read\. Their footprints are counted nowhere \- neither stored, out of scope nor rejected\.
+
+```csharp
+public System.Collections.Generic.List<string> SkippedSourcePaths { get; private set; }
+```
+
+#### Property Value
+[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')
 ### Methods
 
 <a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOpenBuildingImportTask.AsAsyncEnumerable(System.Collections.Generic.IEnumerable_DiGi.GIS.IO.Classes.Footprint_,System.Threading.CancellationToken)'></a>
@@ -32259,6 +32340,33 @@ The concatenated footprint stream, or null when a reader rejects its input\.
 [System\.ArgumentException](https://learn.microsoft.com/en-us/dotnet/api/system.argumentexception 'System\.ArgumentException')  
 Thrown when the dataset does not match the reader the file requires\.
 
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOpenBuildingImportTask.RelativePaths(System.Collections.Generic.IEnumerable_string_,System.Collections.Generic.IEnumerable_string_)'></a>
+
+## PostgreSQLOpenBuildingImportTask\.RelativePaths\(IEnumerable\<string\>, IEnumerable\<string\>\) Method
+
+Names source files relative to the directory every source file of the run shares, so the register row and the log name a Microsoft chunk by its `quadkey=` directory rather than a machine path \(DiGi\.GIS\.PostgreSQL\#170\)\.
+
+```csharp
+private static System.Collections.Generic.List<string> RelativePaths(System.Collections.Generic.IEnumerable<string> paths_All, System.Collections.Generic.IEnumerable<string> paths);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOpenBuildingImportTask.RelativePaths(System.Collections.Generic.IEnumerable_string_,System.Collections.Generic.IEnumerable_string_).paths_All'></a>
+
+`paths_All` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+Every source file of the run; their shared directory is the base\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOpenBuildingImportTask.RelativePaths(System.Collections.Generic.IEnumerable_string_,System.Collections.Generic.IEnumerable_string_).paths'></a>
+
+`paths` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The files to name\.
+
+#### Returns
+[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')  
+The relative paths with forward slashes, in the order of [paths](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLOpenBuildingImportTask.RelativePaths(System.Collections.Generic.IEnumerable_string_,System.Collections.Generic.IEnumerable_string_).paths 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLOpenBuildingImportTask\.RelativePaths\(System\.Collections\.Generic\.IEnumerable\<string\>, System\.Collections\.Generic\.IEnumerable\<string\>\)\.paths'); a file outside the shared directory keeps its file name\.
+
 <a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOpenBuildingImportTaskOptions'></a>
 
 ## PostgreSQLOpenBuildingImportTaskOptions Class
@@ -32403,6 +32511,21 @@ public string? Licence { get; set; }
 #### Property Value
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOpenBuildingImportTaskOptions.MaxDegreeOfParallelism'></a>
+
+## PostgreSQLOpenBuildingImportTaskOptions\.MaxDegreeOfParallelism Property
+
+Gets or sets the most footprint batches converted at once \- reprojection, county filing and serialization \(DiGi\.GIS\.PostgreSQL\#170\)\. Zero, the default, uses half the processors; one converts on the reading thread, as before \#170\.
+
+Whatever the degree, the batches are written in the order they were read, so the stored rows, the counts, the capped rejection sample and the progress lines are those of a run at degree one. Memory grows with the degree: twice that many batches are held at a time.
+
+```csharp
+public int MaxDegreeOfParallelism { get; set; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
 <a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOpenBuildingImportTaskOptions.Quadkey'></a>
 
 ## PostgreSQLOpenBuildingImportTaskOptions\.Quadkey Property
@@ -32428,6 +32551,21 @@ public string? Sha256 { get; set; }
 
 #### Property Value
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOpenBuildingImportTaskOptions.SkipSourcesOutOfScope'></a>
+
+## PostgreSQLOpenBuildingImportTaskOptions\.SkipSourcesOutOfScope Property
+
+Gets or sets whether a source file that cannot reach the scope is left unread \(DiGi\.GIS\.PostgreSQL\#170\)\. True by default\.
+
+A file is left out only when it states its own extent - the tile of a Microsoft quadkey, a GeoPackage's registered R-tree, a GeoParquet column's declared bbox - and that extent, reprojected to EPSG:2180 and grown by a margin, reaches no county part of the scope (or the scope box). A file that states no extent is always read. The rows stored are the same either way; the out-of-scope and rejection counts then describe only the files read, and the register row names the files left out. Set it to false for an audit run that reads every file.
+
+```csharp
+public bool SkipSourcesOutOfScope { get; set; }
+```
+
+#### Property Value
+[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')
 
 <a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOpenBuildingImportTaskOptions.SourceObservationDate'></a>
 

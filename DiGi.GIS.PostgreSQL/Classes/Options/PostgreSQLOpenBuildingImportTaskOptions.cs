@@ -47,8 +47,10 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 DownloadDate = postgreSQLOpenBuildingImportTaskOptions.DownloadDate;
                 FileName = postgreSQLOpenBuildingImportTaskOptions.FileName;
                 Licence = postgreSQLOpenBuildingImportTaskOptions.Licence;
+                MaxDegreeOfParallelism = postgreSQLOpenBuildingImportTaskOptions.MaxDegreeOfParallelism;
                 Quadkey = postgreSQLOpenBuildingImportTaskOptions.Quadkey;
                 Sha256 = postgreSQLOpenBuildingImportTaskOptions.Sha256;
+                SkipSourcesOutOfScope = postgreSQLOpenBuildingImportTaskOptions.SkipSourcesOutOfScope;
                 SourceObservationDate = postgreSQLOpenBuildingImportTaskOptions.SourceObservationDate;
                 SourcePaths = postgreSQLOpenBuildingImportTaskOptions.SourcePaths == null ? null : [.. postgreSQLOpenBuildingImportTaskOptions.SourcePaths];
                 SourceUrl = postgreSQLOpenBuildingImportTaskOptions.SourceUrl;
@@ -96,6 +98,13 @@ namespace DiGi.GIS.PostgreSQL.Classes
         public string? Licence { get; set; } = null;
 
         /// <summary>
+        /// Gets or sets the most footprint batches converted at once - reprojection, county filing and serialization (DiGi.GIS.PostgreSQL#170). Zero, the default, uses half the processors; one converts on the reading thread, as before #170.
+        /// <para>Whatever the degree, the batches are written in the order they were read, so the stored rows, the counts, the capped rejection sample and the progress lines are those of a run at degree one. Memory grows with the degree: twice that many batches are held at a time.</para>
+        /// </summary>
+        [JsonInclude, JsonPropertyName(nameof(MaxDegreeOfParallelism))]
+        public int MaxDegreeOfParallelism { get; set; } = 0;
+
+        /// <summary>
         /// Gets or sets the quadkey the Microsoft file was fetched under; required when <see cref="DatasetKey"/> is <c>microsoft</c>, because the quadkey is that dataset's source identity.
         /// </summary>
         [JsonInclude, JsonPropertyName(nameof(Quadkey))]
@@ -106,6 +115,13 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// </summary>
         [JsonInclude, JsonPropertyName(nameof(Sha256))]
         public string? Sha256 { get; set; } = null;
+
+        /// <summary>
+        /// Gets or sets whether a source file that cannot reach the scope is left unread (DiGi.GIS.PostgreSQL#170). True by default.
+        /// <para>A file is left out only when it states its own extent - the tile of a Microsoft quadkey, a GeoPackage's registered R-tree, a GeoParquet column's declared bbox - and that extent, reprojected to EPSG:2180 and grown by a margin, reaches no county part of the scope (or the scope box). A file that states no extent is always read. The rows stored are the same either way; the out-of-scope and rejection counts then describe only the files read, and the register row names the files left out. Set it to false for an audit run that reads every file.</para>
+        /// </summary>
+        [JsonInclude, JsonPropertyName(nameof(SkipSourcesOutOfScope))]
+        public bool SkipSourcesOutOfScope { get; set; } = true;
 
         /// <summary>
         /// Gets or sets the observation date the source publishes for the release, stored in the register as text because sources state it at different granularities, or null when the source publishes none.

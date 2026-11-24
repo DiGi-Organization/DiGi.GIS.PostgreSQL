@@ -3,7 +3,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
     /// <summary>
     /// The source file an open building import is reading right now: its path, its 1-based position among the run's source files and how many files the run holds (DiGi.GIS.PostgreSQL#169).
     /// <para>One instance travels both ways along the run - the task's footprint stream fills it in as each file starts, and the same instance is handed to <see cref="OpenBuildingPostgreSQLConverter"/>'s <c>ImportAsync</c>, which reads it when it composes a progress line. The loop therefore names the file it is inside without the stream telling it per footprint.</para>
-    /// <para>Writer and reader run on the same enumeration: the position is set by the enumerator the import loop is pulling, so the fields are never touched concurrently and need no synchronisation. Before the first file starts the position is empty - null path, index 0, count 0 - and a progress line reads "(starting)" then.</para>
+    /// <para>Writer and reader run on the same enumeration: the position is set by the enumerator the import loop is pulling and read by that loop alone, right after each footprint arrives, so the fields are never touched concurrently and need no synchronisation. The loop reads ahead of the footprint it counts - it converts in batches (DiGi.GIS.PostgreSQL#170) - so it records in each batch where the stream crossed into a new file, and a progress line names the file of the footprint being counted rather than the one being read. Before the first file starts the position is empty - null path, index 0, count 0 - and a progress line reads "(starting)" then.</para>
     /// </summary>
     public class OpenBuildingSourcePosition
     {

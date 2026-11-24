@@ -10,7 +10,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
 {
     /// <summary>
     /// One release of one open building dataset as the <c>building_dataset</c> register stores it: the dataset key, version, download date, licence and SHA-256 the release was fetched under (DiGi.GIS.PostgreSQL#125).
-    /// <para>One row is one release, unique on <c>(dataset_key, version, download_date)</c> under a <c>NULLS NOT DISTINCT</c> index, so re-importing the same release revises its row instead of adding one. The identifier of the row is what the footprint tables' <c>dataset_id</c> column names, and a run updates <see cref="RowCount"/> and <see cref="AttributeNames"/> once it knows them. The table lives on the Main database, beside <c>building_2d</c>.</para>
+    /// <para>One row is one release, unique on <c>(dataset_key, version, download_date)</c> under a <c>NULLS NOT DISTINCT</c> index, so re-importing the same release revises its row instead of adding one. The identifier of the row is what the footprint tables' <c>dataset_id</c> column names, and a run updates <see cref="RowCount"/> and <see cref="AttributeNames"/> once it knows them. The table lives on the Storage database with the footprint tables (DiGi.GIS.PostgreSQL#168).</para>
     /// </summary>
     public class BuildingDatasetRelease : SerializableObject, IGISPostgreSQLSerializableObject
     {
@@ -41,6 +41,9 @@ namespace DiGi.GIS.PostgreSQL.Classes
         [JsonInclude, JsonPropertyName(nameof(Sha256))]
         private readonly string? sha256;
 
+        [JsonInclude, JsonPropertyName(nameof(SkippedFileNames))]
+        private readonly List<string>? skippedFileNames;
+
         [JsonInclude, JsonPropertyName(nameof(SourceObservationDate))]
         private readonly string? sourceObservationDate;
 
@@ -61,7 +64,17 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// <param name="sourceObservationDate">The observation date the source publishes for the release, or null when it publishes none. Held as text because sources state it at different granularities.</param>
         /// <param name="fileName">The file name the release was downloaded as, or null when not recorded.</param>
         /// <param name="sha256">The SHA-256 of the downloaded file, or null when not computed.</param>
-        public BuildingDatasetRelease(string? datasetKey, string? version, DateTime? downloadDate, string? sourceUrl = null, string? licence = null, string? sourceObservationDate = null, string? fileName = null, string? sha256 = null)
+        /// <param name="skippedFileNames">The source files of the release the import left unread because they cannot reach its scope, as paths relative to the directory the release's files share; null or empty when every file was read.</param>
+        public BuildingDatasetRelease(
+            string? datasetKey,
+            string? version,
+            DateTime? downloadDate,
+            string? sourceUrl = null,
+            string? licence = null,
+            string? sourceObservationDate = null,
+            string? fileName = null,
+            string? sha256 = null,
+            IEnumerable<string>? skippedFileNames = null)
         {
             this.datasetKey = datasetKey;
             this.version = version;
@@ -71,6 +84,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             this.sourceObservationDate = sourceObservationDate;
             this.fileName = fileName;
             this.sha256 = sha256;
+            this.skippedFileNames = skippedFileNames is null ? null : [.. skippedFileNames];
         }
 
         /// <summary>
@@ -91,6 +105,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 licence = buildingDatasetRelease.licence;
                 rowCount = buildingDatasetRelease.rowCount;
                 sha256 = buildingDatasetRelease.sha256;
+                skippedFileNames = buildingDatasetRelease.skippedFileNames == null ? null : [.. buildingDatasetRelease.skippedFileNames];
                 sourceObservationDate = buildingDatasetRelease.sourceObservationDate;
                 sourceUrl = buildingDatasetRelease.sourceUrl;
                 version = buildingDatasetRelease.version;
@@ -169,6 +184,13 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// </summary>
         [JsonIgnore]
         public string? Sha256 => sha256;
+
+        /// <summary>
+        /// Gets the source files of the release the import left unread because they cannot reach its scope (DiGi.GIS.PostgreSQL#170), as paths relative to the directory the release's files share, or null when every file was read.
+        /// <para>The release itself - <see cref="FileName"/>, <see cref="Sha256"/> - is unchanged by what a run reads; this names what the run's row and out-of-scope counts do not cover.</para>
+        /// </summary>
+        [JsonIgnore]
+        public List<string>? SkippedFileNames => skippedFileNames;
 
         /// <summary>
         /// Gets the observation date the source publishes for the release, held as text because sources state it at different granularities, or null when the source publishes none.
