@@ -17,7 +17,8 @@ namespace DiGi.GIS.PostgreSQL.Solar.Classes
         /// <param name="reason">Why the job has no result; null for a solved job.</param>
         /// <param name="exception">The exception a failed solve threw, or null.</param>
         /// <param name="milliseconds">The time spent building the shading model and solving, in ms, up to the failure for a failed job; 0 for a job over the ceiling or not solvable.</param>
-        public BuildingSolarRadiationSolveOutcome(BuildingSolarRadiationSolveJob buildingSolarRadiationSolveJob, BuildingSolarRadiationSolveOutcomeType buildingSolarRadiationSolveOutcomeType, GIS.Classes.BuildingSolarRadiationResult? buildingSolarRadiationResult, string? reason, Exception? exception, long milliseconds)
+        /// <param name="casterTriangleCount">The number of caster triangles of the job's shading model; 0 when no shading model was built.</param>
+        public BuildingSolarRadiationSolveOutcome(BuildingSolarRadiationSolveJob buildingSolarRadiationSolveJob, BuildingSolarRadiationSolveOutcomeType buildingSolarRadiationSolveOutcomeType, GIS.Classes.BuildingSolarRadiationResult? buildingSolarRadiationResult, string? reason, Exception? exception, long milliseconds, int casterTriangleCount)
         {
             BuildingSolarRadiationSolveJob = buildingSolarRadiationSolveJob;
             BuildingSolarRadiationSolveOutcomeType = buildingSolarRadiationSolveOutcomeType;
@@ -25,6 +26,7 @@ namespace DiGi.GIS.PostgreSQL.Solar.Classes
             Reason = reason;
             Exception = exception;
             Milliseconds = milliseconds;
+            CasterTriangleCount = casterTriangleCount;
         }
 
         /// <summary>
@@ -41,6 +43,11 @@ namespace DiGi.GIS.PostgreSQL.Solar.Classes
         /// Gets how the job ended.
         /// </summary>
         public BuildingSolarRadiationSolveOutcomeType BuildingSolarRadiationSolveOutcomeType { get; }
+
+        /// <summary>
+        /// Gets the number of caster triangles of the job's shading model - the geometry the solve cost and memory grow with (DiGi.GIS.PostgreSQL#167); 0 when no shading model was built.
+        /// </summary>
+        public int CasterTriangleCount { get; }
 
         /// <summary>
         /// Gets the exception a failed solve threw, or null.

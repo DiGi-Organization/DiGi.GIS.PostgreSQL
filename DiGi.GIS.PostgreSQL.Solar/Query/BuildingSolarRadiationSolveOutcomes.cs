@@ -71,6 +71,7 @@ namespace DiGi.GIS.PostgreSQL.Solar
                 }
 
                 Stopwatch stopwatch = Stopwatch.StartNew();
+                int casterTriangleCount = 0;
                 try
                 {
                     DiGi.Analytical.Building.Classes.BuildingModel buildingModel = buildingSolarRadiationSolveJob.BuildingModel;
@@ -87,13 +88,14 @@ namespace DiGi.GIS.PostgreSQL.Solar
                     if (shadingModel is null)
                     {
                         // A guard: a job always holds a model, which converts even without receivers.
-                        buildingSolarRadiationSolveOutcomes[i] = new BuildingSolarRadiationSolveOutcome(buildingSolarRadiationSolveJob, BuildingSolarRadiationSolveOutcomeType.NotSolvable, null, "it cannot be converted into a shading model", null, 0);
+                        buildingSolarRadiationSolveOutcomes[i] = new BuildingSolarRadiationSolveOutcome(buildingSolarRadiationSolveJob, BuildingSolarRadiationSolveOutcomeType.NotSolvable, null, "it cannot be converted into a shading model", null, 0, 0);
                         return;
                     }
 
-                    if (shadingModel.CasterTriangleCount() > casterTriangleCountMax)
+                    casterTriangleCount = shadingModel.CasterTriangleCount();
+                    if (casterTriangleCount > casterTriangleCountMax)
                     {
-                        buildingSolarRadiationSolveOutcomes[i] = new BuildingSolarRadiationSolveOutcome(buildingSolarRadiationSolveJob, BuildingSolarRadiationSolveOutcomeType.OverCeiling, null, null, null, 0);
+                        buildingSolarRadiationSolveOutcomes[i] = new BuildingSolarRadiationSolveOutcome(buildingSolarRadiationSolveJob, BuildingSolarRadiationSolveOutcomeType.OverCeiling, null, null, null, 0, casterTriangleCount);
                         return;
                     }
 
@@ -103,8 +105,8 @@ namespace DiGi.GIS.PostgreSQL.Solar
 
                     GIS.Classes.BuildingSolarRadiationResult? buildingSolarRadiationResult = buildingModel.BuildingSolarRadiationResult(buildingSolarRadiationSolveJob.CountyId, buildingSolarRadiationSolveJob.Radius, buildingSolarRadiationSolveJob.EPWFileId, surfaceSolarRadiations);
                     buildingSolarRadiationSolveOutcomes[i] = buildingSolarRadiationResult is null
-                        ? new BuildingSolarRadiationSolveOutcome(buildingSolarRadiationSolveJob, BuildingSolarRadiationSolveOutcomeType.Failed, null, "the solve produced no result that can be stored", null, stopwatch.ElapsedMilliseconds)
-                        : new BuildingSolarRadiationSolveOutcome(buildingSolarRadiationSolveJob, BuildingSolarRadiationSolveOutcomeType.Solved, buildingSolarRadiationResult, null, null, stopwatch.ElapsedMilliseconds);
+                        ? new BuildingSolarRadiationSolveOutcome(buildingSolarRadiationSolveJob, BuildingSolarRadiationSolveOutcomeType.Failed, null, "the solve produced no result that can be stored", null, stopwatch.ElapsedMilliseconds, casterTriangleCount)
+                        : new BuildingSolarRadiationSolveOutcome(buildingSolarRadiationSolveJob, BuildingSolarRadiationSolveOutcomeType.Solved, buildingSolarRadiationResult, null, null, stopwatch.ElapsedMilliseconds, casterTriangleCount);
                 }
                 catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
                 {
@@ -113,7 +115,7 @@ namespace DiGi.GIS.PostgreSQL.Solar
                 catch (Exception exception)
                 {
                     stopwatch.Stop();
-                    buildingSolarRadiationSolveOutcomes[i] = new BuildingSolarRadiationSolveOutcome(buildingSolarRadiationSolveJob, BuildingSolarRadiationSolveOutcomeType.Failed, null, exception.Message, exception, stopwatch.ElapsedMilliseconds);
+                    buildingSolarRadiationSolveOutcomes[i] = new BuildingSolarRadiationSolveOutcome(buildingSolarRadiationSolveJob, BuildingSolarRadiationSolveOutcomeType.Failed, null, exception.Message, exception, stopwatch.ElapsedMilliseconds, casterTriangleCount);
                 }
             });
 
@@ -122,7 +124,7 @@ namespace DiGi.GIS.PostgreSQL.Solar
             List<BuildingSolarRadiationSolveOutcome> result = [];
             for (int i = 0; i < buildingSolarRadiationSolveOutcomes.Length; i++)
             {
-                result.Add(buildingSolarRadiationSolveOutcomes[i] ?? new BuildingSolarRadiationSolveOutcome(buildingSolarRadiationSolveJobs[i], BuildingSolarRadiationSolveOutcomeType.Undefined, null, null, null, 0));
+                result.Add(buildingSolarRadiationSolveOutcomes[i] ?? new BuildingSolarRadiationSolveOutcome(buildingSolarRadiationSolveJobs[i], BuildingSolarRadiationSolveOutcomeType.Undefined, null, null, null, 0, 0));
             }
 
             return result;
