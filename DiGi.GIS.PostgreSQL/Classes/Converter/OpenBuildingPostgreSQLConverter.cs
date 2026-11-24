@@ -10,6 +10,7 @@ using Npgsql;
 using NpgsqlTypes;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text.Json;
@@ -21,7 +22,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
 {
     /// <summary>
     /// Stores the open building datasets: the <c>building_dataset</c> release register and the per-dataset footprint tables (EUBUCCO, Overture, OSM, DBSM, Microsoft, GHS-OBAT), on the Storage database, where the large data lives (DiGi.GIS.PostgreSQL#125, moved from Main by DiGi.GIS.PostgreSQL#168).
-    /// <para>The converter reads no table of the Main database: the county parts the import files against are handed to <see cref="ImportAsync(IAsyncEnumerable{Footprint}, BuildingDatasetRelease, IEnumerable{int}, IReadOnlyList{AdministrativeAreal2D}, BoundingBox2D?, IProgress{long}, double, int, CancellationToken)"/> by the caller, which reads them from <c>administrative_areal_2d</c>.</para>
+    /// <para>The converter reads no table of the Main database: the county parts the import files against are handed to <see cref="ImportAsync(IAsyncEnumerable{Footprint}, BuildingDatasetRelease, IEnumerable{int}, IReadOnlyList{AdministrativeAreal2D}, BoundingBox2D?, IProgress{long}, OpenBuildingSourcePosition?, double, int, CancellationToken)"/> by the caller, which reads them from <c>administrative_areal_2d</c>.</para>
     /// <para>The import is one transaction over the whole release: the register row is upserted, the partitions in scope are truncated (the GHS-OBAT table deleted in scope), the footprints stream in through a binary COPY per partition, and the release's row count and attribute list are written before the commit. A run that fails or is cancelled therefore leaves the previous snapshot exactly as it was - the replace is all-or-nothing, and re-running the same release converges on one snapshot.</para>
     /// <para>Partitions and tables are created <b>before</b> the transaction opens, because partition creation takes an exclusive lock on the parent and holding that for the length of a multi-million-row import would block every reader of every county until the import finished (the rule <see cref="TerrainPointPostgreSQLConverter"/> documents). The scope's partitions are created up front too, so the truncation inside the transaction never meets a missing partition.</para>
     /// <para>Every table name this converter interpolates into SQL is resolved through <see cref="Query.IsOpenBuildingTableName(string?)"/> first - an identifier cannot be a parameter, so the stored list of names is the guard.</para>
@@ -37,6 +38,21 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// The most rejected footprints kept in memory for the caller. The count is never capped, only the list.
         /// </summary>
         private const int count_Rejections_Maximum = 1000;
+
+        /// <summary>
+        /// The number of footprints read after which the import logs one progress line, whatever the run keeps (DiGi.GIS.PostgreSQL#169).
+        /// </summary>
+        private const int count_Progress_Read = 1000000;
+
+        /// <summary>
+        /// The number of footprints read between two evaluations of the time condition, so an interval-based progress line reads the clock this often rather than per footprint.
+        /// </summary>
+        private const int count_Progress_Check = 100000;
+
+        /// <summary>
+        /// The time after which the import logs one progress line on its own, for a run that reads footprints too slowly to reach <see cref="count_Progress_Read"/> in that window (DiGi.GIS.PostgreSQL#169).
+        /// </summary>
+        private static readonly TimeSpan timeSpan_Progress = TimeSpan.FromMinutes(5);
 
         /// <summary>
         /// Initializes a new instance of the <see cref="OpenBuildingPostgreSQLConverter"/> class.
@@ -649,6 +665,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// Asynchronously imports one release: files every footprint of the stream under a county part and stores the release's rows, replacing the previous snapshot in scope as one transaction.
         /// <para>The run takes the county parts from its caller (they live on the Main database, this converter on Storage), reprojects each footprint with the transformation of its own source coordinate reference system (built lazily, once per run, as locals - never per footprint and never shared across runs), filters it against the scope, files it through <see cref="Query.OpenBuildingCountyId(BoundingBox2D, IPolygonal2D, Point2D, IDictionary{int, IPolygonal2D}, IDictionary{int, BoundingBox2D}, IDictionary{int, PolygonalFace2D}, ISet{int}, BoundingBox2D, double, out bool)"/> and buffers it; the buffer flushes through a binary COPY per partition every <c>rowCount_Flush</c> rows.</para>
         /// <para>A footprint the reprojection rejects (null input, non-finite vertex, short ring, out-of-domain result, unsupported source reference system) is counted with <see cref="UpdateRejectionReason.GeometryRejected"/> and never written; one that files nowhere is counted with <see cref="UpdateRejectionReason.CountyUnresolved"/>; one outside the run's scope is counted as filtered, not as a rejection. The GHS-OBAT table additionally refuses a row without a source identifier, because that identifier is its primary key.</para>
+        /// <para>While the stream is open the run logs one progress line every <c>count_Progress_Read</c> footprints read or <c>timeSpan_Progress</c> elapsed, whichever comes first - the counters the loop already keeps plus the source file the stream is inside, so an open run shows how far along it is without a query (DiGi.GIS.PostgreSQL#169). The final line repeats the same counters, so it equals the last progress line plus the remainder.</para>
         /// </summary>
         /// <param name="footprints">The footprints to import, in their source coordinate reference system; null imports nothing and answers null.</param>
         /// <param name="buildingDatasetRelease">The release being imported; its dataset key selects the table and its three register columns are required.</param>
@@ -656,6 +673,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// <param name="administrativeAreal2Ds">Every county part of the country with its geometry, read by the caller from the Main database; the footprints are filed against them in memory. Null or empty answers null.</param>
         /// <param name="boundingBox2D_Scope">The scope bounding box in EPSG:2180, or null for a run scoped by county list alone.</param>
         /// <param name="progress">An optional reporter carrying the running total of rows written, reported at every flush.</param>
+        /// <param name="sourcePosition">The shared position the run's footprint stream fills in as each source file starts, so a progress line can name the file and its position (n of N); null logs the counters without one.</param>
         /// <param name="tolerance">The distance a footprint may lie outside a county part and still count as intersecting it.</param>
         /// <param name="commandTimeout">The timeout in seconds for the execution of the commands. A value of 0 disables the timeout.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> to monitor for cancellation requests.</param>
@@ -667,6 +685,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             IReadOnlyList<AdministrativeAreal2D>? administrativeAreal2Ds,
             BoundingBox2D? boundingBox2D_Scope = null,
             IProgress<long>? progress = null,
+            OpenBuildingSourcePosition? sourcePosition = null,
             double tolerance = Core.Constants.Tolerance.MacroDistance,
             int commandTimeout = 600,
             CancellationToken cancellationToken = default)
@@ -794,6 +813,16 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 List<Rejection> rejections = [];
                 int? datasetId = null;
 
+                // Progress (DiGi.GIS.PostgreSQL#169): one line every count_Progress_Read footprints read or
+                // timeSpan_Progress elapsed since the previous one, whichever comes first, so a run that keeps
+                // almost nothing still shows how far along it is. The stopwatch starts with the run's own
+                // transaction, so the elapsed time and the rate on a line describe the whole run up to it -
+                // register row, truncation and flushes included.
+                long readCount = 0;
+                long readCount_LastProgress = 0;
+                TimeSpan timeSpan_LastProgress = TimeSpan.Zero;
+                Stopwatch stopwatch = Stopwatch.StartNew();
+
                 await using (NpgsqlTransaction npgsqlTransaction = await npgsqlConnection.BeginTransactionAsync(cancellationToken))
                 {
                     datasetId = await UpsertReleaseAsync(npgsqlConnection, buildingDatasetRelease, commandTimeout, cancellationToken);
@@ -848,6 +877,29 @@ namespace DiGi.GIS.PostgreSQL.Classes
 
                     await foreach (Footprint? footprint in footprints.WithCancellation(cancellationToken))
                     {
+                        // Progress first, before this footprint is counted: the branches below leave the
+                        // iteration with continue, so a check at the end of the body would be skipped by
+                        // exactly the out-of-scope and rejected footprints that make a run slow to show
+                        // progress (DiGi.GIS.PostgreSQL#169). The time condition is read only every
+                        // count_Progress_Check footprints, so no clock is read per footprint.
+                        readCount++;
+
+                        if (readCount - readCount_LastProgress >= count_Progress_Read || (readCount % count_Progress_Check == 0 && stopwatch.Elapsed - timeSpan_LastProgress >= timeSpan_Progress))
+                        {
+                            // read, kept (written plus still buffered), out of scope and rejected always add up
+                            // to the read count, so the final line equals this one plus the remainder.
+                            Serilog.Modify.Log(
+                                Serilog.Enums.LogEventLevel.Information,
+                                "{Type}: {DatasetKey}/{Version} - {ReadCount} read, {KeptCount} kept ({RowCount} written), {FilteredCount} out of scope, {RejectionCount} rejected, {SourcePath} ({SourceIndex} of {SourceCount}), {ElapsedSeconds:0} s elapsed, {ReadPerSecond:0} footprints/s",
+                                nameof(ImportAsync), buildingDatasetRelease.DatasetKey!, buildingDatasetRelease.Version!,
+                                readCount, readCount - filteredCount - rejectionCount, rowCount, filteredCount, rejectionCount,
+                                sourcePosition?.Path ?? "(starting)", sourcePosition?.Index ?? 0, sourcePosition?.Count ?? 0,
+                                stopwatch.Elapsed.TotalSeconds, readCount / Math.Max(stopwatch.Elapsed.TotalSeconds, 1));
+
+                            readCount_LastProgress = readCount;
+                            timeSpan_LastProgress = stopwatch.Elapsed;
+                        }
+
                         if (footprint is null)
                         {
                             Reject(null, UpdateRejectionReason.Undefined);
@@ -941,8 +993,8 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 }
 
                 Serilog.Modify.Log(
-                    "Open building import of {DatasetKey}/{Version} finished: {RowCount} rows stored, {FilteredCount} out of scope, {RejectionCount} rejected, over {CountyCount} county parts",
-                    buildingDatasetRelease.DatasetKey!, buildingDatasetRelease.Version!, rowCount, filteredCount, rejectionCount, countyIds_Scope.Count);
+                    "Open building import of {DatasetKey}/{Version} finished: {ReadCount} read, {RowCount} rows stored, {FilteredCount} out of scope, {RejectionCount} rejected, over {CountyCount} county parts",
+                    buildingDatasetRelease.DatasetKey!, buildingDatasetRelease.Version!, readCount, rowCount, filteredCount, rejectionCount, countyIds_Scope.Count);
 
                 return new OpenBuildingImportResult(rowCount, filteredCount, rejectionCount, rejections, datasetId);
             }
