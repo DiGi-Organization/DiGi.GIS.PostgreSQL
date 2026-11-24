@@ -18500,6 +18500,8 @@ The outcome of one open building dataset import: how many rows the release store
 
 The three figures are kept apart deliberately. [FilteredCount](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingImportResult.FilteredCount 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingImportResult\.FilteredCount') is the expected residue of a run scoped to pilot areas over a nationwide file - nothing was lost, the rows were never in scope. [RejectionCount](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingImportResult.RejectionCount 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingImportResult\.RejectionCount') is the account of rows that could not be placed or transformed, each one named in [Rejections](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingImportResult.Rejections 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingImportResult\.Rejections') while the list has room, and it is what figure R1 and the run report read.
 
+[RejectionCounts](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingImportResult.RejectionCounts 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingImportResult\.RejectionCounts') splits that one number per [UpdateRejectionReason](DiGi.GIS.PostgreSQL.Enums.md#DiGi.GIS.PostgreSQL.Enums.UpdateRejectionReason 'DiGi\.GIS\.PostgreSQL\.Enums\.UpdateRejectionReason'), so the difference between two runs' rejection figures is explained rather than guessed (DiGi.GIS.PostgreSQL#172): it is complete where [Rejections](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingImportResult.Rejections 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingImportResult\.Rejections') is the first thousand in read order, and its entries sum to [RejectionCount](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingImportResult.RejectionCount 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingImportResult\.RejectionCount').
+
 [DatasetId](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingImportResult.DatasetId 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingImportResult\.DatasetId') identifies the register row the run upserted in building_dataset, so a report can name it without re-querying the register (DiGi.GIS.PostgreSQL#131).
 
 ```csharp
@@ -18528,46 +18530,52 @@ public OpenBuildingImportResult(DiGi.GIS.PostgreSQL.Classes.OpenBuildingImportRe
 
 The source result to copy\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingImportResult.OpenBuildingImportResult(long,long,long,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.Rejection_,System.Nullable_int_)'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingImportResult.OpenBuildingImportResult(long,long,long,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.Rejection_,System.Nullable_int_,System.Collections.Generic.IDictionary_DiGi.GIS.PostgreSQL.Enums.UpdateRejectionReason,long_)'></a>
 
-## OpenBuildingImportResult\(long, long, long, IEnumerable\<Rejection\>, Nullable\<int\>\) Constructor
+## OpenBuildingImportResult\(long, long, long, IEnumerable\<Rejection\>, Nullable\<int\>, IDictionary\<UpdateRejectionReason,long\>\) Constructor
 
 Initializes a new instance of the [OpenBuildingImportResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingImportResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingImportResult') class\.
 
 ```csharp
-public OpenBuildingImportResult(long rowCount, long filteredCount, long rejectionCount, System.Collections.Generic.IEnumerable<DiGi.GIS.PostgreSQL.Classes.Rejection>? rejections, System.Nullable<int> datasetId);
+public OpenBuildingImportResult(long rowCount, long filteredCount, long rejectionCount, System.Collections.Generic.IEnumerable<DiGi.GIS.PostgreSQL.Classes.Rejection>? rejections, System.Nullable<int> datasetId, System.Collections.Generic.IDictionary<DiGi.GIS.PostgreSQL.Enums.UpdateRejectionReason,long>? rejectionCounts=null);
 ```
 #### Parameters
 
-<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingImportResult.OpenBuildingImportResult(long,long,long,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.Rejection_,System.Nullable_int_).rowCount'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingImportResult.OpenBuildingImportResult(long,long,long,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.Rejection_,System.Nullable_int_,System.Collections.Generic.IDictionary_DiGi.GIS.PostgreSQL.Enums.UpdateRejectionReason,long_).rowCount'></a>
 
 `rowCount` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
 
 The number of rows stored by the import\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingImportResult.OpenBuildingImportResult(long,long,long,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.Rejection_,System.Nullable_int_).filteredCount'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingImportResult.OpenBuildingImportResult(long,long,long,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.Rejection_,System.Nullable_int_,System.Collections.Generic.IDictionary_DiGi.GIS.PostgreSQL.Enums.UpdateRejectionReason,long_).filteredCount'></a>
 
 `filteredCount` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
 
 The number of footprints skipped as out of scope\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingImportResult.OpenBuildingImportResult(long,long,long,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.Rejection_,System.Nullable_int_).rejectionCount'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingImportResult.OpenBuildingImportResult(long,long,long,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.Rejection_,System.Nullable_int_,System.Collections.Generic.IDictionary_DiGi.GIS.PostgreSQL.Enums.UpdateRejectionReason,long_).rejectionCount'></a>
 
 `rejectionCount` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
 
 The number of footprints rejected before the database\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingImportResult.OpenBuildingImportResult(long,long,long,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.Rejection_,System.Nullable_int_).rejections'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingImportResult.OpenBuildingImportResult(long,long,long,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.Rejection_,System.Nullable_int_,System.Collections.Generic.IDictionary_DiGi.GIS.PostgreSQL.Enums.UpdateRejectionReason,long_).rejections'></a>
 
 `rejections` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[Rejection](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.Rejection 'DiGi\.GIS\.PostgreSQL\.Classes\.Rejection')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
 
 The rejected footprints, each named with the reason, or null for none\.
 
-<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingImportResult.OpenBuildingImportResult(long,long,long,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.Rejection_,System.Nullable_int_).datasetId'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingImportResult.OpenBuildingImportResult(long,long,long,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.Rejection_,System.Nullable_int_,System.Collections.Generic.IDictionary_DiGi.GIS.PostgreSQL.Enums.UpdateRejectionReason,long_).datasetId'></a>
 
 `datasetId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
 The identifier of the register row the import upserted in building\_dataset, or null when the result carries none \(DiGi\.GIS\.PostgreSQL\#131\)\.
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingImportResult.OpenBuildingImportResult(long,long,long,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.Rejection_,System.Nullable_int_,System.Collections.Generic.IDictionary_DiGi.GIS.PostgreSQL.Enums.UpdateRejectionReason,long_).rejectionCounts'></a>
+
+`rejectionCounts` [System\.Collections\.Generic\.IDictionary&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.idictionary-2 'System\.Collections\.Generic\.IDictionary\`2')[UpdateRejectionReason](DiGi.GIS.PostgreSQL.Enums.md#DiGi.GIS.PostgreSQL.Enums.UpdateRejectionReason 'DiGi\.GIS\.PostgreSQL\.Enums\.UpdateRejectionReason')[,](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.idictionary-2 'System\.Collections\.Generic\.IDictionary\`2')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.idictionary-2 'System\.Collections\.Generic\.IDictionary\`2')
+
+The number of rejections per [UpdateRejectionReason](DiGi.GIS.PostgreSQL.Enums.md#DiGi.GIS.PostgreSQL.Enums.UpdateRejectionReason 'DiGi\.GIS\.PostgreSQL\.Enums\.UpdateRejectionReason'), or null for none; entries are copied, so the caller's dictionary is never aliased \(DiGi\.GIS\.PostgreSQL\#172\)\.
 
 <a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingImportResult.OpenBuildingImportResult(System.Text.Json.Nodes.JsonObject)'></a>
 
@@ -18625,6 +18633,19 @@ public long RejectionCount { get; }
 
 #### Property Value
 [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingImportResult.RejectionCounts'></a>
+
+## OpenBuildingImportResult\.RejectionCounts Property
+
+Gets the number of those rejections per [UpdateRejectionReason](DiGi.GIS.PostgreSQL.Enums.md#DiGi.GIS.PostgreSQL.Enums.UpdateRejectionReason 'DiGi\.GIS\.PostgreSQL\.Enums\.UpdateRejectionReason') \- complete where [Rejections](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingImportResult.Rejections 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingImportResult\.Rejections') is a capped sample, in enum order when enumerated through `Enum.GetValues`, and summing to [RejectionCount](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingImportResult.RejectionCount 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingImportResult\.RejectionCount') \(DiGi\.GIS\.PostgreSQL\#172\)\. Reasons the run never raised are absent rather than zero\.
+
+```csharp
+public System.Collections.Generic.Dictionary<DiGi.GIS.PostgreSQL.Enums.UpdateRejectionReason,long> RejectionCounts { get; }
+```
+
+#### Property Value
+[System\.Collections\.Generic\.Dictionary&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.dictionary-2 'System\.Collections\.Generic\.Dictionary\`2')[UpdateRejectionReason](DiGi.GIS.PostgreSQL.Enums.md#DiGi.GIS.PostgreSQL.Enums.UpdateRejectionReason 'DiGi\.GIS\.PostgreSQL\.Enums\.UpdateRejectionReason')[,](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.dictionary-2 'System\.Collections\.Generic\.Dictionary\`2')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.dictionary-2 'System\.Collections\.Generic\.Dictionary\`2')
 
 <a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingImportResult.Rejections'></a>
 
@@ -19474,6 +19495,8 @@ The run takes the county parts from its caller (they live on the Main database, 
 
 A footprint the reprojection rejects (null input, non-finite vertex, short ring, out-of-domain result, unsupported source reference system) is counted with [GeometryRejected](DiGi.GIS.PostgreSQL.Enums.md#DiGi.GIS.PostgreSQL.Enums.UpdateRejectionReason.GeometryRejected 'DiGi\.GIS\.PostgreSQL\.Enums\.UpdateRejectionReason\.GeometryRejected') and never written; one that files nowhere is counted with [CountyUnresolved](DiGi.GIS.PostgreSQL.Enums.md#DiGi.GIS.PostgreSQL.Enums.UpdateRejectionReason.CountyUnresolved 'DiGi\.GIS\.PostgreSQL\.Enums\.UpdateRejectionReason\.CountyUnresolved'); one outside the run's scope is counted as filtered, not as a rejection. The GHS-OBAT table additionally refuses a row without a source identifier, because that identifier is its primary key.
 
+Every rejection is additionally counted per [UpdateRejectionReason](DiGi.GIS.PostgreSQL.Enums.md#DiGi.GIS.PostgreSQL.Enums.UpdateRejectionReason 'DiGi\.GIS\.PostgreSQL\.Enums\.UpdateRejectionReason') - a dictionary the run's own `Reject` fills beside the one number, so nothing is allocated per footprint and the two can never drift apart (DiGi.GIS.PostgreSQL#172). The tally travels on [RejectionCounts](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingImportResult.RejectionCounts 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingImportResult\.RejectionCounts'), and after the closing line the run logs one `Information` line with it, in enum order and without the zeros; the capped sample of `Rejections` stays the first `count_Rejections_Maximum` in read order, so the tally - not the sample - is the complete account.
+
 While the stream is open the run logs one progress line every `count_Progress_Read` footprints read or `timeSpan_Progress` elapsed, whichever comes first - the counters the loop already keeps plus the source file the stream is inside, so an open run shows how far along it is without a query (DiGi.GIS.PostgreSQL#169). The final line repeats the same counters, so it equals the last progress line plus the remainder.
 
 The conversion - reprojection, filing, serialization - runs on up to [maxDegreeOfParallelism](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.ImportAsync(System.Collections.Generic.IAsyncEnumerable_DiGi.GIS.IO.Classes.Footprint_,DiGi.GIS.PostgreSQL.Classes.BuildingDatasetRelease,System.Collections.Generic.IEnumerable_int_,System.Collections.Generic.IReadOnlyList_DiGi.GIS.PostgreSQL.Classes.AdministrativeAreal2D_,DiGi.Geometry.Planar.Classes.BoundingBox2D,System.IProgress_long_,DiGi.GIS.PostgreSQL.Classes.OpenBuildingSourcePosition,double,int,int,System.Threading.CancellationToken).maxDegreeOfParallelism 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingPostgreSQLConverter\.ImportAsync\(System\.Collections\.Generic\.IAsyncEnumerable\<DiGi\.GIS\.IO\.Classes\.Footprint\>, DiGi\.GIS\.PostgreSQL\.Classes\.BuildingDatasetRelease, System\.Collections\.Generic\.IEnumerable\<int\>, System\.Collections\.Generic\.IReadOnlyList\<DiGi\.GIS\.PostgreSQL\.Classes\.AdministrativeAreal2D\>, DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D, System\.IProgress\<long\>, DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingSourcePosition, double, int, int, System\.Threading\.CancellationToken\)\.maxDegreeOfParallelism') workers (DiGi.GIS.PostgreSQL#170): the stream is read in batches of `count_Batch` footprints, each batch is converted by a worker with its own transformations, and the batches are consumed strictly in read order by the run's own thread, which alone keeps the counters, the capped rejection sample, the progress lines and the buffer and writes the COPY on the run's one connection. A run therefore stores, counts, samples and logs the same at any degree; at most `count_BatchesInFlightPerDegree` times the degree batches are held at once. A worker that fails fails the run, and a stop cancels the workers: either way every worker is awaited and the transaction is left uncommitted.
@@ -19551,7 +19574,7 @@ The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dot
 
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[OpenBuildingImportResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingImportResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingImportResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
-A task whose result carries the register row id, the rows stored, the footprints filtered and the footprints rejected, or null when the run could not start \(bad arguments, unreadable schema, no counties to file against\)\.
+A task whose result carries the register row id, the rows stored, the footprints filtered, the footprints rejected and those rejections counted per reason, or null when the run could not start \(bad arguments, unreadable schema, no counties to file against\)\.
 
 <a name='DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.Reproject(DiGi.Geometry.Planar.Interfaces.IGeometry2D,GeoAPI.CoordinateSystems.Transformations.ICoordinateTransformation)'></a>
 
@@ -32211,6 +32234,32 @@ public long RejectionCount { get; private set; }
 
 #### Property Value
 [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOpenBuildingImportTask.RejectionCounts'></a>
+
+## PostgreSQLOpenBuildingImportTask\.RejectionCounts Property
+
+Gets those rejections counted per [UpdateRejectionReason](DiGi.GIS.PostgreSQL.Enums.md#DiGi.GIS.PostgreSQL.Enums.UpdateRejectionReason 'DiGi\.GIS\.PostgreSQL\.Enums\.UpdateRejectionReason')\. Read after the run, like the tallies; empty when the run never reached the import \(DiGi\.GIS\.PostgreSQL\#172\)\.
+
+```csharp
+public System.Collections.Generic.Dictionary<DiGi.GIS.PostgreSQL.Enums.UpdateRejectionReason,long> RejectionCounts { get; private set; }
+```
+
+#### Property Value
+[System\.Collections\.Generic\.Dictionary&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.dictionary-2 'System\.Collections\.Generic\.Dictionary\`2')[UpdateRejectionReason](DiGi.GIS.PostgreSQL.Enums.md#DiGi.GIS.PostgreSQL.Enums.UpdateRejectionReason 'DiGi\.GIS\.PostgreSQL\.Enums\.UpdateRejectionReason')[,](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.dictionary-2 'System\.Collections\.Generic\.Dictionary\`2')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.dictionary-2 'System\.Collections\.Generic\.Dictionary\`2')
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOpenBuildingImportTask.Rejections'></a>
+
+## PostgreSQLOpenBuildingImportTask\.Rejections Property
+
+Gets the rejected footprints the run named, capped the way the import caps its sample \(the first 1000 in read order\) \- the run report lists the first ten source ids per reason from it \(DiGi\.GIS\.PostgreSQL\#172\)\.
+
+```csharp
+public System.Collections.Generic.List<DiGi.GIS.PostgreSQL.Classes.Rejection> Rejections { get; private set; }
+```
+
+#### Property Value
+[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[Rejection](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.Rejection 'DiGi\.GIS\.PostgreSQL\.Classes\.Rejection')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')
 
 <a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOpenBuildingImportTask.RowCount'></a>
 

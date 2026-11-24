@@ -679,6 +679,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// Asynchronously imports one release: files every footprint of the stream under a county part and stores the release's rows, replacing the previous snapshot in scope as one transaction.
         /// <para>The run takes the county parts from its caller (they live on the Main database, this converter on Storage), reprojects each footprint with the transformation of its own source coordinate reference system (built lazily, once per run, as locals - never per footprint and never shared across runs), filters it against the scope, files it through <see cref="Query.OpenBuildingCountyId(BoundingBox2D, IPolygonal2D, Point2D, IDictionary{int, IPolygonal2D}, IDictionary{int, CountyFilingGeometry}, IDictionary{int, BoundingBox2D}, IDictionary{int, PolygonalFace2D}, ISet{int}, BoundingBox2D, double, out bool)"/> and buffers it; the buffer flushes through a binary COPY per partition every <c>rowCount_Flush</c> rows.</para>
         /// <para>A footprint the reprojection rejects (null input, non-finite vertex, short ring, out-of-domain result, unsupported source reference system) is counted with <see cref="UpdateRejectionReason.GeometryRejected"/> and never written; one that files nowhere is counted with <see cref="UpdateRejectionReason.CountyUnresolved"/>; one outside the run's scope is counted as filtered, not as a rejection. The GHS-OBAT table additionally refuses a row without a source identifier, because that identifier is its primary key.</para>
+        /// <para>Every rejection is additionally counted per <see cref="UpdateRejectionReason"/> - a dictionary the run's own <c>Reject</c> fills beside the one number, so nothing is allocated per footprint and the two can never drift apart (DiGi.GIS.PostgreSQL#172). The tally travels on <see cref="OpenBuildingImportResult.RejectionCounts"/>, and after the closing line the run logs one <c>Information</c> line with it, in enum order and without the zeros; the capped sample of <c>Rejections</c> stays the first <c>count_Rejections_Maximum</c> in read order, so the tally - not the sample - is the complete account.</para>
         /// <para>While the stream is open the run logs one progress line every <c>count_Progress_Read</c> footprints read or <c>timeSpan_Progress</c> elapsed, whichever comes first - the counters the loop already keeps plus the source file the stream is inside, so an open run shows how far along it is without a query (DiGi.GIS.PostgreSQL#169). The final line repeats the same counters, so it equals the last progress line plus the remainder.</para>
         /// <para>The conversion - reprojection, filing, serialization - runs on up to <paramref name="maxDegreeOfParallelism"/> workers (DiGi.GIS.PostgreSQL#170): the stream is read in batches of <c>count_Batch</c> footprints, each batch is converted by a worker with its own transformations, and the batches are consumed strictly in read order by the run's own thread, which alone keeps the counters, the capped rejection sample, the progress lines and the buffer and writes the COPY on the run's one connection. A run therefore stores, counts, samples and logs the same at any degree; at most <c>count_BatchesInFlightPerDegree</c> times the degree batches are held at once. A worker that fails fails the run, and a stop cancels the workers: either way every worker is awaited and the transaction is left uncommitted.</para>
         /// </summary>
@@ -693,7 +694,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// <param name="commandTimeout">The timeout in seconds for the execution of the commands. A value of 0 disables the timeout.</param>
         /// <param name="maxDegreeOfParallelism">The most batches converted at once; zero or less uses half the processors, one converts on the run's own thread.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> to monitor for cancellation requests.</param>
-        /// <returns>A task whose result carries the register row id, the rows stored, the footprints filtered and the footprints rejected, or null when the run could not start (bad arguments, unreadable schema, no counties to file against).</returns>
+        /// <returns>A task whose result carries the register row id, the rows stored, the footprints filtered, the footprints rejected and those rejections counted per reason, or null when the run could not start (bad arguments, unreadable schema, no counties to file against).</returns>
         public async Task<OpenBuildingImportResult?> ImportAsync(
             IAsyncEnumerable<Footprint>? footprints,
             BuildingDatasetRelease? buildingDatasetRelease,
@@ -830,10 +831,12 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 }
 
                 // The tallies and the register row id survive the transaction block: they are the result the
-                // caller reads after the commit.
+                // caller reads after the commit. The per-reason dictionary is filled beside rejectionCount
+                // in Reject, so the two can never drift apart (DiGi.GIS.PostgreSQL#172).
                 long rowCount = 0;
                 long filteredCount = 0;
                 long rejectionCount = 0;
+                Dictionary<UpdateRejectionReason, long> rejectionCounts = [];
                 List<Rejection> rejections = [];
                 int? datasetId = null;
 
@@ -886,6 +889,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
                     void Reject(string? sourceId, UpdateRejectionReason updateRejectionReason)
                     {
                         rejectionCount++;
+                        rejectionCounts[updateRejectionReason] = rejectionCounts.GetValueOrDefault(updateRejectionReason) + 1;
 
                         if (rejections.Count < count_Rejections_Maximum)
                         {
@@ -1186,7 +1190,28 @@ namespace DiGi.GIS.PostgreSQL.Classes
                     "Open building import of {DatasetKey}/{Version} finished: {ReadCount} read, {RowCount} rows stored, {FilteredCount} out of scope, {RejectionCount} rejected, over {CountyCount} county parts",
                     buildingDatasetRelease.DatasetKey!, buildingDatasetRelease.Version!, readCount, rowCount, filteredCount, rejectionCount, countyIds_Scope.Count);
 
-                return new OpenBuildingImportResult(rowCount, filteredCount, rejectionCount, rejections, datasetId);
+                // The reasons behind the one number, in enum order and without the zeros, so a log of a run
+                // explains its rejections without a query (DiGi.GIS.PostgreSQL#172). Nothing to say when
+                // nothing was rejected.
+                if (rejectionCount > 0)
+                {
+                    List<string> parts = [];
+                    foreach (UpdateRejectionReason updateRejectionReason in System.Enum.GetValues<UpdateRejectionReason>())
+                    {
+                        long count = rejectionCounts.GetValueOrDefault(updateRejectionReason);
+                        if (count > 0)
+                        {
+                            parts.Add(string.Create(CultureInfo.InvariantCulture, $"{Core.Query.Description(updateRejectionReason)}: {count}"));
+                        }
+                    }
+
+                    Serilog.Modify.Log(
+                        Serilog.Enums.LogEventLevel.Information,
+                        "Open building import of {DatasetKey}/{Version} rejected before the database by reason: {RejectionTally}",
+                        buildingDatasetRelease.DatasetKey!, buildingDatasetRelease.Version!, string.Join(", ", parts));
+                }
+
+                return new OpenBuildingImportResult(rowCount, filteredCount, rejectionCount, rejections, datasetId, rejectionCounts);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {

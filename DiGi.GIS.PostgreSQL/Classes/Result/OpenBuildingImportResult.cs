@@ -1,4 +1,5 @@
 using DiGi.Core.Classes;
+using DiGi.GIS.PostgreSQL.Enums;
 using DiGi.GIS.PostgreSQL.Interfaces;
 using System.Collections.Generic;
 using System.Text.Json.Nodes;
@@ -9,6 +10,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
     /// <summary>
     /// The outcome of one open building dataset import: how many rows the release stored, how many footprints were outside the run's scope, and how many were rejected (DiGi.GIS.PostgreSQL#125).
     /// <para>The three figures are kept apart deliberately. <see cref="FilteredCount"/> is the expected residue of a run scoped to pilot areas over a nationwide file - nothing was lost, the rows were never in scope. <see cref="RejectionCount"/> is the account of rows that could not be placed or transformed, each one named in <see cref="Rejections"/> while the list has room, and it is what figure R1 and the run report read.</para>
+    /// <para><see cref="RejectionCounts"/> splits that one number per <see cref="Enums.UpdateRejectionReason"/>, so the difference between two runs' rejection figures is explained rather than guessed (DiGi.GIS.PostgreSQL#172): it is complete where <see cref="Rejections"/> is the first thousand in read order, and its entries sum to <see cref="RejectionCount"/>.</para>
     /// <para><see cref="DatasetId"/> identifies the register row the run upserted in building_dataset, so a report can name it without re-querying the register (DiGi.GIS.PostgreSQL#131).</para>
     /// </summary>
     public class OpenBuildingImportResult : SerializableResult, IGISPostgreSQLSerializableObject
@@ -21,6 +23,9 @@ namespace DiGi.GIS.PostgreSQL.Classes
 
         [JsonInclude, JsonPropertyName(nameof(RejectionCount))]
         private readonly long rejectionCount;
+
+        [JsonInclude, JsonPropertyName(nameof(RejectionCounts))]
+        private readonly Dictionary<UpdateRejectionReason, long> rejectionCounts = [];
 
         [JsonInclude, JsonPropertyName(nameof(Rejections))]
         private readonly List<Rejection> rejections = [];
@@ -36,7 +41,8 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// <param name="rejectionCount">The number of footprints rejected before the database.</param>
         /// <param name="rejections">The rejected footprints, each named with the reason, or null for none.</param>
         /// <param name="datasetId">The identifier of the register row the import upserted in building_dataset, or null when the result carries none (DiGi.GIS.PostgreSQL#131).</param>
-        public OpenBuildingImportResult(long rowCount, long filteredCount, long rejectionCount, IEnumerable<Rejection>? rejections, int? datasetId)
+        /// <param name="rejectionCounts">The number of rejections per <see cref="Enums.UpdateRejectionReason"/>, or null for none; entries are copied, so the caller's dictionary is never aliased (DiGi.GIS.PostgreSQL#172).</param>
+        public OpenBuildingImportResult(long rowCount, long filteredCount, long rejectionCount, IEnumerable<Rejection>? rejections, int? datasetId, IDictionary<UpdateRejectionReason, long>? rejectionCounts = null)
         {
             this.rowCount = rowCount;
             this.filteredCount = filteredCount;
@@ -49,6 +55,16 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 // the items are taken as they are - only the list itself is copied, to stop the caller's
                 // collection aliasing the result's.
                 this.rejections = [.. rejections];
+            }
+
+            if (rejectionCounts is not null)
+            {
+                // The import has finished by the time it constructs this result, but the entries are copied
+                // anyway: a result never aliases a caller's collection (the same rule as the rejections).
+                foreach (KeyValuePair<UpdateRejectionReason, long> pair in rejectionCounts)
+                {
+                    this.rejectionCounts[pair.Key] = pair.Value;
+                }
             }
         }
 
@@ -65,6 +81,11 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 filteredCount = openBuildingImportResult.filteredCount;
                 rejectionCount = openBuildingImportResult.rejectionCount;
                 rowCount = openBuildingImportResult.rowCount;
+
+                foreach (KeyValuePair<UpdateRejectionReason, long> pair in openBuildingImportResult.rejectionCounts)
+                {
+                    rejectionCounts[pair.Key] = pair.Value;
+                }
 
                 foreach (Rejection rejection in openBuildingImportResult.rejections)
                 {
@@ -102,6 +123,12 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// </summary>
         [JsonIgnore]
         public long RejectionCount => rejectionCount;
+
+        /// <summary>
+        /// Gets the number of those rejections per <see cref="Enums.UpdateRejectionReason"/> - complete where <see cref="Rejections"/> is a capped sample, in enum order when enumerated through <c>Enum.GetValues</c>, and summing to <see cref="RejectionCount"/> (DiGi.GIS.PostgreSQL#172). Reasons the run never raised are absent rather than zero.
+        /// </summary>
+        [JsonIgnore]
+        public Dictionary<UpdateRejectionReason, long> RejectionCounts => rejectionCounts;
 
         /// <summary>
         /// Gets the rejected footprints, each named with the reason it was dropped, capped so a run over a corrupt file does not hold every bad row in memory.

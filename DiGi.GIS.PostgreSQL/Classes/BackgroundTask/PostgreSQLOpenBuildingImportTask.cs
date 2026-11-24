@@ -76,6 +76,16 @@ namespace DiGi.GIS.PostgreSQL.Classes
         public long RejectionCount { get; private set; }
 
         /// <summary>
+        /// Gets those rejections counted per <see cref="Enums.UpdateRejectionReason"/>. Read after the run, like the tallies; empty when the run never reached the import (DiGi.GIS.PostgreSQL#172).
+        /// </summary>
+        public Dictionary<Enums.UpdateRejectionReason, long> RejectionCounts { get; private set; } = [];
+
+        /// <summary>
+        /// Gets the rejected footprints the run named, capped the way the import caps its sample (the first 1000 in read order) - the run report lists the first ten source ids per reason from it (DiGi.GIS.PostgreSQL#172).
+        /// </summary>
+        public List<Rejection> Rejections { get; private set; } = [];
+
+        /// <summary>
         /// Gets the number of rows the import stored.
         /// </summary>
         public long RowCount { get; private set; }
@@ -91,6 +101,8 @@ namespace DiGi.GIS.PostgreSQL.Classes
             RowCount = 0;
             FilteredCount = 0;
             RejectionCount = 0;
+            RejectionCounts = [];
+            Rejections = [];
             ReaderRejectionCount = 0;
             DatasetId = null;
             SkippedSourcePaths = [];
@@ -335,6 +347,8 @@ namespace DiGi.GIS.PostgreSQL.Classes
             RowCount = openBuildingImportResult.RowCount;
             FilteredCount = openBuildingImportResult.FilteredCount;
             RejectionCount = openBuildingImportResult.RejectionCount;
+            RejectionCounts = new(openBuildingImportResult.RejectionCounts);
+            Rejections = [.. openBuildingImportResult.Rejections];
             DatasetId = openBuildingImportResult.DatasetId;
 
             // The OSM summary is complete only now: the reader fills it while the sequence is enumerated, and
