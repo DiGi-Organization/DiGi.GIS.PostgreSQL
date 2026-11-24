@@ -528,7 +528,7 @@ namespace DiGi.GIS.PostgreSQL
 
         /// <summary>
         /// Asynchronously creates the <see cref="Constants.TableName.BuildingDataset"/> release register in the PostgreSQL database.
-        /// <para>One row is one release of one open building dataset, and <c>(dataset_key, version, download_date)</c> is unique under <c>NULLS NOT DISTINCT</c> so that a re-import of the same release revises its row rather than adding one (DiGi.GIS.PostgreSQL#125). The unique constraint already leads with <c>dataset_key</c>, so a second index on that column alone would only cost storage and write time. The table lives on the Main database, beside <c>building_2d</c>. Every statement is idempotent.</para>
+        /// <para>One row is one release of one open building dataset, and <c>(dataset_key, version, download_date)</c> is unique under <c>NULLS NOT DISTINCT</c> so that a re-import of the same release revises its row rather than adding one (DiGi.GIS.PostgreSQL#125). The unique constraint already leads with <c>dataset_key</c>, so a second index on that column alone would only cost storage and write time. The table lives on the Storage database with the other open building tables (DiGi.GIS.PostgreSQL#168). Every statement is idempotent.</para>
         /// </summary>
         /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> instance used to execute the command.</param>
         /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
@@ -711,7 +711,7 @@ namespace DiGi.GIS.PostgreSQL
 
         /// <summary>
         /// Asynchronously creates the <see cref="Constants.TableName.GHS_OBAT_Building"/> centroid table in the PostgreSQL database.
-        /// <para>One row is one GHS-OBAT centroid of one release, keyed by <c>overture_id</c> - the identifier the centroid links through to the Overture footprint - and filed under <c>county_id</c> (DiGi.GIS.PostgreSQL#125). Unlike the five footprint tables it is not partitioned: a centroid row is one small object, and the link key would otherwise have to carry the partition key to stay unique. <c>primary_source</c> is held here as in every other open building table because the acceptance criterion covers every stored row; the envelope columns are absent because a centroid's position lives inside <c>object</c>. The table lives on the Main database, beside <c>building_2d</c>. Every statement is idempotent.</para>
+        /// <para>One row is one GHS-OBAT centroid of one release, keyed by <c>overture_id</c> - the identifier the centroid links through to the Overture footprint - and filed under <c>county_id</c> (DiGi.GIS.PostgreSQL#125). Unlike the five footprint tables it is not partitioned: a centroid row is one small object, and the link key would otherwise have to carry the partition key to stay unique. <c>primary_source</c> is held here as in every other open building table because the acceptance criterion covers every stored row; the envelope columns are absent because a centroid's position lives inside <c>object</c>. The table lives on the Storage database with the other open building tables (DiGi.GIS.PostgreSQL#168). Every statement is idempotent.</para>
         /// </summary>
         /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> instance used to execute the command.</param>
         /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>

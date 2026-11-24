@@ -17,7 +17,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
 {
     /// <summary>
     /// Represents a background task that imports one release of an open building dataset - EUBUCCO, Overture, OSM, DBSM, Microsoft or GHS-OBAT - into its footprint table, with the release recorded in the <c>building_dataset</c> register (DiGi.GIS.PostgreSQL#125).
-    /// <para>The task owns the run: it validates the options, resolves the scope (county parts widened to their siblings, or a pilot-area bounding box resolved against the database), opens the readers for the dataset's file format and hands the footprint stream to <see cref="OpenBuildingPostgreSQLConverter.ImportAsync(IAsyncEnumerable{Footprint}, BuildingDatasetRelease, IEnumerable{int}, BoundingBox2D?, IProgress{long}, double, int, CancellationToken)"/>. The converter owns the load path, including the transformations: one per source coordinate reference system, built lazily as locals of the run - never per footprint, never shared between runs.</para>
+    /// <para>The task owns the run: it validates the options, resolves the scope (county parts widened to their siblings, or a pilot-area bounding box resolved against the database), reads the county parts from the Main database once, opens the readers for the dataset's file format and hands the footprint stream and the county parts to <see cref="OpenBuildingPostgreSQLConverter.ImportAsync(IAsyncEnumerable{Footprint}, BuildingDatasetRelease, IEnumerable{int}, IReadOnlyList{AdministrativeAreal2D}, BoundingBox2D?, IProgress{long}, double, int, CancellationToken)"/>, which writes to the Storage database. The converter owns the load path, including the transformations: one per source coordinate reference system, built lazily as locals of the run - never per footprint, never shared between runs.</para>
     /// <para>The bounding box is applied after the reprojection leg, never handed to a reader: every reader interprets a box in its own file's source coordinate reference system, and an EPSG:2180 box passed into an EPSG:3035 file would filter everything out silently. The OSM branch reads synchronously through <c>DiGi.OSM</c> and its reader-side rejection summary is read after the stream has been enumerated to its end, which is when that summary completes.</para>
     /// <para>A run reports success unless it was cancelled. Footprints outside the scope and footprints that file nowhere are tallied rather than gated on - a nationwide file read for pilot areas leaves a large ordinary residue, and gating on it would report a correct run as a failure while naming nothing.</para>
     /// </summary>
@@ -206,6 +206,15 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 return true;
             }
 
+            // The county parts live on the Main database and the open building tables on Storage, so the
+            // converter cannot read them: they are read here, once, and handed over (no join across the two).
+            List<AdministrativeAreal2D>? counties = await administrativeAreal2DPostgreSQLConverter.GetAdministrativeAreal2DsByAdministrativeArealType(Enums.AdministrativeArealType.County, commandTimeout: commandTimeout, cancellationToken: cancellationToken);
+            if (counties is null || counties.Count == 0)
+            {
+                Serilog.Modify.Log(Serilog.Enums.LogEventLevel.Error, "{Type}: no county part could be read from the Main database - nothing can be filed", nameof(PostgreSQLOpenBuildingImportTask));
+                return false;
+            }
+
             List<BuildingReadResult> buildingReadResults = [];
 
             IAsyncEnumerable<Footprint>? footprints;
@@ -250,6 +259,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 footprints,
                 buildingDatasetRelease,
                 countyIds_Scope,
+                counties,
                 boundingBox2D_Scope,
                 progress,
                 commandTimeout: commandTimeout,

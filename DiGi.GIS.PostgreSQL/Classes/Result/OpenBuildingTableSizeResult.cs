@@ -7,7 +7,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
 {
     /// <summary>
     /// The disk use of one storage unit of an open building table, read from the system catalog: one county partition of a footprint table, or the whole unpartitioned GHS-OBAT table (DiGi.GIS.PostgreSQL#150).
-    /// <para>The measured disk use of the Main database after the pilot imports (DiGi.GIS.PostgreSQL#126), and the per-county sizes the full-country roll-out is extrapolated from. A partitioned parent stores nothing itself - its indexes are inherited by every partition - so the sizes of a table's partitions sum to the table's size.</para>
+    /// <para>The measured disk use of the Storage database after the pilot imports (DiGi.GIS.PostgreSQL#126), and the per-county sizes the full-country roll-out is extrapolated from. A partitioned parent stores nothing itself - its indexes are inherited by every partition - so the sizes of a table's partitions sum to the table's size.</para>
     /// </summary>
     public class OpenBuildingTableSizeResult : SerializableResult, IGISPostgreSQLSerializableObject
     {

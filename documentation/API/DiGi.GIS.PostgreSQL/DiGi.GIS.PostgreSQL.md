@@ -493,7 +493,7 @@ The copy, or null when [buildingSolarRadiationResult](DiGi.GIS.PostgreSQL.md#DiG
 
 ## Create\.GISPostgreSQLConverterManager\(\) Method
 
-Creates a [GISPostgreSQLConverterManager\(\)](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Create.GISPostgreSQLConverterManager() 'DiGi\.GIS\.PostgreSQL\.Create\.GISPostgreSQLConverterManager\(\)') with all PostgreSQL converters registered\.
+Creates a [GISPostgreSQLConverterManager](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.GISPostgreSQLConverterManager 'DiGi\.GIS\.PostgreSQL\.Classes\.GISPostgreSQLConverterManager') with all PostgreSQL converters registered\.
 Reads connection configuration from `PostgreSQL_Main` and `PostgreSQL_Storage` files
 in the executing assembly's directory\.
 
@@ -509,7 +509,42 @@ public static DiGi.GIS.PostgreSQL.Classes.GISPostgreSQLConverterManager? GISPost
 
 #### Returns
 [GISPostgreSQLConverterManager](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.GISPostgreSQLConverterManager 'DiGi\.GIS\.PostgreSQL\.Classes\.GISPostgreSQLConverterManager')  
-A configured [GISPostgreSQLConverterManager\(\)](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Create.GISPostgreSQLConverterManager() 'DiGi\.GIS\.PostgreSQL\.Create\.GISPostgreSQLConverterManager\(\)') if successful; otherwise, null\.
+A configured [GISPostgreSQLConverterManager](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.GISPostgreSQLConverterManager 'DiGi\.GIS\.PostgreSQL\.Classes\.GISPostgreSQLConverterManager') if successful; otherwise, null\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.GISPostgreSQLConverterManager(string,string,string)'></a>
+
+## Create\.GISPostgreSQLConverterManager\(string, string, string\) Method
+
+Creates a [GISPostgreSQLConverterManager](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.GISPostgreSQLConverterManager 'DiGi\.GIS\.PostgreSQL\.Classes\.GISPostgreSQLConverterManager') with all PostgreSQL converters registered, reading the two connection configuration files from the given directory under the given names\.
+
+The parameterless overload passes the executing assembly's directory and the production file names; a test passes its own `*_Test.conf` names, so the registration - which converter sits on Main and which on Storage - can be asserted without touching a host's database.
+
+```csharp
+public static DiGi.GIS.PostgreSQL.Classes.GISPostgreSQLConverterManager? GISPostgreSQLConverterManager(string? directory, string? fileName_Main, string? fileName_Storage);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Create.GISPostgreSQLConverterManager(string,string,string).directory'></a>
+
+`directory` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The directory holding the configuration files\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.GISPostgreSQLConverterManager(string,string,string).fileName_Main'></a>
+
+`fileName_Main` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The name of the Main database configuration file\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.GISPostgreSQLConverterManager(string,string,string).fileName_Storage'></a>
+
+`fileName_Storage` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The name of the Storage database configuration file\.
+
+#### Returns
+[GISPostgreSQLConverterManager](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.GISPostgreSQLConverterManager 'DiGi\.GIS\.PostgreSQL\.Classes\.GISPostgreSQLConverterManager')  
+A configured [GISPostgreSQLConverterManager](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.GISPostgreSQLConverterManager 'DiGi\.GIS\.PostgreSQL\.Classes\.GISPostgreSQLConverterManager') if successful; otherwise, null\.
 
 <a name='DiGi.GIS.PostgreSQL.Create.MergedStatisticalDataCollection(thisDiGi.GIS.Classes.StatisticalDataCollection,System.Collections.Generic.IEnumerable_DiGi.GIS.Classes.StatisticalDataCollection_)'></a>
 
@@ -1053,7 +1088,7 @@ A task that represents the asynchronous operation\. The task result is true if t
 
 Asynchronously creates the [BuildingDataset](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.TableName.BuildingDataset 'DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.BuildingDataset') release register in the PostgreSQL database\.
 
-One row is one release of one open building dataset, and `(dataset_key, version, download_date)` is unique under `NULLS NOT DISTINCT` so that a re-import of the same release revises its row rather than adding one (DiGi.GIS.PostgreSQL#125). The unique constraint already leads with `dataset_key`, so a second index on that column alone would only cost storage and write time. The table lives on the Main database, beside `building_2d`. Every statement is idempotent.
+One row is one release of one open building dataset, and `(dataset_key, version, download_date)` is unique under `NULLS NOT DISTINCT` so that a re-import of the same release revises its row rather than adding one (DiGi.GIS.PostgreSQL#125). The unique constraint already leads with `dataset_key`, so a second index on that column alone would only cost storage and write time. The table lives on the Storage database with the other open building tables (DiGi.GIS.PostgreSQL#168). Every statement is idempotent.
 
 ```csharp
 public static System.Threading.Tasks.Task<bool> TableAsync_BuildingDataset(this Npgsql.NpgsqlConnection? npgsqlConnection, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
@@ -1306,7 +1341,7 @@ A task that represents the asynchronous operation\. The task result is true if t
 
 Asynchronously creates the [GHS\_OBAT\_Building](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.TableName.GHS_OBAT_Building 'DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.GHS\_OBAT\_Building') centroid table in the PostgreSQL database\.
 
-One row is one GHS-OBAT centroid of one release, keyed by `overture_id` - the identifier the centroid links through to the Overture footprint - and filed under `county_id` (DiGi.GIS.PostgreSQL#125). Unlike the five footprint tables it is not partitioned: a centroid row is one small object, and the link key would otherwise have to carry the partition key to stay unique. `primary_source` is held here as in every other open building table because the acceptance criterion covers every stored row; the envelope columns are absent because a centroid's position lives inside `object`. The table lives on the Main database, beside `building_2d`. Every statement is idempotent.
+One row is one GHS-OBAT centroid of one release, keyed by `overture_id` - the identifier the centroid links through to the Overture footprint - and filed under `county_id` (DiGi.GIS.PostgreSQL#125). Unlike the five footprint tables it is not partitioned: a centroid row is one small object, and the link key would otherwise have to carry the partition key to stay unique. `primary_source` is held here as in every other open building table because the acceptance criterion covers every stored row; the envelope columns are absent because a centroid's position lives inside `object`. The table lives on the Storage database with the other open building tables (DiGi.GIS.PostgreSQL#168). Every statement is idempotent.
 
 ```csharp
 public static System.Threading.Tasks.Task<bool> TableAsync_GHS_OBAT_Building(this Npgsql.NpgsqlConnection? npgsqlConnection, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));

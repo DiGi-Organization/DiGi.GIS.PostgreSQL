@@ -20,7 +20,8 @@ using System.Threading.Tasks;
 namespace DiGi.GIS.PostgreSQL.Classes
 {
     /// <summary>
-    /// Stores the open building datasets: the <c>building_dataset</c> release register and the per-dataset footprint tables (EUBUCCO, Overture, OSM, DBSM, Microsoft, GHS-OBAT), on the Main database beside <c>building_2d</c> (DiGi.GIS.PostgreSQL#125).
+    /// Stores the open building datasets: the <c>building_dataset</c> release register and the per-dataset footprint tables (EUBUCCO, Overture, OSM, DBSM, Microsoft, GHS-OBAT), on the Storage database, where the large data lives (DiGi.GIS.PostgreSQL#125, moved from Main by DiGi.GIS.PostgreSQL#168).
+    /// <para>The converter reads no table of the Main database: the county parts the import files against are handed to <see cref="ImportAsync(IAsyncEnumerable{Footprint}, BuildingDatasetRelease, IEnumerable{int}, IReadOnlyList{AdministrativeAreal2D}, BoundingBox2D?, IProgress{long}, double, int, CancellationToken)"/> by the caller, which reads them from <c>administrative_areal_2d</c>.</para>
     /// <para>The import is one transaction over the whole release: the register row is upserted, the partitions in scope are truncated (the GHS-OBAT table deleted in scope), the footprints stream in through a binary COPY per partition, and the release's row count and attribute list are written before the commit. A run that fails or is cancelled therefore leaves the previous snapshot exactly as it was - the replace is all-or-nothing, and re-running the same release converges on one snapshot.</para>
     /// <para>Partitions and tables are created <b>before</b> the transaction opens, because partition creation takes an exclusive lock on the parent and holding that for the length of a multi-million-row import would block every reader of every county until the import finished (the rule <see cref="TerrainPointPostgreSQLConverter"/> documents). The scope's partitions are created up front too, so the truncation inside the transaction never meets a missing partition.</para>
     /// <para>Every table name this converter interpolates into SQL is resolved through <see cref="Query.IsOpenBuildingTableName(string?)"/> first - an identifier cannot be a parameter, so the stored list of names is the guard.</para>
@@ -646,12 +647,13 @@ namespace DiGi.GIS.PostgreSQL.Classes
 
         /// <summary>
         /// Asynchronously imports one release: files every footprint of the stream under a county part and stores the release's rows, replacing the previous snapshot in scope as one transaction.
-        /// <para>The run loads the county parts once, reprojects each footprint with the transformation of its own source coordinate reference system (built lazily, once per run, as locals - never per footprint and never shared across runs), filters it against the scope, files it through <see cref="Query.OpenBuildingCountyId(BoundingBox2D, IPolygonal2D, Point2D, IDictionary{int, IPolygonal2D}, IDictionary{int, BoundingBox2D}, IDictionary{int, PolygonalFace2D}, ISet{int}, BoundingBox2D, double, out bool)"/> and buffers it; the buffer flushes through a binary COPY per partition every <c>rowCount_Flush</c> rows.</para>
+        /// <para>The run takes the county parts from its caller (they live on the Main database, this converter on Storage), reprojects each footprint with the transformation of its own source coordinate reference system (built lazily, once per run, as locals - never per footprint and never shared across runs), filters it against the scope, files it through <see cref="Query.OpenBuildingCountyId(BoundingBox2D, IPolygonal2D, Point2D, IDictionary{int, IPolygonal2D}, IDictionary{int, BoundingBox2D}, IDictionary{int, PolygonalFace2D}, ISet{int}, BoundingBox2D, double, out bool)"/> and buffers it; the buffer flushes through a binary COPY per partition every <c>rowCount_Flush</c> rows.</para>
         /// <para>A footprint the reprojection rejects (null input, non-finite vertex, short ring, out-of-domain result, unsupported source reference system) is counted with <see cref="UpdateRejectionReason.GeometryRejected"/> and never written; one that files nowhere is counted with <see cref="UpdateRejectionReason.CountyUnresolved"/>; one outside the run's scope is counted as filtered, not as a rejection. The GHS-OBAT table additionally refuses a row without a source identifier, because that identifier is its primary key.</para>
         /// </summary>
         /// <param name="footprints">The footprints to import, in their source coordinate reference system; null imports nothing and answers null.</param>
         /// <param name="buildingDatasetRelease">The release being imported; its dataset key selects the table and its three register columns are required.</param>
         /// <param name="countyIds">The identifiers of the county parts in scope (already widened to the sibling parts of multi-part counties); null or empty answers null.</param>
+        /// <param name="administrativeAreal2Ds">Every county part of the country with its geometry, read by the caller from the Main database; the footprints are filed against them in memory. Null or empty answers null.</param>
         /// <param name="boundingBox2D_Scope">The scope bounding box in EPSG:2180, or null for a run scoped by county list alone.</param>
         /// <param name="progress">An optional reporter carrying the running total of rows written, reported at every flush.</param>
         /// <param name="tolerance">The distance a footprint may lie outside a county part and still count as intersecting it.</param>
@@ -662,6 +664,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             IAsyncEnumerable<Footprint>? footprints,
             BuildingDatasetRelease? buildingDatasetRelease,
             IEnumerable<int>? countyIds,
+            IReadOnlyList<AdministrativeAreal2D>? administrativeAreal2Ds,
             BoundingBox2D? boundingBox2D_Scope = null,
             IProgress<long>? progress = null,
             double tolerance = Core.Constants.Tolerance.MacroDistance,
@@ -671,6 +674,13 @@ namespace DiGi.GIS.PostgreSQL.Classes
             if (footprints is null || buildingDatasetRelease is null || countyIds is null)
             {
                 Serilog.Modify.Log(Serilog.Enums.LogEventLevel.Error, "{Type}: the import was not started - no footprint stream, no release or no county scope", nameof(ImportAsync));
+                return null;
+            }
+
+            // The county parts are the caller's: they live on the Main database and this converter on Storage.
+            if (administrativeAreal2Ds is null || administrativeAreal2Ds.Count == 0)
+            {
+                Serilog.Modify.Log(Serilog.Enums.LogEventLevel.Error, "{Type}: no county part was handed over - nothing can be filed", nameof(ImportAsync));
                 return null;
             }
 
@@ -695,7 +705,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 await using NpgsqlConnection? npgsqlConnection = DiGi.PostgreSQL.Create.NpgsqlConnection(ConnectionData);
                 if (npgsqlConnection is null)
                 {
-                    Serilog.Modify.Log(Serilog.Enums.LogEventLevel.Error, "{Type}: no connection to the Main database could be built", nameof(ImportAsync));
+                    Serilog.Modify.Log(Serilog.Enums.LogEventLevel.Error, "{Type}: no connection to the Storage database could be built", nameof(ImportAsync));
                     return null;
                 }
 
@@ -709,14 +719,9 @@ namespace DiGi.GIS.PostgreSQL.Classes
                     return null;
                 }
 
-                // The county parts are read once: every footprint of the run is then filed in memory against
-                // them, because a query per footprint is the cost this task must not pay (Coding - PostgreSQL.md section 3).
-                List<AdministrativeAreal2D>? counties = await AdministrativeAreal2DPostgreSQLConverter.GetAdministrativeAreal2DsByAdministrativeArealType(npgsqlConnection, Enums.AdministrativeArealType.County, commandTimeout: commandTimeout, cancellationToken: cancellationToken);
-                if (counties is null || counties.Count == 0)
-                {
-                    Serilog.Modify.Log(Serilog.Enums.LogEventLevel.Error, "{Type}: no county part could be read - nothing can be filed", nameof(ImportAsync));
-                    return null;
-                }
+                // Every footprint of the run is filed in memory against the county parts the caller read once,
+                // because a query per footprint is the cost this task must not pay (Coding - PostgreSQL.md section 3).
+                List<AdministrativeAreal2D> counties = [.. administrativeAreal2Ds];
 
                 Dictionary<int, IPolygonal2D>? polygonal2Ds_ByCountyId;
                 Dictionary<int, PolygonalFace2D>? polygonalFace2Ds_ByCountyId;
