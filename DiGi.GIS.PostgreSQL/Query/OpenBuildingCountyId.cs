@@ -1,5 +1,7 @@
 using DiGi.Geometry.Planar.Classes;
 using DiGi.Geometry.Planar.Interfaces;
+using DiGi.GIS.PostgreSQL.Classes;
+using NetTopologySuite.Geometries;
 using System.Collections.Generic;
 
 namespace DiGi.GIS.PostgreSQL
@@ -14,11 +16,13 @@ namespace DiGi.GIS.PostgreSQL
         /// <para>- <b>Filtered</b> (<c>rejected</c> false): the footprint falls outside the scope bounding box, or resolves to a county part outside the scope list. Ordinary for a run scoped to pilot areas over a nationwide file; not counted as a rejection, because nothing was lost - the row was never in scope.</para>
         /// <para>- <b>Rejected</b> (<c>rejected</c> true): no county envelope reaches the footprint, or no county polygon intersects it within tolerance - a footprint outside the digitised territory, such as one carried by the Geofabrik border buffer. Counted as a rejection and never written.</para>
         /// <para>A polygonal footprint files through containment and, where several parts contain it, through <see cref="CountyId(IDictionary{int, IPolygonal2D}, IPolygonal2D, double)"/> (maximal overlap, then the smallest covering part, then the lowest identifier). A centroid files through the lowest-numbered face containing it, holes included, as <see cref="IdsByPoint2Ds(IDictionary{int, PolygonalFace2D}, IReadOnlyList{Point2D}, double)"/> does; a centroid that no face contains within tolerance files nowhere rather than being widened to a nearest part, because a centroid carries no extent to compare distances with.</para>
+        /// <para>The containment test of a polygonal footprint is the cost of the whole import (DiGi.GIS.PostgreSQL#170): the ring's own InRange converts the county outline - thousands of vertices - to NetTopologySuite on every call. With <c>countyFilingGeometries_ByCountyId</c> the outline is converted and indexed once per run and the footprint once per call; the decision is the same, the multi-part tie-break included, because the tie-break still receives the rings.</para>
         /// </summary>
         /// <param name="boundingBox2D">The envelope of the reprojected footprint, in EPSG:2180 (easting in X).</param>
         /// <param name="polygonal2D">The exterior ring a polygonal footprint files by, in EPSG:2180; null for a centroid.</param>
         /// <param name="point2D">The centroid a point footprint files by, in EPSG:2180; null for a polygon.</param>
         /// <param name="polygonal2Ds_ByCountyId">The exterior ring of every county part loaded for the run, keyed by part identifier.</param>
+        /// <param name="countyFilingGeometries_ByCountyId">The same rings indexed once per run (<see cref="CountyFilingGeometriesByCountyId(IDictionary{int, IPolygonal2D})"/>); a footprint is tested against the index of a candidate where there is one and against its ring otherwise, with the same answer either way. Null tests every candidate against its ring - the legacy path, which converts the county outline on every call.</param>
         /// <param name="boundingBox2Ds_ByCountyId">The stored envelope of every county part loaded for the run, keyed by part identifier - the same identifiers as the rings.</param>
         /// <param name="polygonalFace2Ds_ByCountyId">The face of every county part loaded for the run, holes included; required for centroid filing and ignored for polygon filing. Null for a footprint dataset.</param>
         /// <param name="countyIds_Scope">The identifiers of the county parts this run may write to; null when every loaded county part is in scope.</param>
@@ -31,6 +35,7 @@ namespace DiGi.GIS.PostgreSQL
             IPolygonal2D? polygonal2D,
             Point2D? point2D,
             IDictionary<int, IPolygonal2D>? polygonal2Ds_ByCountyId,
+            IDictionary<int, CountyFilingGeometry>? countyFilingGeometries_ByCountyId,
             IDictionary<int, BoundingBox2D>? boundingBox2Ds_ByCountyId,
             IDictionary<int, PolygonalFace2D>? polygonalFace2Ds_ByCountyId,
             ISet<int>? countyIds_Scope,
@@ -123,6 +128,11 @@ namespace DiGi.GIS.PostgreSQL
                 List<int> intersecting = [];
                 Dictionary<int, IPolygonal2D>? polygonal2Ds_Intersecting = null;
 
+                // The footprint ring in NetTopologySuite, converted once for every indexed candidate rather than
+                // once per candidate. Null when it cannot be converted - the legacy call then decides, as it did.
+                LinearRing? linearRing = null;
+                bool linearRing_Converted = false;
+
                 foreach (int candidate in candidates)
                 {
                     if (!polygonal2Ds_ByCountyId.TryGetValue(candidate, out IPolygonal2D? polygonal2D_County) || polygonal2D_County is null)
@@ -130,7 +140,25 @@ namespace DiGi.GIS.PostgreSQL
                         continue;
                     }
 
-                    if (!polygonal2D_County.InRange(polygonal2D, tolerance))
+                    bool inRange;
+                    if (countyFilingGeometries_ByCountyId is not null && countyFilingGeometries_ByCountyId.TryGetValue(candidate, out CountyFilingGeometry? countyFilingGeometry) && countyFilingGeometry is not null)
+                    {
+                        if (!linearRing_Converted)
+                        {
+                            linearRing = Geometry.Planar.Convert.ToNTS(polygonal2D);
+                            linearRing_Converted = true;
+                        }
+
+                        // The index answers what the ring's own InRange answers on its NetTopologySuite branch;
+                        // a footprint that cannot be converted would leave that branch, so the ring decides it.
+                        inRange = linearRing is not null ? countyFilingGeometry.InRange(linearRing, tolerance) : polygonal2D_County.InRange(polygonal2D, tolerance);
+                    }
+                    else
+                    {
+                        inRange = polygonal2D_County.InRange(polygonal2D, tolerance);
+                    }
+
+                    if (!inRange)
                     {
                         continue;
                     }

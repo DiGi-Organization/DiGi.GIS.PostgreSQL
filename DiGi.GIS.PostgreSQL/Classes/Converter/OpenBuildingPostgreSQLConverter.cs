@@ -677,7 +677,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
 
         /// <summary>
         /// Asynchronously imports one release: files every footprint of the stream under a county part and stores the release's rows, replacing the previous snapshot in scope as one transaction.
-        /// <para>The run takes the county parts from its caller (they live on the Main database, this converter on Storage), reprojects each footprint with the transformation of its own source coordinate reference system (built lazily, once per run, as locals - never per footprint and never shared across runs), filters it against the scope, files it through <see cref="Query.OpenBuildingCountyId(BoundingBox2D, IPolygonal2D, Point2D, IDictionary{int, IPolygonal2D}, IDictionary{int, BoundingBox2D}, IDictionary{int, PolygonalFace2D}, ISet{int}, BoundingBox2D, double, out bool)"/> and buffers it; the buffer flushes through a binary COPY per partition every <c>rowCount_Flush</c> rows.</para>
+        /// <para>The run takes the county parts from its caller (they live on the Main database, this converter on Storage), reprojects each footprint with the transformation of its own source coordinate reference system (built lazily, once per run, as locals - never per footprint and never shared across runs), filters it against the scope, files it through <see cref="Query.OpenBuildingCountyId(BoundingBox2D, IPolygonal2D, Point2D, IDictionary{int, IPolygonal2D}, IDictionary{int, CountyFilingGeometry}, IDictionary{int, BoundingBox2D}, IDictionary{int, PolygonalFace2D}, ISet{int}, BoundingBox2D, double, out bool)"/> and buffers it; the buffer flushes through a binary COPY per partition every <c>rowCount_Flush</c> rows.</para>
         /// <para>A footprint the reprojection rejects (null input, non-finite vertex, short ring, out-of-domain result, unsupported source reference system) is counted with <see cref="UpdateRejectionReason.GeometryRejected"/> and never written; one that files nowhere is counted with <see cref="UpdateRejectionReason.CountyUnresolved"/>; one outside the run's scope is counted as filtered, not as a rejection. The GHS-OBAT table additionally refuses a row without a source identifier, because that identifier is its primary key.</para>
         /// <para>While the stream is open the run logs one progress line every <c>count_Progress_Read</c> footprints read or <c>timeSpan_Progress</c> elapsed, whichever comes first - the counters the loop already keeps plus the source file the stream is inside, so an open run shows how far along it is without a query (DiGi.GIS.PostgreSQL#169). The final line repeats the same counters, so it equals the last progress line plus the remainder.</para>
         /// <para>The conversion - reprojection, filing, serialization - runs on up to <paramref name="maxDegreeOfParallelism"/> workers (DiGi.GIS.PostgreSQL#170): the stream is read in batches of <c>count_Batch</c> footprints, each batch is converted by a worker with its own transformations, and the batches are consumed strictly in read order by the run's own thread, which alone keeps the counters, the capped rejection sample, the progress lines and the buffer and writes the COPY on the run's one connection. A run therefore stores, counts, samples and logs the same at any degree; at most <c>count_BatchesInFlightPerDegree</c> times the degree batches are held at once. A worker that fails fails the run, and a stop cancels the workers: either way every worker is awaited and the transaction is left uncommitted.</para>
@@ -760,6 +760,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 List<AdministrativeAreal2D> counties = [.. administrativeAreal2Ds];
 
                 Dictionary<int, IPolygonal2D>? polygonal2Ds_ByCountyId;
+                Dictionary<int, CountyFilingGeometry>? countyFilingGeometries_ByCountyId;
                 Dictionary<int, PolygonalFace2D>? polygonalFace2Ds_ByCountyId;
                 Dictionary<int, BoundingBox2D> boundingBox2Ds_ByCountyId = [];
 
@@ -768,6 +769,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
                     // Centroids file against the whole face - holes included - so the faces are what this run derives.
                     polygonalFace2Ds_ByCountyId = counties.PolygonalFace2DsById();
                     polygonal2Ds_ByCountyId = null;
+                    countyFilingGeometries_ByCountyId = null;
 
                     foreach (KeyValuePair<int, PolygonalFace2D> pair in polygonalFace2Ds_ByCountyId)
                     {
@@ -782,6 +784,11 @@ namespace DiGi.GIS.PostgreSQL.Classes
                     // Footprints file against the exterior edge; the envelope prefilter is derived from the same rings.
                     polygonal2Ds_ByCountyId = counties.Polygonal2DsByCountyId();
                     polygonalFace2Ds_ByCountyId = null;
+
+                    // The rings converted to NetTopologySuite and indexed once for the whole run: filing a footprint
+                    // against a ring alone converts the ring again on every call, which was the cost of the import.
+                    // Built here, on the run's thread, before any conversion worker starts; the workers only read them.
+                    countyFilingGeometries_ByCountyId = polygonal2Ds_ByCountyId.CountyFilingGeometriesByCountyId();
 
                     foreach (KeyValuePair<int, IPolygonal2D> pair in polygonal2Ds_ByCountyId)
                     {
@@ -936,7 +943,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
                                         break;
                                 }
 
-                                OpenBuildingRow? openBuildingRow = CreateRow(footprint, coordinateTransformation, polygonal2Ds_ByCountyId, boundingBox2Ds_ByCountyId, polygonalFace2Ds_ByCountyId, countyIds_Scope, boundingBox2D_Scope, tolerance, out UpdateRejectionReason? updateRejectionReason);
+                                OpenBuildingRow? openBuildingRow = CreateRow(footprint, coordinateTransformation, polygonal2Ds_ByCountyId, countyFilingGeometries_ByCountyId, boundingBox2Ds_ByCountyId, polygonalFace2Ds_ByCountyId, countyIds_Scope, boundingBox2D_Scope, tolerance, out UpdateRejectionReason? updateRejectionReason);
                                 result[i] = (openBuildingRow, updateRejectionReason);
                             }
 
@@ -1201,6 +1208,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// <param name="footprint">The footprint in its source coordinate reference system, or null.</param>
         /// <param name="coordinateTransformation">The transformation to EPSG:2180 matching the footprint's source coordinate reference system, or null when the source reference system is unsupported - which rejects the footprint.</param>
         /// <param name="polygonal2Ds_ByCountyId">The exterior ring of every county part loaded for the run; null for a centroid run.</param>
+        /// <param name="countyFilingGeometries_ByCountyId">The same rings indexed once per run (<see cref="Query.CountyFilingGeometriesByCountyId(IDictionary{int, IPolygonal2D})"/>), read concurrently by the conversion workers; null files against the rings alone, with the same outcome and the cost of converting every candidate outline per footprint.</param>
         /// <param name="boundingBox2Ds_ByCountyId">The stored envelope of every county part loaded for the run.</param>
         /// <param name="polygonalFace2Ds_ByCountyId">The face of every county part loaded for the run; required for centroid filing and null for a footprint run.</param>
         /// <param name="countyIds_Scope">The identifiers of the county parts in scope.</param>
@@ -1212,6 +1220,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             Footprint? footprint,
             ICoordinateTransformation? coordinateTransformation,
             IDictionary<int, IPolygonal2D>? polygonal2Ds_ByCountyId,
+            IDictionary<int, CountyFilingGeometry>? countyFilingGeometries_ByCountyId,
             IDictionary<int, BoundingBox2D>? boundingBox2Ds_ByCountyId,
             IDictionary<int, PolygonalFace2D>? polygonalFace2Ds_ByCountyId,
             ISet<int>? countyIds_Scope,
@@ -1309,7 +1318,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 return null;
             }
 
-            int? countyId = Query.OpenBuildingCountyId(boundingBox2D, polygonal2D, point2D, polygonal2Ds_ByCountyId, boundingBox2Ds_ByCountyId, polygonalFace2Ds_ByCountyId, countyIds_Scope, boundingBox2D_Scope, tolerance, out bool rejected);
+            int? countyId = Query.OpenBuildingCountyId(boundingBox2D, polygonal2D, point2D, polygonal2Ds_ByCountyId, countyFilingGeometries_ByCountyId, boundingBox2Ds_ByCountyId, polygonalFace2Ds_ByCountyId, countyIds_Scope, boundingBox2D_Scope, tolerance, out bool rejected);
 
             if (countyId is null)
             {
