@@ -256,52 +256,58 @@ public class BuildingSolarRadiationSolveOutcome
 Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → BuildingSolarRadiationSolveOutcome
 ### Constructors
 
-<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveOutcome.BuildingSolarRadiationSolveOutcome(DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveJob,DiGi.GIS.PostgreSQL.Solar.Enums.BuildingSolarRadiationSolveOutcomeType,DiGi.GIS.Classes.BuildingSolarRadiationResult,string,System.Exception,long)'></a>
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveOutcome.BuildingSolarRadiationSolveOutcome(DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveJob,DiGi.GIS.PostgreSQL.Solar.Enums.BuildingSolarRadiationSolveOutcomeType,DiGi.GIS.Classes.BuildingSolarRadiationResult,string,System.Exception,long,int)'></a>
 
-## BuildingSolarRadiationSolveOutcome\(BuildingSolarRadiationSolveJob, BuildingSolarRadiationSolveOutcomeType, BuildingSolarRadiationResult, string, Exception, long\) Constructor
+## BuildingSolarRadiationSolveOutcome\(BuildingSolarRadiationSolveJob, BuildingSolarRadiationSolveOutcomeType, BuildingSolarRadiationResult, string, Exception, long, int\) Constructor
 
 Initializes a new instance of the [BuildingSolarRadiationSolveOutcome](DiGi.GIS.PostgreSQL.Solar.Classes.md#DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveOutcome 'DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.BuildingSolarRadiationSolveOutcome') class\.
 
 ```csharp
-public BuildingSolarRadiationSolveOutcome(DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveJob buildingSolarRadiationSolveJob, DiGi.GIS.PostgreSQL.Solar.Enums.BuildingSolarRadiationSolveOutcomeType buildingSolarRadiationSolveOutcomeType, DiGi.GIS.Classes.BuildingSolarRadiationResult? buildingSolarRadiationResult, string? reason, System.Exception? exception, long milliseconds);
+public BuildingSolarRadiationSolveOutcome(DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveJob buildingSolarRadiationSolveJob, DiGi.GIS.PostgreSQL.Solar.Enums.BuildingSolarRadiationSolveOutcomeType buildingSolarRadiationSolveOutcomeType, DiGi.GIS.Classes.BuildingSolarRadiationResult? buildingSolarRadiationResult, string? reason, System.Exception? exception, long milliseconds, int casterTriangleCount);
 ```
 #### Parameters
 
-<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveOutcome.BuildingSolarRadiationSolveOutcome(DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveJob,DiGi.GIS.PostgreSQL.Solar.Enums.BuildingSolarRadiationSolveOutcomeType,DiGi.GIS.Classes.BuildingSolarRadiationResult,string,System.Exception,long).buildingSolarRadiationSolveJob'></a>
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveOutcome.BuildingSolarRadiationSolveOutcome(DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveJob,DiGi.GIS.PostgreSQL.Solar.Enums.BuildingSolarRadiationSolveOutcomeType,DiGi.GIS.Classes.BuildingSolarRadiationResult,string,System.Exception,long,int).buildingSolarRadiationSolveJob'></a>
 
 `buildingSolarRadiationSolveJob` [BuildingSolarRadiationSolveJob](DiGi.GIS.PostgreSQL.Solar.Classes.md#DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveJob 'DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.BuildingSolarRadiationSolveJob')
 
 The job the outcome belongs to\.
 
-<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveOutcome.BuildingSolarRadiationSolveOutcome(DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveJob,DiGi.GIS.PostgreSQL.Solar.Enums.BuildingSolarRadiationSolveOutcomeType,DiGi.GIS.Classes.BuildingSolarRadiationResult,string,System.Exception,long).buildingSolarRadiationSolveOutcomeType'></a>
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveOutcome.BuildingSolarRadiationSolveOutcome(DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveJob,DiGi.GIS.PostgreSQL.Solar.Enums.BuildingSolarRadiationSolveOutcomeType,DiGi.GIS.Classes.BuildingSolarRadiationResult,string,System.Exception,long,int).buildingSolarRadiationSolveOutcomeType'></a>
 
 `buildingSolarRadiationSolveOutcomeType` [BuildingSolarRadiationSolveOutcomeType](DiGi.GIS.PostgreSQL.Solar.Enums.md#DiGi.GIS.PostgreSQL.Solar.Enums.BuildingSolarRadiationSolveOutcomeType 'DiGi\.GIS\.PostgreSQL\.Solar\.Enums\.BuildingSolarRadiationSolveOutcomeType')
 
 How the job ended\.
 
-<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveOutcome.BuildingSolarRadiationSolveOutcome(DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveJob,DiGi.GIS.PostgreSQL.Solar.Enums.BuildingSolarRadiationSolveOutcomeType,DiGi.GIS.Classes.BuildingSolarRadiationResult,string,System.Exception,long).buildingSolarRadiationResult'></a>
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveOutcome.BuildingSolarRadiationSolveOutcome(DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveJob,DiGi.GIS.PostgreSQL.Solar.Enums.BuildingSolarRadiationSolveOutcomeType,DiGi.GIS.Classes.BuildingSolarRadiationResult,string,System.Exception,long,int).buildingSolarRadiationResult'></a>
 
 `buildingSolarRadiationResult` [DiGi\.GIS\.Classes\.BuildingSolarRadiationResult](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.buildingsolarradiationresult 'DiGi\.GIS\.Classes\.BuildingSolarRadiationResult')
 
 The result to store; set only for [Solved](DiGi.GIS.PostgreSQL.Solar.Enums.md#DiGi.GIS.PostgreSQL.Solar.Enums.BuildingSolarRadiationSolveOutcomeType.Solved 'DiGi\.GIS\.PostgreSQL\.Solar\.Enums\.BuildingSolarRadiationSolveOutcomeType\.Solved')\.
 
-<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveOutcome.BuildingSolarRadiationSolveOutcome(DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveJob,DiGi.GIS.PostgreSQL.Solar.Enums.BuildingSolarRadiationSolveOutcomeType,DiGi.GIS.Classes.BuildingSolarRadiationResult,string,System.Exception,long).reason'></a>
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveOutcome.BuildingSolarRadiationSolveOutcome(DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveJob,DiGi.GIS.PostgreSQL.Solar.Enums.BuildingSolarRadiationSolveOutcomeType,DiGi.GIS.Classes.BuildingSolarRadiationResult,string,System.Exception,long,int).reason'></a>
 
 `reason` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 Why the job has no result; null for a solved job\.
 
-<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveOutcome.BuildingSolarRadiationSolveOutcome(DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveJob,DiGi.GIS.PostgreSQL.Solar.Enums.BuildingSolarRadiationSolveOutcomeType,DiGi.GIS.Classes.BuildingSolarRadiationResult,string,System.Exception,long).exception'></a>
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveOutcome.BuildingSolarRadiationSolveOutcome(DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveJob,DiGi.GIS.PostgreSQL.Solar.Enums.BuildingSolarRadiationSolveOutcomeType,DiGi.GIS.Classes.BuildingSolarRadiationResult,string,System.Exception,long,int).exception'></a>
 
 `exception` [System\.Exception](https://learn.microsoft.com/en-us/dotnet/api/system.exception 'System\.Exception')
 
 The exception a failed solve threw, or null\.
 
-<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveOutcome.BuildingSolarRadiationSolveOutcome(DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveJob,DiGi.GIS.PostgreSQL.Solar.Enums.BuildingSolarRadiationSolveOutcomeType,DiGi.GIS.Classes.BuildingSolarRadiationResult,string,System.Exception,long).milliseconds'></a>
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveOutcome.BuildingSolarRadiationSolveOutcome(DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveJob,DiGi.GIS.PostgreSQL.Solar.Enums.BuildingSolarRadiationSolveOutcomeType,DiGi.GIS.Classes.BuildingSolarRadiationResult,string,System.Exception,long,int).milliseconds'></a>
 
 `milliseconds` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
 
 The time spent building the shading model and solving, in ms, up to the failure for a failed job; 0 for a job over the ceiling or not solvable\.
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveOutcome.BuildingSolarRadiationSolveOutcome(DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveJob,DiGi.GIS.PostgreSQL.Solar.Enums.BuildingSolarRadiationSolveOutcomeType,DiGi.GIS.Classes.BuildingSolarRadiationResult,string,System.Exception,long,int).casterTriangleCount'></a>
+
+`casterTriangleCount` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The number of caster triangles of the job's shading model; 0 when no shading model was built\.
 ### Properties
 
 <a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveOutcome.BuildingSolarRadiationResult'></a>
@@ -342,6 +348,19 @@ public DiGi.GIS.PostgreSQL.Solar.Enums.BuildingSolarRadiationSolveOutcomeType Bu
 
 #### Property Value
 [BuildingSolarRadiationSolveOutcomeType](DiGi.GIS.PostgreSQL.Solar.Enums.md#DiGi.GIS.PostgreSQL.Solar.Enums.BuildingSolarRadiationSolveOutcomeType 'DiGi\.GIS\.PostgreSQL\.Solar\.Enums\.BuildingSolarRadiationSolveOutcomeType')
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveOutcome.CasterTriangleCount'></a>
+
+## BuildingSolarRadiationSolveOutcome\.CasterTriangleCount Property
+
+Gets the number of caster triangles of the job's shading model \- the geometry the solve cost and memory grow with \(DiGi\.GIS\.PostgreSQL\#167\); 0 when no shading model was built\.
+
+```csharp
+public int CasterTriangleCount { get; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
 
 <a name='DiGi.GIS.PostgreSQL.Solar.Classes.BuildingSolarRadiationSolveOutcome.Exception'></a>
 
@@ -394,7 +413,7 @@ Each building is solved exactly as the viewer solves it (DiGi.GIS.WebAPI.UI `Sol
 
 A county part is solved in square tiles of [TileSize](DiGi.GIS.PostgreSQL.Solar.Classes.md#DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveOptions.TileSize 'DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.PostgreSQLBuildingSolarRadiationSolveOptions\.TileSize'), by the centroid of each building, at most [BatchSize](DiGi.GIS.PostgreSQL.Solar.Classes.md#DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveOptions.BatchSize 'DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.PostgreSQLBuildingSolarRadiationSolveOptions\.BatchSize') buildings at a time: one read of the batch's models, one read of every neighbour any of them can see at the largest radius, and one write of the batch's results. The neighbours of each building and radius are then picked in memory, as `gis/buildingmodel/itemsbycircle` picks them - every model whose bounding box lies within or intersects the building's circle.
 
-The jobs of a batch - one per building and pending radius - are solved several at a time ([MaxDegreeOfParallelism](DiGi.GIS.PostgreSQL.Solar.Classes.md#DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveOptions.MaxDegreeOfParallelism 'DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.PostgreSQLBuildingSolarRadiationSolveOptions\.MaxDegreeOfParallelism'), [DiGi\.GIS\.PostgreSQL\.Solar\.Query\.BuildingSolarRadiationSolveOutcomes\(System\.Collections\.Generic\.IList\{DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.BuildingSolarRadiationSolveJob\},System\.Collections\.Generic\.IList\{System\.ValueTuple\{DiGi\.Analytical\.Building\.Classes\.BuildingModel,System\.Double,System\.Double,System\.Double,System\.Double\}\},System\.Int32,System\.Int32,System\.Threading\.CancellationToken\)](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.postgresql.solar.query.buildingsolarradiationsolveoutcomes#digi-gis-postgresql-solar-query-buildingsolarradiationsolveoutcomes(system-collections-generic-ilist{digi-gis-postgresql-solar-classes-buildingsolarradiationsolvejob}-system-collections-generic-ilist{system-valuetuple{digi-analytical-building-classes-buildingmodel-system-double-system-double-system-double-system-double}}-system-int32-system-int32-system-threading-cancellationtoken) 'DiGi\.GIS\.PostgreSQL\.Solar\.Query\.BuildingSolarRadiationSolveOutcomes\(System\.Collections\.Generic\.IList\{DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.BuildingSolarRadiationSolveJob\},System\.Collections\.Generic\.IList\{System\.ValueTuple\{DiGi\.Analytical\.Building\.Classes\.BuildingModel,System\.Double,System\.Double,System\.Double,System\.Double\}\},System\.Int32,System\.Int32,System\.Threading\.CancellationToken\)')), and the next batch is read while they run; the results are still written one batch at a time, in order, and counted in job order, so the counts, failure samples and stored results are those of a sequential run (DiGi.GIS.PostgreSQL#139). Each batch logs the time spent waiting for its read, solving and writing. A cancellation waits for the solves in flight.
+The jobs of a batch - one per building and pending radius - are solved several at a time ([MaxDegreeOfParallelism](DiGi.GIS.PostgreSQL.Solar.Classes.md#DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveOptions.MaxDegreeOfParallelism 'DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.PostgreSQLBuildingSolarRadiationSolveOptions\.MaxDegreeOfParallelism'), [DiGi\.GIS\.PostgreSQL\.Solar\.Query\.BuildingSolarRadiationSolveOutcomes\(System\.Collections\.Generic\.IList\{DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.BuildingSolarRadiationSolveJob\},System\.Collections\.Generic\.IList\{System\.ValueTuple\{DiGi\.Analytical\.Building\.Classes\.BuildingModel,System\.Double,System\.Double,System\.Double,System\.Double\}\},System\.Int32,System\.Int32,System\.Threading\.CancellationToken\)](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.postgresql.solar.query.buildingsolarradiationsolveoutcomes#digi-gis-postgresql-solar-query-buildingsolarradiationsolveoutcomes(system-collections-generic-ilist{digi-gis-postgresql-solar-classes-buildingsolarradiationsolvejob}-system-collections-generic-ilist{system-valuetuple{digi-analytical-building-classes-buildingmodel-system-double-system-double-system-double-system-double}}-system-int32-system-int32-system-threading-cancellationtoken) 'DiGi\.GIS\.PostgreSQL\.Solar\.Query\.BuildingSolarRadiationSolveOutcomes\(System\.Collections\.Generic\.IList\{DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.BuildingSolarRadiationSolveJob\},System\.Collections\.Generic\.IList\{System\.ValueTuple\{DiGi\.Analytical\.Building\.Classes\.BuildingModel,System\.Double,System\.Double,System\.Double,System\.Double\}\},System\.Int32,System\.Int32,System\.Threading\.CancellationToken\)')), and the next batch is read while they run; the results are still written one batch at a time, in order, and counted in job order, so the counts, failure samples and stored results are those of a sequential run (DiGi.GIS.PostgreSQL#139). Each batch logs the time spent waiting for its read, solving and writing, its neighbour and caster triangle counts, and the process memory - working set, managed heap after the last collection and after the last full collection, fragmentation, committed memory, GC pause share, full collection count and thread count - so a slow batch can be told apart as heavy geometry or a grown process (DiGi.GIS.PostgreSQL#167). A cancellation waits for the solves in flight.
 
 [BuildingCountMax](DiGi.GIS.PostgreSQL.Solar.Classes.md#DiGi.GIS.PostgreSQL.Solar.Classes.PostgreSQLBuildingSolarRadiationSolveOptions.BuildingCountMax 'DiGi\.GIS\.PostgreSQL\.Solar\.Classes\.PostgreSQLBuildingSolarRadiationSolveOptions\.BuildingCountMax') cuts the walk of each part after its first buildings in that order ([SolarSolveTiles\(this IEnumerable&lt;Building2DCentroid&gt;, double, Nullable&lt;int&gt;\)](DiGi.GIS.PostgreSQL.Solar.md#DiGi.GIS.PostgreSQL.Solar.Query.SolarSolveTiles(thisSystem.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.Building2DCentroid_,double,System.Nullable_int_) 'DiGi\.GIS\.PostgreSQL\.Solar\.Query\.SolarSolveTiles\(this System\.Collections\.Generic\.IEnumerable\<DiGi\.GIS\.PostgreSQL\.Classes\.Building2DCentroid\>, double, System\.Nullable\<int\>\)')), for a pilot that still logs its part and run summaries (DiGi.GIS.PostgreSQL#138).
 
