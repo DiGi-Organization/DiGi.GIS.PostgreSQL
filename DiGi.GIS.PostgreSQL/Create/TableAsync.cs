@@ -845,6 +845,103 @@ namespace DiGi.GIS.PostgreSQL
         }
 
         /// <summary>
+        /// Asynchronously creates <c>building_dataset_match</c>, the link table between the open building footprints and BDOT10k, along with its supporting indexes (DiGi.GIS.PostgreSQL#127).
+        /// <para>One row is a pair of footprints joined by an overlap edge, or one omission, commission or excluded footprint, of one dataset, partitioned by the county part that owns the row's component. A footprint is named by its county part and key on each side - (<c>bdot_county_id</c>, <c>bdot_reference</c>) and (<c>source_county_id</c>, <c>source_id</c>) - because a key is unique only per county part and a <c>building_2d.id</c> is renumbered by a BDOT10k re-import. The unique key is <c>NULLS NOT DISTINCT</c>, since every single-footprint row leaves one side null.</para>
+        /// <para>The table lives on the Storage database beside the footprint tables it is derived from, so the open building import can delete the links of the rows it replaces in its own transaction. Two indexes serve the reads: a GiST index on the component's representative point for the box-scoped summary, and <c>(dataset_id, source_county_id)</c> for the import's cleanup of links whose dataset footprint it replaces. Every statement is idempotent.</para>
+        /// </summary>
+        /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> instance used to execute the command.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> to monitor for cancellation requests.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result is true if the table exists afterwards; otherwise, false.</returns>
+        public static async Task<bool> TableAsync_BuildingDatasetMatch(this NpgsqlConnection? npgsqlConnection, int commandTimeout = 30, CancellationToken cancellationToken = default)
+        {
+            if (npgsqlConnection is null)
+            {
+                return false;
+            }
+
+            const string commandText = $@"
+                CREATE TABLE IF NOT EXISTS {Constants.TableName.BuildingDatasetMatch} (
+                    id BIGINT GENERATED ALWAYS AS IDENTITY,
+                    county_id INT NOT NULL,
+                    dataset_id INT NOT NULL,
+                    bdot_county_id INT,
+                    bdot_reference TEXT,
+                    source_county_id INT,
+                    source_id TEXT,
+                    primary_source TEXT,
+                    match_class SMALLINT NOT NULL,
+                    component_id BIGINT NOT NULL,
+                    iou DOUBLE PRECISION,
+                    area_ratio DOUBLE PRECISION,
+                    centroid_distance DOUBLE PRECISION,
+                    dx DOUBLE PRECISION,
+                    dy DOUBLE PRECISION,
+                    point_x DOUBLE PRECISION NOT NULL,
+                    point_y DOUBLE PRECISION NOT NULL,
+                    parameters JSONB NOT NULL,
+                    computed_at timestamptz NOT NULL DEFAULT now(),
+                    PRIMARY KEY (id, county_id),
+                    UNIQUE NULLS NOT DISTINCT (dataset_id, county_id, bdot_county_id, bdot_reference, source_county_id, source_id)
+                ) PARTITION BY LIST (county_id);
+
+                -- The box scope of the summary: a component is in a box when its representative point is.
+                CREATE INDEX IF NOT EXISTS idx_{Constants.TableName.BuildingDatasetMatch}_point
+                ON {Constants.TableName.BuildingDatasetMatch} USING gist (point(point_x, point_y));
+
+                -- The open building import deletes the links of the dataset rows it replaces.
+                CREATE INDEX IF NOT EXISTS idx_{Constants.TableName.BuildingDatasetMatch}_dataset_source_county
+                ON {Constants.TableName.BuildingDatasetMatch} (dataset_id, source_county_id);";
+
+            try
+            {
+                await using NpgsqlCommand npgsqlCommand = new(commandText, npgsqlConnection);
+                npgsqlCommand.CommandTimeout = commandTimeout;
+
+                await npgsqlCommand.ExecuteNonQueryAsync(cancellationToken);
+                return true;
+            }
+            catch (NpgsqlException ex)
+            {
+                Console.WriteLine($"Postgres Error ({nameof(TableAsync_BuildingDatasetMatch)}): {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Asynchronously creates the partition of <c>building_dataset_match</c> for one county part (DiGi.GIS.PostgreSQL#127).
+        /// <para>The statement also analyses a partition it has just created (<see cref="Query.PartitionCommandText(string, int)"/>).</para>
+        /// </summary>
+        /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> instance used to execute the command.</param>
+        /// <param name="countyId">The identifier of the county part the partition holds; it names the partition and is its single list value.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> to monitor for cancellation requests.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result is true if the partition exists afterwards; otherwise, false.</returns>
+        public static async Task<bool> TableAsync_BuildingDatasetMatch_Partition(this NpgsqlConnection? npgsqlConnection, int countyId, int commandTimeout = 30, CancellationToken cancellationToken = default)
+        {
+            if (npgsqlConnection is null)
+            {
+                return false;
+            }
+
+            string commandText = Query.PartitionCommandText(Constants.TableName.BuildingDatasetMatch, countyId);
+
+            try
+            {
+                await using NpgsqlCommand npgsqlCommand = new(commandText, npgsqlConnection);
+                npgsqlCommand.CommandTimeout = commandTimeout;
+
+                await npgsqlCommand.ExecuteNonQueryAsync(cancellationToken);
+                return true;
+            }
+            catch (NpgsqlException ex)
+            {
+                Console.WriteLine($"Postgres Error ({nameof(TableAsync_BuildingDatasetMatch_Partition)}): {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Asynchronously creates the <see cref="Constants.TableName.OrtoSheet"/> table, the orthophoto sheet index, with its supporting indexes.
         /// <para>One row per sheet image, unique on <c>download_url</c>. The footprint box (<c>min_x</c> … <c>max_y</c>, EPSG:2180, easting in X) carries the spatial lookup: the schema has no PostGIS, so <see cref="OrtoSheetPostgreSQLConverter.GetOrtoSheetsByBoundingBoxAsync(NpgsqlConnection?, Geometry.Planar.Classes.BoundingBox2D?, double, int, CancellationToken)"/> prefilters on the box as one bounded range per axis, served by the <c>min_x</c> and <c>min_y</c> indexes, and the exact footprint test is made in C#. The table lives on the Storage database beside <c>orto_datas</c> (DiGi.GIS.PostgreSQL#122).</para>
         /// </summary>

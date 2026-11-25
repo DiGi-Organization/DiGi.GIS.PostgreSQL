@@ -391,6 +391,88 @@ namespace DiGi.GIS.PostgreSQL.Classes
         }
 
         /// <summary>
+        /// Asynchronously reads the BDOT10k footprints of county parts as the open building matching sees them (DiGi.GIS.PostgreSQL#127): county part, reference and the EPSG:2180 face, converted to NetTopologySuite once per footprint by <see cref="Create.OpenBuildingMatchItem(int, string?, int?, string?, DiGi.Geometry.Planar.Interfaces.IGeometry2D?)"/>.
+        /// <para>Only the face of <c>object</c> crosses the wire. The scope is a list of county parts (partition pruning by <c>county_id = ANY(...)</c>), optionally narrowed by a bounding box served by the GiST box index - a county group is read whole, its margin across the edge by box; the two forms are two SQL texts (Coding - PostgreSQL.md section 3). The footprints are keyed by (<c>county_id</c>, <c>reference</c>), never by <c>id</c>, which a BDOT10k re-import renumbers. A footprint whose face cannot be used is returned with a null <see cref="OpenBuildingMatchItem.Geometry"/>, for the caller to count.</para>
+        /// <para>This converter is on the Main database and the open building footprints on Storage: the matching reads each side through its own converter and matches in memory (Coding - PostgreSQL.md section 6).</para>
+        /// </summary>
+        /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> used to execute the command.</param>
+        /// <param name="countyIds">The county parts to read; null or empty answers null.</param>
+        /// <param name="boundingBox2D">The bounding box in EPSG:2180 the footprints' envelopes must reach, or null to read the county parts whole.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> to monitor for cancellation requests.</param>
+        /// <returns>A task whose result is the footprints, or null when the connection is null or no county part is given.</returns>
+        public static async Task<List<OpenBuildingMatchItem>?> GetOpenBuildingMatchItemsAsync(NpgsqlConnection? npgsqlConnection, IEnumerable<int>? countyIds, BoundingBox2D? boundingBox2D = null, int commandTimeout = 600, CancellationToken cancellationToken = default)
+        {
+            int[]? countyIds_Array = countyIds?.Distinct().ToArray();
+            if (npgsqlConnection is null || countyIds_Array is null || countyIds_Array.Length == 0)
+            {
+                return null;
+            }
+
+            string commandText = boundingBox2D is null
+                ? $@"
+                    SELECT county_id, reference, (object -> 'PolygonalFace2D')::text
+                    FROM {Constants.TableName.Building2D}
+                    WHERE county_id = ANY(@county_ids);"
+                : $@"
+                    SELECT county_id, reference, (object -> 'PolygonalFace2D')::text
+                    FROM {Constants.TableName.Building2D}
+                    WHERE county_id = ANY(@county_ids)
+                        AND box(point(min_x, min_y), point(max_x, max_y)) && box(point(@min_x, @min_y), point(@max_x, @max_y));";
+
+            await using NpgsqlCommand npgsqlCommand = new(commandText, npgsqlConnection);
+            npgsqlCommand.CommandTimeout = commandTimeout;
+            npgsqlCommand.Parameters.Add(new NpgsqlParameter("county_ids", NpgsqlDbType.Array | NpgsqlDbType.Integer) { Value = countyIds_Array });
+            if (boundingBox2D is not null)
+            {
+                npgsqlCommand.Parameters.Add(new NpgsqlParameter("min_x", NpgsqlDbType.Double) { Value = boundingBox2D.Min.X });
+                npgsqlCommand.Parameters.Add(new NpgsqlParameter("min_y", NpgsqlDbType.Double) { Value = boundingBox2D.Min.Y });
+                npgsqlCommand.Parameters.Add(new NpgsqlParameter("max_x", NpgsqlDbType.Double) { Value = boundingBox2D.Max.X });
+                npgsqlCommand.Parameters.Add(new NpgsqlParameter("max_y", NpgsqlDbType.Double) { Value = boundingBox2D.Max.Y });
+            }
+
+            List<OpenBuildingMatchItem> result = [];
+
+            await using NpgsqlDataReader npgsqlDataReader = await npgsqlCommand.ExecuteReaderAsync(cancellationToken);
+            while (await npgsqlDataReader.ReadAsync(cancellationToken))
+            {
+                PolygonalFace2D? polygonalFace2D = null;
+                if (!npgsqlDataReader.IsDBNull(2) && JsonNode.Parse(npgsqlDataReader.GetString(2)) is JsonObject jsonObject)
+                {
+                    polygonalFace2D = new PolygonalFace2D(jsonObject);
+                }
+
+                OpenBuildingMatchItem? openBuildingMatchItem = Create.OpenBuildingMatchItem(npgsqlDataReader.GetInt32(0), npgsqlDataReader.GetString(1), null, null, polygonalFace2D);
+                if (openBuildingMatchItem is not null)
+                {
+                    result.Add(openBuildingMatchItem);
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Asynchronously reads the BDOT10k footprints of county parts as the open building matching sees them, automatically managing the connection.
+        /// </summary>
+        /// <param name="countyIds">The county parts to read; null or empty answers null.</param>
+        /// <param name="boundingBox2D">The bounding box in EPSG:2180 the footprints' envelopes must reach, or null to read the county parts whole.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> to monitor for cancellation requests.</param>
+        /// <returns>A task whose result is the footprints, or null when no connection could be built or the static overload answers null.</returns>
+        public async Task<List<OpenBuildingMatchItem>?> GetOpenBuildingMatchItemsAsync(IEnumerable<int>? countyIds, BoundingBox2D? boundingBox2D = null, int commandTimeout = 600, CancellationToken cancellationToken = default)
+        {
+            await using NpgsqlConnection? npgsqlConnection = DiGi.PostgreSQL.Create.NpgsqlConnection(ConnectionData);
+            if (npgsqlConnection is null)
+            {
+                return null;
+            }
+
+            await npgsqlConnection.OpenAsync(cancellationToken);
+            return await GetOpenBuildingMatchItemsAsync(npgsqlConnection, countyIds, boundingBox2D, commandTimeout, cancellationToken);
+        }
+
+        /// <summary>
         /// Asynchronously retrieves the total count of records, optionally filtered by a specific county identifier.
         /// </summary>
         /// <param name="npgsqlConnection">The PostgreSQL connection instance used to execute the command.</param>

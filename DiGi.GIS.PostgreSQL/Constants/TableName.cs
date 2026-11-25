@@ -51,6 +51,11 @@
         public const string GHS_OBAT_Building = "ghs_obat_building";
 
         /// <summary>
+        /// The name of the link table between the open building footprints and BDOT10k <see cref="Building2D"/>: one row per matched pair, omission, commission or excluded footprint of one dataset, partitioned by the county part that owns the row (DiGi.GIS.PostgreSQL#127). On the Storage database, beside the footprint tables it is derived from.
+        /// </summary>
+        public const string BuildingDatasetMatch = "building_dataset_match";
+
+        /// <summary>
         /// The name of the building 2D table.
         /// </summary>
         public const string Building2D = "building_2d";

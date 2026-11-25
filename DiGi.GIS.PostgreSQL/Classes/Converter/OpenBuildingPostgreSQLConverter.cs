@@ -80,13 +80,13 @@ namespace DiGi.GIS.PostgreSQL.Classes
         public static string TableName => Constants.TableName.BuildingDataset;
 
         /// <summary>
-        /// Asynchronously creates the release register, the five footprint tables and the GHS-OBAT centroid table, if they do not already exist.
+        /// Asynchronously creates the release register, the five footprint tables, the GHS-OBAT centroid table and the <c>building_dataset_match</c> link table (DiGi.GIS.PostgreSQL#127), if they do not already exist.
         /// <para>Every statement is idempotent, so the same method is both the up-front schema check of a run and the recovery from a database that lost its tables.</para>
         /// </summary>
         /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> used to execute the commands.</param>
         /// <param name="commandTimeout">The timeout in seconds for the execution of the commands. A value of 0 disables the timeout.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> to monitor for cancellation requests.</param>
-        /// <returns>A task whose result is true when all seven tables exist afterwards; otherwise, false.</returns>
+        /// <returns>A task whose result is true when all eight tables exist afterwards; otherwise, false.</returns>
         public static async Task<bool> CreateTablesAsync(NpgsqlConnection? npgsqlConnection, int commandTimeout = 30, CancellationToken cancellationToken = default)
         {
             if (npgsqlConnection is null)
@@ -116,15 +116,22 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 }
             }
 
-            return await Create.TableAsync_GHS_OBAT_Building(npgsqlConnection, commandTimeout, cancellationToken);
+            if (!await Create.TableAsync_GHS_OBAT_Building(npgsqlConnection, commandTimeout, cancellationToken))
+            {
+                return false;
+            }
+
+            // The links to BDOT10k live beside the rows they are derived from, so the import can delete the links
+            // of the rows it replaces in its own transaction (DiGi.GIS.PostgreSQL#127).
+            return await Create.TableAsync_BuildingDatasetMatch(npgsqlConnection, commandTimeout, cancellationToken);
         }
 
         /// <summary>
-        /// Asynchronously creates the release register, the five footprint tables and the GHS-OBAT centroid table, automatically managing the connection.
+        /// Asynchronously creates the release register, the five footprint tables, the GHS-OBAT centroid table and the link table, automatically managing the connection.
         /// </summary>
         /// <param name="commandTimeout">The timeout in seconds for the execution of the commands. A value of 0 disables the timeout.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> to monitor for cancellation requests.</param>
-        /// <returns>A task whose result is true when all seven tables exist afterwards; otherwise, false.</returns>
+        /// <returns>A task whose result is true when all eight tables exist afterwards; otherwise, false.</returns>
         public async Task<bool> CreateTablesAsync(int commandTimeout = 30, CancellationToken cancellationToken = default)
         {
             await using NpgsqlConnection? npgsqlConnection = DiGi.PostgreSQL.Create.NpgsqlConnection(ConnectionData);
@@ -676,9 +683,353 @@ namespace DiGi.GIS.PostgreSQL.Classes
         }
 
         /// <summary>
+        /// Asynchronously reads the footprints of one dataset as the matching sees them (DiGi.GIS.PostgreSQL#127): county part, register row, source identifier, primary source and the EPSG:2180 geometry, converted to NetTopologySuite once per footprint by <see cref="Create.OpenBuildingMatchItem(int, string?, int?, string?, IGeometry2D?)"/>.
+        /// <para>Only the geometry of <c>object</c> crosses the wire - the source attributes and the provenance stay in the database. The scope is a list of county parts (partition pruning by <c>county_id = ANY(...)</c>), optionally narrowed by a bounding box served by the GiST box index: a county group is read whole, its margin by box. The two forms are two SQL texts, never an <c>@x IS NULL OR …</c> condition (Coding - PostgreSQL.md section 3).</para>
+        /// <para>A row without a source identifier cannot be keyed in the link table and is skipped; a row whose geometry cannot be used is returned with a null <see cref="OpenBuildingMatchItem.Geometry"/>, for the caller to count as rejected.</para>
+        /// </summary>
+        /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> used to execute the command.</param>
+        /// <param name="datasetKey">The dataset key whose table is read; resolved through <see cref="Query.OpenBuildingTableName(string?)"/>. GHS-OBAT holds centroids, not footprints, and is refused.</param>
+        /// <param name="countyIds">The county parts to read; null or empty answers null.</param>
+        /// <param name="boundingBox2D">The bounding box in EPSG:2180 the footprints' envelopes must reach, or null to read the county parts whole.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> to monitor for cancellation requests.</param>
+        /// <returns>A task whose result is the footprints, or null when the connection is null, the key is unknown or names GHS-OBAT, no county part is given, or the table does not exist.</returns>
+        public static async Task<List<OpenBuildingMatchItem>?> GetOpenBuildingMatchItemsAsync(NpgsqlConnection? npgsqlConnection, string? datasetKey, IEnumerable<int>? countyIds, BoundingBox2D? boundingBox2D = null, int commandTimeout = 600, CancellationToken cancellationToken = default)
+        {
+            string? tableName = Query.OpenBuildingTableName(datasetKey);
+            int[]? countyIds_Array = countyIds?.Distinct().ToArray();
+            if (npgsqlConnection is null || tableName is null || string.Equals(tableName, Constants.TableName.GHS_OBAT_Building, StringComparison.Ordinal) || countyIds_Array is null || countyIds_Array.Length == 0)
+            {
+                return null;
+            }
+
+            if (!await DiGi.PostgreSQL.Query.TableExistsAsync(npgsqlConnection, tableName, cancellationToken: cancellationToken))
+            {
+                return null;
+            }
+
+            string commandText = boundingBox2D is null
+                ? $@"
+                    SELECT county_id, dataset_id, source_id, primary_source, (object -> 'Geometry')::text
+                    FROM {tableName}
+                    WHERE county_id = ANY(@county_ids);"
+                : $@"
+                    SELECT county_id, dataset_id, source_id, primary_source, (object -> 'Geometry')::text
+                    FROM {tableName}
+                    WHERE county_id = ANY(@county_ids)
+                        AND box(point(min_x, min_y), point(max_x, max_y)) && box(point(@min_x, @min_y), point(@max_x, @max_y));";
+
+            await using NpgsqlCommand npgsqlCommand = new(commandText, npgsqlConnection);
+            npgsqlCommand.CommandTimeout = commandTimeout;
+            npgsqlCommand.Parameters.Add(new NpgsqlParameter("county_ids", NpgsqlDbType.Array | NpgsqlDbType.Integer) { Value = countyIds_Array });
+            if (boundingBox2D is not null)
+            {
+                npgsqlCommand.Parameters.Add(new NpgsqlParameter("min_x", NpgsqlDbType.Double) { Value = boundingBox2D.Min.X });
+                npgsqlCommand.Parameters.Add(new NpgsqlParameter("min_y", NpgsqlDbType.Double) { Value = boundingBox2D.Min.Y });
+                npgsqlCommand.Parameters.Add(new NpgsqlParameter("max_x", NpgsqlDbType.Double) { Value = boundingBox2D.Max.X });
+                npgsqlCommand.Parameters.Add(new NpgsqlParameter("max_y", NpgsqlDbType.Double) { Value = boundingBox2D.Max.Y });
+            }
+
+            List<OpenBuildingMatchItem> result = [];
+
+            await using NpgsqlDataReader npgsqlDataReader = await npgsqlCommand.ExecuteReaderAsync(cancellationToken);
+            while (await npgsqlDataReader.ReadAsync(cancellationToken))
+            {
+                if (npgsqlDataReader.IsDBNull(2))
+                {
+                    continue;
+                }
+
+                IGeometry2D? geometry2D = null;
+                if (!npgsqlDataReader.IsDBNull(4) && JsonNode.Parse(npgsqlDataReader.GetString(4)) is JsonObject jsonObject)
+                {
+                    geometry2D = Core.Create.SerializableObject<Core.Interfaces.ISerializableObject>(jsonObject) as IGeometry2D;
+                }
+
+                OpenBuildingMatchItem? openBuildingMatchItem = Create.OpenBuildingMatchItem(
+                    npgsqlDataReader.GetInt32(0),
+                    npgsqlDataReader.GetString(2),
+                    npgsqlDataReader.GetInt32(1),
+                    npgsqlDataReader.IsDBNull(3) ? null : npgsqlDataReader.GetString(3),
+                    geometry2D);
+
+                if (openBuildingMatchItem is not null)
+                {
+                    result.Add(openBuildingMatchItem);
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Asynchronously reads the footprints of one dataset as the matching sees them, automatically managing the connection.
+        /// </summary>
+        /// <param name="datasetKey">The dataset key whose table is read.</param>
+        /// <param name="countyIds">The county parts to read; null or empty answers null.</param>
+        /// <param name="boundingBox2D">The bounding box in EPSG:2180 the footprints' envelopes must reach, or null to read the county parts whole.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> to monitor for cancellation requests.</param>
+        /// <returns>A task whose result is the footprints, or null when no connection could be built or the static overload answers null.</returns>
+        public async Task<List<OpenBuildingMatchItem>?> GetOpenBuildingMatchItemsAsync(string? datasetKey, IEnumerable<int>? countyIds, BoundingBox2D? boundingBox2D = null, int commandTimeout = 600, CancellationToken cancellationToken = default)
+        {
+            await using NpgsqlConnection? npgsqlConnection = DiGi.PostgreSQL.Create.NpgsqlConnection(ConnectionData);
+            if (npgsqlConnection is null)
+            {
+                return null;
+            }
+
+            await npgsqlConnection.OpenAsync(cancellationToken);
+            return await GetOpenBuildingMatchItemsAsync(npgsqlConnection, datasetKey, countyIds, boundingBox2D, commandTimeout, cancellationToken);
+        }
+
+        /// <summary>
+        /// Asynchronously replaces the stored links of one dataset for a county group with a new snapshot (DiGi.GIS.PostgreSQL#127).
+        /// <para>One transaction: the links of every release of the dataset owned by the group's county parts are deleted - a <c>DELETE</c> filtered by dataset, never a <c>TRUNCATE</c>, because every dataset shares a county's partition of <c>building_dataset_match</c> - then the new rows stream in through a binary COPY per partition. A failure or a stop rolls the delete back, so the previous snapshot stays whole. The partitions are created before the transaction opens (partition creation locks the parent). Every row is stamped with <paramref name="openBuildingMatchParameters"/>, so a reader can tell which rule produced it.</para>
+        /// </summary>
+        /// <param name="datasetKey">The dataset key the links belong to.</param>
+        /// <param name="datasetId">The <c>building_dataset</c> register row of the dataset footprints the links were computed from.</param>
+        /// <param name="countyIds">The county parts of the group; every row must be owned by one of them.</param>
+        /// <param name="openBuildingMatches">The link rows of the group.</param>
+        /// <param name="openBuildingMatchParameters">The rule parameters the rows were computed with.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of each command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> to monitor for cancellation requests.</param>
+        /// <returns>A task whose result is the number of rows written, or null when an argument is missing, a row is owned outside the group, the key is unknown, or the schema could not be prepared.</returns>
+        public async Task<long?> ReplaceMatchesAsync(string? datasetKey, int datasetId, IEnumerable<int>? countyIds, IEnumerable<OpenBuildingMatch>? openBuildingMatches, OpenBuildingMatchParameters? openBuildingMatchParameters, int commandTimeout = 600, CancellationToken cancellationToken = default)
+        {
+            string? tableName = Query.OpenBuildingTableName(datasetKey);
+            if (tableName is null || string.Equals(tableName, Constants.TableName.GHS_OBAT_Building, StringComparison.Ordinal) || countyIds is null || openBuildingMatches is null || openBuildingMatchParameters is null)
+            {
+                Serilog.Modify.Log(Serilog.Enums.LogEventLevel.Error, "{Type}: the links were not replaced - unknown dataset {DatasetKey}, or no county group, rows or parameters", nameof(ReplaceMatchesAsync), datasetKey ?? "(null)");
+                return null;
+            }
+
+            HashSet<int> countyIds_Group = [.. countyIds];
+            if (countyIds_Group.Count == 0)
+            {
+                Serilog.Modify.Log(Serilog.Enums.LogEventLevel.Error, "{Type}: the links were not replaced - the county group is empty", nameof(ReplaceMatchesAsync));
+                return null;
+            }
+
+            Dictionary<int, List<OpenBuildingMatch>> openBuildingMatches_ByCountyId = [];
+            foreach (OpenBuildingMatch openBuildingMatch in openBuildingMatches)
+            {
+                if (openBuildingMatch is null)
+                {
+                    continue;
+                }
+
+                if (!countyIds_Group.Contains(openBuildingMatch.CountyId))
+                {
+                    // A row owned elsewhere would survive that county's own replace and be counted twice.
+                    Serilog.Modify.Log(Serilog.Enums.LogEventLevel.Error, "{Type}: the links were not replaced - a row is owned by county part {CountyId}, outside the group", nameof(ReplaceMatchesAsync), openBuildingMatch.CountyId);
+                    return null;
+                }
+
+                if (!openBuildingMatches_ByCountyId.TryGetValue(openBuildingMatch.CountyId, out List<OpenBuildingMatch>? openBuildingMatches_County))
+                {
+                    openBuildingMatches_County = [];
+                    openBuildingMatches_ByCountyId[openBuildingMatch.CountyId] = openBuildingMatches_County;
+                }
+
+                openBuildingMatches_County.Add(openBuildingMatch);
+            }
+
+            string? parameters = openBuildingMatchParameters.ToJsonObject()?.ToJsonString();
+            if (parameters is null)
+            {
+                Serilog.Modify.Log(Serilog.Enums.LogEventLevel.Error, "{Type}: the links were not replaced - the rule parameters could not be serialized", nameof(ReplaceMatchesAsync));
+                return null;
+            }
+
+            await using NpgsqlConnection? npgsqlConnection = DiGi.PostgreSQL.Create.NpgsqlConnection(ConnectionData);
+            if (npgsqlConnection is null)
+            {
+                Serilog.Modify.Log(Serilog.Enums.LogEventLevel.Error, "{Type}: no connection to the Storage database could be built", nameof(ReplaceMatchesAsync));
+                return null;
+            }
+
+            await npgsqlConnection.OpenAsync(cancellationToken);
+
+            if (!await Create.TableAsync_BuildingDatasetMatch(npgsqlConnection, commandTimeout, cancellationToken))
+            {
+                Serilog.Modify.Log(Serilog.Enums.LogEventLevel.Error, "{Type}: {TableName} could not be created", nameof(ReplaceMatchesAsync), Constants.TableName.BuildingDatasetMatch);
+                return null;
+            }
+
+            List<int> countyIds_Sorted = [.. countyIds_Group];
+            countyIds_Sorted.Sort();
+
+            foreach (int countyId in countyIds_Sorted)
+            {
+                if (!await Create.TableAsync_BuildingDatasetMatch_Partition(npgsqlConnection, countyId, commandTimeout, cancellationToken))
+                {
+                    Serilog.Modify.Log(Serilog.Enums.LogEventLevel.Error, "{Type}: the partition of {TableName} for county part {CountyId} is unavailable - nothing was replaced", nameof(ReplaceMatchesAsync), Constants.TableName.BuildingDatasetMatch, countyId);
+                    return null;
+                }
+            }
+
+            long result = 0;
+
+            await using NpgsqlTransaction npgsqlTransaction = await npgsqlConnection.BeginTransactionAsync(cancellationToken);
+
+            string commandText_Delete = $@"
+                DELETE FROM {Constants.TableName.BuildingDatasetMatch}
+                WHERE county_id = ANY(@county_ids)
+                    AND dataset_id IN (SELECT id FROM {Constants.TableName.BuildingDataset} WHERE lower(dataset_key) = lower(@dataset_key));";
+
+            await using (NpgsqlCommand npgsqlCommand_Delete = new(commandText_Delete, npgsqlConnection, npgsqlTransaction))
+            {
+                npgsqlCommand_Delete.CommandTimeout = commandTimeout;
+                npgsqlCommand_Delete.Parameters.Add(new NpgsqlParameter("county_ids", NpgsqlDbType.Array | NpgsqlDbType.Integer) { Value = countyIds_Sorted.ToArray() });
+                npgsqlCommand_Delete.Parameters.Add(new NpgsqlParameter("dataset_key", NpgsqlDbType.Text) { Value = datasetKey!.Trim() });
+
+                await npgsqlCommand_Delete.ExecuteNonQueryAsync(cancellationToken);
+            }
+
+            foreach (int countyId in countyIds_Sorted)
+            {
+                if (!openBuildingMatches_ByCountyId.TryGetValue(countyId, out List<OpenBuildingMatch>? openBuildingMatches_County))
+                {
+                    continue;
+                }
+
+                // One COPY per partition: a binary import names a single table, so the rows go straight into
+                // their county's partition rather than through the partitioned parent.
+                string commandText_Copy = $@"
+                    COPY {Constants.TableName.BuildingDatasetMatch}_{countyId} (county_id, dataset_id, bdot_county_id, bdot_reference, source_county_id, source_id, primary_source, match_class, component_id, iou, area_ratio, centroid_distance, dx, dy, point_x, point_y, parameters)
+                    FROM STDIN (FORMAT BINARY)";
+
+                await using NpgsqlBinaryImporter npgsqlBinaryImporter = await npgsqlConnection.BeginBinaryImportAsync(commandText_Copy, cancellationToken);
+                npgsqlBinaryImporter.Timeout = TimeSpan.FromSeconds(commandTimeout);
+
+                foreach (OpenBuildingMatch openBuildingMatch in openBuildingMatches_County)
+                {
+                    await WriteMatchAsync(npgsqlBinaryImporter, openBuildingMatch, datasetId, parameters, cancellationToken);
+                }
+
+                result += (long)await npgsqlBinaryImporter.CompleteAsync(cancellationToken);
+            }
+
+            await npgsqlTransaction.CommitAsync(cancellationToken);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Asynchronously reads the completeness and geometry measures of one dataset against BDOT10k over a bounding box, from the stored links (DiGi.GIS.PostgreSQL#127; the read endpoint E4, DiGi.GIS.WebAPI#108, wraps it).
+        /// <para>A component is in the box when its representative point - the centroid of its owning footprint, shared by every row of the component - lies in the box, boundary included; a component is therefore counted whole or not at all, and a building on the edge of two boxes is counted in exactly one of them unless it sits exactly on the shared edge. The box is served by the GiST index on that point in every partition.</para>
+        /// <para>The answer is one total row per register row of the dataset, then one row per primary source (ordinal order), with the definitions of <see cref="OpenBuildingMatchSummaryResult"/>. Counts and percentiles are computed in the database (<c>percentile_cont</c>), so no county is pulled into memory; <see cref="Query.OpenBuildingMatchSummaries(IEnumerable{OpenBuildingMatch}?, string?, int, OpenBuildingMatchParameters?, DateTimeOffset?)"/> is the in-memory twin.</para>
+        /// </summary>
+        /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> used to execute the command.</param>
+        /// <param name="datasetKey">The dataset key; GHS-OBAT holds centroids and is never matched.</param>
+        /// <param name="boundingBox2D">The bounding box in EPSG:2180.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> to monitor for cancellation requests.</param>
+        /// <returns>A task whose result is the summaries (empty when no link is in the box), or null when the connection or box is null, the key is unknown or names GHS-OBAT, or the link table does not exist.</returns>
+        public static async Task<List<OpenBuildingMatchSummaryResult>?> GetMatchSummariesAsync(NpgsqlConnection? npgsqlConnection, string? datasetKey, BoundingBox2D? boundingBox2D, int commandTimeout = 600, CancellationToken cancellationToken = default)
+        {
+            if (npgsqlConnection is null || boundingBox2D is null || !IsMatchDatasetKey(datasetKey))
+            {
+                return null;
+            }
+
+            if (!await DiGi.PostgreSQL.Query.TableExistsAsync(npgsqlConnection, Constants.TableName.BuildingDatasetMatch, cancellationToken: cancellationToken))
+            {
+                return null;
+            }
+
+            string commandText = MatchSummaryCommandText("point(m.point_x, m.point_y) <@ box(point(@min_x, @min_y), point(@max_x, @max_y))");
+
+            await using NpgsqlCommand npgsqlCommand = new(commandText, npgsqlConnection);
+            npgsqlCommand.CommandTimeout = commandTimeout;
+            npgsqlCommand.Parameters.Add(new NpgsqlParameter("dataset_key", NpgsqlDbType.Text) { Value = datasetKey!.Trim() });
+            npgsqlCommand.Parameters.Add(new NpgsqlParameter("min_x", NpgsqlDbType.Double) { Value = boundingBox2D.Min.X });
+            npgsqlCommand.Parameters.Add(new NpgsqlParameter("min_y", NpgsqlDbType.Double) { Value = boundingBox2D.Min.Y });
+            npgsqlCommand.Parameters.Add(new NpgsqlParameter("max_x", NpgsqlDbType.Double) { Value = boundingBox2D.Max.X });
+            npgsqlCommand.Parameters.Add(new NpgsqlParameter("max_y", NpgsqlDbType.Double) { Value = boundingBox2D.Max.Y });
+
+            return await ReadMatchSummariesAsync(npgsqlCommand, datasetKey!.Trim(), cancellationToken);
+        }
+
+        /// <summary>
+        /// Asynchronously reads the completeness and geometry measures of one dataset against BDOT10k over a bounding box, automatically managing the connection.
+        /// </summary>
+        /// <param name="datasetKey">The dataset key.</param>
+        /// <param name="boundingBox2D">The bounding box in EPSG:2180.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> to monitor for cancellation requests.</param>
+        /// <returns>A task whose result is the summaries, or null when no connection could be built or the static overload answers null.</returns>
+        public async Task<List<OpenBuildingMatchSummaryResult>?> GetMatchSummariesAsync(string? datasetKey, BoundingBox2D? boundingBox2D, int commandTimeout = 600, CancellationToken cancellationToken = default)
+        {
+            await using NpgsqlConnection? npgsqlConnection = DiGi.PostgreSQL.Create.NpgsqlConnection(ConnectionData);
+            if (npgsqlConnection is null)
+            {
+                return null;
+            }
+
+            await npgsqlConnection.OpenAsync(cancellationToken);
+            return await GetMatchSummariesAsync(npgsqlConnection, datasetKey, boundingBox2D, commandTimeout, cancellationToken);
+        }
+
+        /// <summary>
+        /// Asynchronously reads the completeness and geometry measures of one dataset against BDOT10k over a list of county parts, from the stored links (DiGi.GIS.PostgreSQL#127).
+        /// <para>A row is in scope when the county part owning its component is in the list - pruned to those partitions. Pass every sibling part of a multi-part county for the whole county (Coding - GIS Administrative Data.md section 4). The answer has the shape of <see cref="GetMatchSummariesAsync(NpgsqlConnection?, string?, BoundingBox2D?, int, CancellationToken)"/>.</para>
+        /// </summary>
+        /// <param name="npgsqlConnection">The <see cref="NpgsqlConnection"/> used to execute the command.</param>
+        /// <param name="datasetKey">The dataset key; GHS-OBAT holds centroids and is never matched.</param>
+        /// <param name="countyIds">The county parts in scope; null or empty answers null.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> to monitor for cancellation requests.</param>
+        /// <returns>A task whose result is the summaries (empty when the parts hold no link), or null when the connection is null, no county part is given, the key is unknown or names GHS-OBAT, or the link table does not exist.</returns>
+        public static async Task<List<OpenBuildingMatchSummaryResult>?> GetMatchSummariesByCountyIdsAsync(NpgsqlConnection? npgsqlConnection, string? datasetKey, IEnumerable<int>? countyIds, int commandTimeout = 600, CancellationToken cancellationToken = default)
+        {
+            int[]? countyIds_Array = countyIds?.Distinct().ToArray();
+            if (npgsqlConnection is null || countyIds_Array is null || countyIds_Array.Length == 0 || !IsMatchDatasetKey(datasetKey))
+            {
+                return null;
+            }
+
+            if (!await DiGi.PostgreSQL.Query.TableExistsAsync(npgsqlConnection, Constants.TableName.BuildingDatasetMatch, cancellationToken: cancellationToken))
+            {
+                return null;
+            }
+
+            string commandText = MatchSummaryCommandText("m.county_id = ANY(@county_ids)");
+
+            await using NpgsqlCommand npgsqlCommand = new(commandText, npgsqlConnection);
+            npgsqlCommand.CommandTimeout = commandTimeout;
+            npgsqlCommand.Parameters.Add(new NpgsqlParameter("dataset_key", NpgsqlDbType.Text) { Value = datasetKey!.Trim() });
+            npgsqlCommand.Parameters.Add(new NpgsqlParameter("county_ids", NpgsqlDbType.Array | NpgsqlDbType.Integer) { Value = countyIds_Array });
+
+            return await ReadMatchSummariesAsync(npgsqlCommand, datasetKey!.Trim(), cancellationToken);
+        }
+
+        /// <summary>
+        /// Asynchronously reads the completeness and geometry measures of one dataset against BDOT10k over a list of county parts, automatically managing the connection.
+        /// </summary>
+        /// <param name="datasetKey">The dataset key.</param>
+        /// <param name="countyIds">The county parts in scope.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of the command. A value of 0 disables the timeout.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> to monitor for cancellation requests.</param>
+        /// <returns>A task whose result is the summaries, or null when no connection could be built or the static overload answers null.</returns>
+        public async Task<List<OpenBuildingMatchSummaryResult>?> GetMatchSummariesByCountyIdsAsync(string? datasetKey, IEnumerable<int>? countyIds, int commandTimeout = 600, CancellationToken cancellationToken = default)
+        {
+            await using NpgsqlConnection? npgsqlConnection = DiGi.PostgreSQL.Create.NpgsqlConnection(ConnectionData);
+            if (npgsqlConnection is null)
+            {
+                return null;
+            }
+
+            await npgsqlConnection.OpenAsync(cancellationToken);
+            return await GetMatchSummariesByCountyIdsAsync(npgsqlConnection, datasetKey, countyIds, commandTimeout, cancellationToken);
+        }
+
+        /// <summary>
         /// Asynchronously imports one release: files every footprint of the stream under a county part and stores the release's rows, replacing the previous snapshot in scope as one transaction.
         /// <para>The run takes the county parts from its caller (they live on the Main database, this converter on Storage), reprojects each footprint with the transformation of its own source coordinate reference system (built lazily, once per run, as locals - never per footprint and never shared across runs), filters it against the scope, files it through <see cref="Query.OpenBuildingCountyId(BoundingBox2D, IPolygonal2D, Point2D, IDictionary{int, IPolygonal2D}, IDictionary{int, CountyFilingGeometry}, IDictionary{int, BoundingBox2D}, IDictionary{int, PolygonalFace2D}, ISet{int}, BoundingBox2D, double, out bool)"/> and buffers it; the buffer flushes through a binary COPY per partition every <c>rowCount_Flush</c> rows.</para>
         /// <para>A footprint the reprojection rejects (null input, non-finite vertex, short ring, out-of-domain result, unsupported source reference system) is counted with <see cref="UpdateRejectionReason.GeometryRejected"/> and never written; one that files nowhere is counted with <see cref="UpdateRejectionReason.CountyUnresolved"/>; one outside the run's scope is counted as filtered, not as a rejection. The GHS-OBAT table additionally refuses a row without a source identifier, because that identifier is its primary key.</para>
+        /// <para>The links to BDOT10k of the rows it replaces go in the same transaction (DiGi.GIS.PostgreSQL#127): every <c>building_dataset_match</c> row of the dataset owned by a county part in scope, or naming a dataset footprint filed in scope, is deleted, so a re-import never leaves links to rows that no longer exist. A neighbouring snapshot that reached across into the scope loses those rows and is recomputed by the next match run.</para>
         /// <para>Every rejection is additionally counted per <see cref="UpdateRejectionReason"/> - a dictionary the run's own <c>Reject</c> fills beside the one number, so nothing is allocated per footprint and the two can never drift apart (DiGi.GIS.PostgreSQL#172). The tally travels on <see cref="OpenBuildingImportResult.RejectionCounts"/>, and after the closing line the run logs one <c>Information</c> line with it, in enum order and without the zeros; the capped sample of <c>Rejections</c> stays the first <c>count_Rejections_Maximum</c> in read order, so the tally - not the sample - is the complete account.</para>
         /// <para>While the stream is open the run logs one progress line every <c>count_Progress_Read</c> footprints read or <c>timeSpan_Progress</c> elapsed, whichever comes first - the counters the loop already keeps plus the source file the stream is inside, so an open run shows how far along it is without a query (DiGi.GIS.PostgreSQL#169). The final line repeats the same counters, so it equals the last progress line plus the remainder.</para>
         /// <para>The conversion - reprojection, filing, serialization - runs on up to <paramref name="maxDegreeOfParallelism"/> workers (DiGi.GIS.PostgreSQL#170): the stream is read in batches of <c>count_Batch</c> footprints, each batch is converted by a worker with its own transformations, and the batches are consumed strictly in read order by the run's own thread, which alone keeps the counters, the capped rejection sample, the progress lines and the buffer and writes the COPY on the run's one connection. A run therefore stores, counts, samples and logs the same at any degree; at most <c>count_BatchesInFlightPerDegree</c> times the degree batches are held at once. A worker that fails fails the run, and a stop cancels the workers: either way every worker is awaited and the transaction is left uncommitted.</para>
@@ -880,6 +1231,26 @@ namespace DiGi.GIS.PostgreSQL.Classes
                         npgsqlCommand_Truncate.CommandTimeout = commandTimeout;
 
                         await npgsqlCommand_Truncate.ExecuteNonQueryAsync(cancellationToken);
+                    }
+
+                    // The links to BDOT10k of the rows just replaced go with them (DiGi.GIS.PostgreSQL#127): every
+                    // link of this dataset owned by a county part in scope, and every link elsewhere that names a
+                    // dataset footprint filed in scope (a component reaching across a county edge). Any release of
+                    // the dataset counts - the truncation removed the rows of every release in these partitions.
+                    // The link table is on Storage too, so this joins the import's transaction and rolls back with it.
+                    if (!isGhsObat)
+                    {
+                        string commandText_Matches = $@"
+                            DELETE FROM {Constants.TableName.BuildingDatasetMatch}
+                            WHERE dataset_id IN (SELECT id FROM {Constants.TableName.BuildingDataset} WHERE lower(dataset_key) = lower(@dataset_key))
+                                AND (county_id = ANY(@county_ids) OR source_county_id = ANY(@county_ids));";
+
+                        await using NpgsqlCommand npgsqlCommand_Matches = new(commandText_Matches, npgsqlConnection);
+                        npgsqlCommand_Matches.CommandTimeout = commandTimeout;
+                        npgsqlCommand_Matches.Parameters.Add(new NpgsqlParameter("dataset_key", NpgsqlDbType.Text) { Value = buildingDatasetRelease.DatasetKey!.Trim() });
+                        npgsqlCommand_Matches.Parameters.Add(new NpgsqlParameter("county_ids", NpgsqlDbType.Array | NpgsqlDbType.Integer) { Value = countyIds_Scope.ToArray() });
+
+                        await npgsqlCommand_Matches.ExecuteNonQueryAsync(cancellationToken);
                     }
 
                     HashSet<string> attributeNames = [];
@@ -1506,6 +1877,180 @@ namespace DiGi.GIS.PostgreSQL.Classes
 
             rows_ByCountyId.Clear();
             return count;
+        }
+
+        /// <summary>
+        /// Tells whether a dataset key names a footprint table whose links can be read: any open building dataset but GHS-OBAT, which holds centroids.
+        /// </summary>
+        /// <param name="datasetKey">The dataset key.</param>
+        /// <returns>True when the key names one of the five footprint tables.</returns>
+        private static bool IsMatchDatasetKey(string? datasetKey)
+        {
+            string? tableName = Query.OpenBuildingTableName(datasetKey);
+            return tableName is not null && !string.Equals(tableName, Constants.TableName.GHS_OBAT_Building, StringComparison.Ordinal);
+        }
+
+        /// <summary>
+        /// Builds the summary statement over <c>building_dataset_match</c> for one scope condition: one total row per register row and one row per primary source, through <c>GROUPING SETS</c>.
+        /// <para>The rows of a single footprint on the BDOT10k side (omissions, excluded BDOT10k footprints) carry no primary source and form their own per-source group with a null source; <see cref="ReadMatchSummariesAsync(NpgsqlCommand, string, CancellationToken)"/> drops that group, because it is not a source. <c>GROUPING(primary_source)</c> is what tells it from the total row.</para>
+        /// </summary>
+        /// <param name="condition">The scope condition on the alias <c>m</c>; a fixed text, never user input.</param>
+        /// <returns>The statement text.</returns>
+        private static string MatchSummaryCommandText(string condition)
+        {
+            // Footprints are counted distinctly by county part and key (a key is unique only per part); classes by
+            // component, whose identifier is unique only per owning county part. The geometry measures are over the
+            // one-to-one rows (match_class 1), the weak ones (2) left out; 6 omission, 7 commission, 8 excluded.
+            return $@"
+                SELECT
+                    m.dataset_id,
+                    GROUPING(m.primary_source) AS is_total,
+                    m.primary_source,
+                    count(DISTINCT m.bdot_county_id::text || ':' || m.bdot_reference) FILTER (WHERE m.match_class <> 8),
+                    count(DISTINCT m.source_county_id::text || ':' || m.source_id) FILTER (WHERE m.match_class <> 8),
+                    count(*) FILTER (WHERE m.match_class = 8 AND m.bdot_reference IS NOT NULL),
+                    count(*) FILTER (WHERE m.match_class = 8 AND m.source_id IS NOT NULL),
+                    count(DISTINCT m.county_id::text || ':' || m.component_id::text) FILTER (WHERE m.match_class = 1),
+                    count(DISTINCT m.county_id::text || ':' || m.component_id::text) FILTER (WHERE m.match_class = 2),
+                    count(DISTINCT m.county_id::text || ':' || m.component_id::text) FILTER (WHERE m.match_class = 3),
+                    count(DISTINCT m.county_id::text || ':' || m.component_id::text) FILTER (WHERE m.match_class = 4),
+                    count(DISTINCT m.county_id::text || ':' || m.component_id::text) FILTER (WHERE m.match_class = 5),
+                    count(*) FILTER (WHERE m.match_class = 6),
+                    count(*) FILTER (WHERE m.match_class = 7),
+                    avg(m.iou) FILTER (WHERE m.match_class = 1),
+                    percentile_cont(0.5) WITHIN GROUP (ORDER BY m.iou) FILTER (WHERE m.match_class = 1),
+                    percentile_cont(0.1) WITHIN GROUP (ORDER BY m.iou) FILTER (WHERE m.match_class = 1),
+                    percentile_cont(0.5) WITHIN GROUP (ORDER BY m.area_ratio) FILTER (WHERE m.match_class = 1),
+                    percentile_cont(0.5) WITHIN GROUP (ORDER BY m.centroid_distance) FILTER (WHERE m.match_class = 1),
+                    avg(m.dx) FILTER (WHERE m.match_class = 1),
+                    percentile_cont(0.5) WITHIN GROUP (ORDER BY m.dx) FILTER (WHERE m.match_class = 1),
+                    avg(m.dy) FILTER (WHERE m.match_class = 1),
+                    percentile_cont(0.5) WITHIN GROUP (ORDER BY m.dy) FILTER (WHERE m.match_class = 1),
+                    CASE WHEN count(DISTINCT m.parameters) = 1 THEN min(m.parameters::text) END,
+                    min(m.computed_at)
+                FROM {Constants.TableName.BuildingDatasetMatch} m
+                WHERE m.dataset_id IN (SELECT id FROM {Constants.TableName.BuildingDataset} WHERE lower(dataset_key) = lower(@dataset_key))
+                    AND {condition}
+                GROUP BY GROUPING SETS ((m.dataset_id), (m.dataset_id, m.primary_source))
+                ORDER BY m.dataset_id, GROUPING(m.primary_source) DESC, m.primary_source COLLATE ""C"";";
+        }
+
+        /// <summary>
+        /// Executes a summary statement built by <see cref="MatchSummaryCommandText(string)"/> and turns its rows into results, computing the rates and dropping the null-source group of BDOT10k-only rows.
+        /// </summary>
+        /// <param name="npgsqlCommand">The prepared command.</param>
+        /// <param name="datasetKey">The dataset key the results carry.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> to monitor for cancellation requests.</param>
+        /// <returns>The summaries, total row first for each register row.</returns>
+        private static async Task<List<OpenBuildingMatchSummaryResult>> ReadMatchSummariesAsync(NpgsqlCommand npgsqlCommand, string datasetKey, CancellationToken cancellationToken)
+        {
+            List<OpenBuildingMatchSummaryResult> result = [];
+
+            await using NpgsqlDataReader npgsqlDataReader = await npgsqlCommand.ExecuteReaderAsync(cancellationToken);
+            while (await npgsqlDataReader.ReadAsync(cancellationToken))
+            {
+                bool isTotal = npgsqlDataReader.GetInt32(1) == 1;
+                string? primarySource = npgsqlDataReader.IsDBNull(2) ? null : npgsqlDataReader.GetString(2);
+
+                if (!isTotal && primarySource is null)
+                {
+                    // The omissions and excluded BDOT10k footprints: they belong to no source of the dataset.
+                    continue;
+                }
+
+                double? Double(int ordinal)
+                {
+                    return npgsqlDataReader.IsDBNull(ordinal) ? null : npgsqlDataReader.GetDouble(ordinal);
+                }
+
+                long bDOTCount = npgsqlDataReader.GetInt64(3);
+                long datasetCount = npgsqlDataReader.GetInt64(4);
+                long omissionCount = npgsqlDataReader.GetInt64(12);
+                long commissionCount = npgsqlDataReader.GetInt64(13);
+
+                OpenBuildingMatchParameters? openBuildingMatchParameters = null;
+                if (!npgsqlDataReader.IsDBNull(23) && JsonNode.Parse(npgsqlDataReader.GetString(23)) is JsonObject jsonObject)
+                {
+                    openBuildingMatchParameters = new OpenBuildingMatchParameters(jsonObject);
+                }
+
+                DateTimeOffset? computedAt = npgsqlDataReader.IsDBNull(24) ? null : npgsqlDataReader.GetFieldValue<DateTimeOffset>(24);
+
+                result.Add(new OpenBuildingMatchSummaryResult(
+                    datasetKey,
+                    npgsqlDataReader.GetInt32(0),
+                    isTotal ? null : primarySource,
+                    isTotal ? bDOTCount : null,
+                    datasetCount,
+                    isTotal ? npgsqlDataReader.GetInt64(5) : null,
+                    npgsqlDataReader.GetInt64(6),
+                    npgsqlDataReader.GetInt64(7),
+                    npgsqlDataReader.GetInt64(8),
+                    npgsqlDataReader.GetInt64(9),
+                    npgsqlDataReader.GetInt64(10),
+                    npgsqlDataReader.GetInt64(11),
+                    isTotal ? omissionCount : null,
+                    commissionCount,
+                    isTotal && bDOTCount > 0 ? (double)omissionCount / bDOTCount : null,
+                    datasetCount > 0 ? (double)commissionCount / datasetCount : null,
+                    Double(14),
+                    Double(15),
+                    Double(16),
+                    Double(17),
+                    Double(18),
+                    Double(19),
+                    Double(20),
+                    Double(21),
+                    Double(22),
+                    openBuildingMatchParameters,
+                    computedAt));
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Writes one link row to a binary COPY of <c>building_dataset_match</c>, in the column order of <see cref="ReplaceMatchesAsync(string?, int, IEnumerable{int}?, IEnumerable{OpenBuildingMatch}?, OpenBuildingMatchParameters?, int, CancellationToken)"/>.
+        /// </summary>
+        /// <param name="npgsqlBinaryImporter">The open importer.</param>
+        /// <param name="openBuildingMatch">The row.</param>
+        /// <param name="datasetId">The register row of the dataset footprints.</param>
+        /// <param name="parameters">The rule parameters as JSON.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> to monitor for cancellation requests.</param>
+        /// <returns>A task that completes when the row is written.</returns>
+        private static async Task WriteMatchAsync(NpgsqlBinaryImporter npgsqlBinaryImporter, OpenBuildingMatch openBuildingMatch, int datasetId, string parameters, CancellationToken cancellationToken)
+        {
+            async Task WriteAsync<T>(T? value, NpgsqlDbType npgsqlDbType)
+            {
+                if (value is null)
+                {
+                    await npgsqlBinaryImporter.WriteNullAsync(cancellationToken);
+                }
+                else
+                {
+                    await npgsqlBinaryImporter.WriteAsync(value, npgsqlDbType, cancellationToken);
+                }
+            }
+
+            await npgsqlBinaryImporter.StartRowAsync(cancellationToken);
+
+            await npgsqlBinaryImporter.WriteAsync(openBuildingMatch.CountyId, NpgsqlDbType.Integer, cancellationToken);
+            await npgsqlBinaryImporter.WriteAsync(datasetId, NpgsqlDbType.Integer, cancellationToken);
+            await WriteAsync(openBuildingMatch.BDOTCountyId, NpgsqlDbType.Integer);
+            await WriteAsync(openBuildingMatch.BDOTReference, NpgsqlDbType.Text);
+            await WriteAsync(openBuildingMatch.SourceCountyId, NpgsqlDbType.Integer);
+            await WriteAsync(openBuildingMatch.SourceId, NpgsqlDbType.Text);
+            await WriteAsync(openBuildingMatch.PrimarySource, NpgsqlDbType.Text);
+            await npgsqlBinaryImporter.WriteAsync((short)openBuildingMatch.OpenBuildingMatchClass, NpgsqlDbType.Smallint, cancellationToken);
+            await npgsqlBinaryImporter.WriteAsync(openBuildingMatch.ComponentId, NpgsqlDbType.Bigint, cancellationToken);
+            await WriteAsync(openBuildingMatch.IoU, NpgsqlDbType.Double);
+            await WriteAsync(openBuildingMatch.AreaRatio, NpgsqlDbType.Double);
+            await WriteAsync(openBuildingMatch.CentroidDistance, NpgsqlDbType.Double);
+            await WriteAsync(openBuildingMatch.Dx, NpgsqlDbType.Double);
+            await WriteAsync(openBuildingMatch.Dy, NpgsqlDbType.Double);
+            await npgsqlBinaryImporter.WriteAsync(openBuildingMatch.PointX, NpgsqlDbType.Double, cancellationToken);
+            await npgsqlBinaryImporter.WriteAsync(openBuildingMatch.PointY, NpgsqlDbType.Double, cancellationToken);
+            await npgsqlBinaryImporter.WriteAsync(parameters, NpgsqlDbType.Jsonb, cancellationToken);
         }
 
         /// <summary>
