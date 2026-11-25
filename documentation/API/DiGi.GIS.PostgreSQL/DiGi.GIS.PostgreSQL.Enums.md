@@ -101,6 +101,73 @@ Statistical demographic data update\.
 
 Year built data update: writes the predicted, user and calculated year\-built columns\.
 
+<a name='DiGi.GIS.PostgreSQL.Enums.OpenBuildingMatchClass'></a>
+
+## OpenBuildingMatchClass Enum
+
+Names how a footprint of an open building dataset relates to the BDOT10k footprints it overlaps: the class of the connected component of the overlap graph it belongs to \(DiGi\.GIS\.PostgreSQL\#127\)\.
+
+The values are stored as integers in `building_dataset_match.match_class`, so they are explicit and never renumbered.
+
+```csharp
+public enum OpenBuildingMatchClass
+```
+### Fields
+
+<a name='DiGi.GIS.PostgreSQL.Enums.OpenBuildingMatchClass.Undefined'></a>
+
+`Undefined` 0
+
+Not classified\.
+
+<a name='DiGi.GIS.PostgreSQL.Enums.OpenBuildingMatchClass.OneToOne'></a>
+
+`OneToOne` 1
+
+One dataset footprint and one BDOT10k footprint whose intersection over union reaches the threshold: the pair the geometry measures \(IoU, area ratio, offset\) are computed over\.
+
+<a name='DiGi.GIS.PostgreSQL.Enums.OpenBuildingMatchClass.OneToOneWeak'></a>
+
+`OneToOneWeak` 2
+
+One dataset footprint and one BDOT10k footprint joined by an edge but with an intersection over union below the threshold\. Counted as matched for completeness and left out of the geometry measures\.
+
+<a name='DiGi.GIS.PostgreSQL.Enums.OpenBuildingMatchClass.OneToMany'></a>
+
+`OneToMany` 3
+
+One dataset footprint and several BDOT10k footprints: the dataset merges buildings the register keeps apart\.
+
+<a name='DiGi.GIS.PostgreSQL.Enums.OpenBuildingMatchClass.ManyToOne'></a>
+
+`ManyToOne` 4
+
+Several dataset footprints and one BDOT10k footprint: the dataset splits a building the register keeps whole\.
+
+<a name='DiGi.GIS.PostgreSQL.Enums.OpenBuildingMatchClass.ManyToMany'></a>
+
+`ManyToMany` 5
+
+Several dataset footprints and several BDOT10k footprints connected through their overlaps\.
+
+<a name='DiGi.GIS.PostgreSQL.Enums.OpenBuildingMatchClass.Omission'></a>
+
+`Omission` 6
+
+A BDOT10k footprint no dataset footprint overlaps enough: missing from the dataset\.
+
+<a name='DiGi.GIS.PostgreSQL.Enums.OpenBuildingMatchClass.Commission'></a>
+
+`Commission` 7
+
+A dataset footprint no BDOT10k footprint overlaps enough: present in the dataset only\.
+
+<a name='DiGi.GIS.PostgreSQL.Enums.OpenBuildingMatchClass.Excluded'></a>
+
+`Excluded` 8
+
+A footprint smaller than the run's minimum area, on either side: left out of the matching and recorded so the snapshot still accounts for it\.
+
 <a name='DiGi.GIS.PostgreSQL.Enums.OrtoAreaObjectRemoval'></a>
 
 ## OrtoAreaObjectRemoval Enum

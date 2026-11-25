@@ -280,6 +280,19 @@ public const string BuildingDataset = "building_dataset";
 #### Field Value
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
+<a name='DiGi.GIS.PostgreSQL.Constants.TableName.BuildingDatasetMatch'></a>
+
+## TableName\.BuildingDatasetMatch Field
+
+The name of the link table between the open building footprints and BDOT10k [Building2D](DiGi.GIS.PostgreSQL.Constants.md#DiGi.GIS.PostgreSQL.Constants.TableName.Building2D 'DiGi\.GIS\.PostgreSQL\.Constants\.TableName\.Building2D'): one row per matched pair, omission, commission or excluded footprint of one dataset, partitioned by the county part that owns the row \(DiGi\.GIS\.PostgreSQL\#127\)\. On the Storage database, beside the footprint tables it is derived from\.
+
+```csharp
+public const string BuildingDatasetMatch = "building_dataset_match";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
 <a name='DiGi.GIS.PostgreSQL.Constants.TableName.BuildingHeatDemand'></a>
 
 ## TableName\.BuildingHeatDemand Field

@@ -604,6 +604,55 @@ The collections of its namesakes \(`Query.NamesakeStatisticalUnits`\), most pref
 [DiGi\.GIS\.Classes\.StatisticalDataCollection](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.statisticaldatacollection 'DiGi\.GIS\.Classes\.StatisticalDataCollection')  
 The merged collection, keeping the code and identity of [statisticalDataCollection](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Create.MergedStatisticalDataCollection(thisDiGi.GIS.Classes.StatisticalDataCollection,System.Collections.Generic.IEnumerable_DiGi.GIS.Classes.StatisticalDataCollection_).statisticalDataCollection 'DiGi\.GIS\.PostgreSQL\.Create\.MergedStatisticalDataCollection\(this DiGi\.GIS\.Classes\.StatisticalDataCollection, System\.Collections\.Generic\.IEnumerable\<DiGi\.GIS\.Classes\.StatisticalDataCollection\>\)\.statisticalDataCollection') \(of the first namesake when that is null\); null when there is no collection at all\.
 
+<a name='DiGi.GIS.PostgreSQL.Create.OpenBuildingMatchItem(int,string,System.Nullable_int_,string,DiGi.Geometry.Planar.Interfaces.IGeometry2D)'></a>
+
+## Create\.OpenBuildingMatchItem\(int, string, Nullable\<int\>, string, IGeometry2D\) Method
+
+Builds the matching's view of one footprint \(DiGi\.GIS\.PostgreSQL\#127\): converts its EPSG:2180 geometry to NetTopologySuite once, repairs it when it is invalid, and derives its area and centroid\.
+
+A [DiGi\.Geometry\.Planar\.Classes\.PolygonalFace2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.polygonalface2d 'DiGi\.Geometry\.Planar\.Classes\.PolygonalFace2D') becomes a polygon with its holes; a [DiGi\.Geometry\.Planar\.Classes\.GeometryCollection2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.geometrycollection2d 'DiGi\.Geometry\.Planar\.Classes\.GeometryCollection2D') of faces (an OSM relation with several outer rings, a DBSM or Microsoft multipolygon) becomes one multipolygon, so the footprint is matched as the whole building the source describes. Converting here, once per footprint and run, is what keeps the overlay off the cost the open building import measured: a DiGi.Geometry overlay converts both shapes to NetTopologySuite on every call (DiGi.GIS.PostgreSQL#170).
+
+An invalid geometry (a self-intersecting or self-touching ring, common in OSM traces) is repaired with [NetTopologySuite\.Geometries\.Utilities\.GeometryFixer](https://learn.microsoft.com/en-us/dotnet/api/nettopologysuite.geometries.utilities.geometryfixer 'NetTopologySuite\.Geometries\.Utilities\.GeometryFixer') and flagged [Repaired](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatchItem.Repaired 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingMatchItem\.Repaired'), because an overlay of an invalid polygon can throw or measure nothing. A geometry that is missing, of another kind (a centroid), empty, of zero area, or whose repair is not polygonal leaves the item without a geometry: the run counts it as rejected and never as an omission or a commission.
+
+```csharp
+public static DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatchItem? OpenBuildingMatchItem(int countyId, string? key, System.Nullable<int> datasetId, string? primarySource, DiGi.Geometry.Planar.Interfaces.IGeometry2D? geometry2D);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Create.OpenBuildingMatchItem(int,string,System.Nullable_int_,string,DiGi.Geometry.Planar.Interfaces.IGeometry2D).countyId'></a>
+
+`countyId` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The identifier of the county part the footprint is filed under\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.OpenBuildingMatchItem(int,string,System.Nullable_int_,string,DiGi.Geometry.Planar.Interfaces.IGeometry2D).key'></a>
+
+`key` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The key of the footprint within its county part: the BDOT10k `reference` or the dataset's `source_id`\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.OpenBuildingMatchItem(int,string,System.Nullable_int_,string,DiGi.Geometry.Planar.Interfaces.IGeometry2D).datasetId'></a>
+
+`datasetId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The `building_dataset` register row of a dataset footprint, or null for a BDOT10k footprint\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.OpenBuildingMatchItem(int,string,System.Nullable_int_,string,DiGi.Geometry.Planar.Interfaces.IGeometry2D).primarySource'></a>
+
+`primarySource` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The normalised primary source of a dataset footprint, or null for a BDOT10k footprint\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.OpenBuildingMatchItem(int,string,System.Nullable_int_,string,DiGi.Geometry.Planar.Interfaces.IGeometry2D).geometry2D'></a>
+
+`geometry2D` [DiGi\.Geometry\.Planar\.Interfaces\.IGeometry2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.interfaces.igeometry2d 'DiGi\.Geometry\.Planar\.Interfaces\.IGeometry2D')
+
+The stored footprint geometry in EPSG:2180\.
+
+#### Returns
+[OpenBuildingMatchItem](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatchItem 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingMatchItem')  
+The item, with a null geometry when the footprint cannot be matched, or null when the key is missing \- a footprint without a key cannot be written to the link table\.
+
 <a name='DiGi.GIS.PostgreSQL.Create.OrtoDataAcquisitions(thisDiGi.GIS.Classes.OrtoDatas,int)'></a>
 
 ## Create\.OrtoDataAcquisitions\(this OrtoDatas, int\) Method
@@ -1141,6 +1190,84 @@ The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dot
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A task that represents the asynchronous operation\. The task result is true if the table exists afterwards; otherwise, false\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_BuildingDatasetMatch(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken)'></a>
+
+## Create\.TableAsync\_BuildingDatasetMatch\(this NpgsqlConnection, int, CancellationToken\) Method
+
+Asynchronously creates `building_dataset_match`, the link table between the open building footprints and BDOT10k, along with its supporting indexes \(DiGi\.GIS\.PostgreSQL\#127\)\.
+
+One row is a pair of footprints joined by an overlap edge, or one omission, commission or excluded footprint, of one dataset, partitioned by the county part that owns the row's component. A footprint is named by its county part and key on each side - (`bdot_county_id`, `bdot_reference`) and (`source_county_id`, `source_id`) - because a key is unique only per county part and a `building_2d.id` is renumbered by a BDOT10k re-import. The unique key is `NULLS NOT DISTINCT`, since every single-footprint row leaves one side null.
+
+The table lives on the Storage database beside the footprint tables it is derived from, so the open building import can delete the links of the rows it replaces in its own transaction. Two indexes serve the reads: a GiST index on the component's representative point for the box-scoped summary, and `(dataset_id, source_county_id)` for the import's cleanup of links whose dataset footprint it replaces. Every statement is idempotent.
+
+```csharp
+public static System.Threading.Tasks.Task<bool> TableAsync_BuildingDatasetMatch(this Npgsql.NpgsqlConnection? npgsqlConnection, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_BuildingDatasetMatch(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken).npgsqlConnection'></a>
+
+`npgsqlConnection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
+
+The [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection') instance used to execute the command\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_BuildingDatasetMatch(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_BuildingDatasetMatch(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken') to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result is true if the table exists afterwards; otherwise, false\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_BuildingDatasetMatch_Partition(thisNpgsql.NpgsqlConnection,int,int,System.Threading.CancellationToken)'></a>
+
+## Create\.TableAsync\_BuildingDatasetMatch\_Partition\(this NpgsqlConnection, int, int, CancellationToken\) Method
+
+Asynchronously creates the partition of `building_dataset_match` for one county part \(DiGi\.GIS\.PostgreSQL\#127\)\.
+
+The statement also analyses a partition it has just created ([PartitionCommandText\(string, int\)](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Query.PartitionCommandText(string,int) 'DiGi\.GIS\.PostgreSQL\.Query\.PartitionCommandText\(string, int\)')).
+
+```csharp
+public static System.Threading.Tasks.Task<bool> TableAsync_BuildingDatasetMatch_Partition(this Npgsql.NpgsqlConnection? npgsqlConnection, int countyId, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_BuildingDatasetMatch_Partition(thisNpgsql.NpgsqlConnection,int,int,System.Threading.CancellationToken).npgsqlConnection'></a>
+
+`npgsqlConnection` [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection')
+
+The [Npgsql\.NpgsqlConnection](https://learn.microsoft.com/en-us/dotnet/api/npgsql.npgsqlconnection 'Npgsql\.NpgsqlConnection') instance used to execute the command\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_BuildingDatasetMatch_Partition(thisNpgsql.NpgsqlConnection,int,int,System.Threading.CancellationToken).countyId'></a>
+
+`countyId` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The identifier of the county part the partition holds; it names the partition and is its single list value\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_BuildingDatasetMatch_Partition(thisNpgsql.NpgsqlConnection,int,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The timeout in seconds for the execution of the command\. A value of 0 disables the timeout\.
+
+<a name='DiGi.GIS.PostgreSQL.Create.TableAsync_BuildingDatasetMatch_Partition(thisNpgsql.NpgsqlConnection,int,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken') to monitor for cancellation requests\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A task that represents the asynchronous operation\. The task result is true if the partition exists afterwards; otherwise, false\.
 
 <a name='DiGi.GIS.PostgreSQL.Create.TableAsync_BuildingShapeLabel(thisNpgsql.NpgsqlConnection,int,System.Threading.CancellationToken)'></a>
 
@@ -4376,6 +4503,100 @@ Set true when the footprint files nowhere and the reason is a rejection rather t
 #### Returns
 [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')  
 The identifier of the county part to file under, or null when the footprint is filtered or rejected\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.OpenBuildingMatches(System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatchItem_,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatchItem_,DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatchParameters,System.Collections.Generic.ISet_int_)'></a>
+
+## Query\.OpenBuildingMatches\(IEnumerable\<OpenBuildingMatchItem\>, IEnumerable\<OpenBuildingMatchItem\>, OpenBuildingMatchParameters, ISet\<int\>\) Method
+
+Matches the footprints of one open building dataset to the BDOT10k footprints in memory and returns the link rows of the components a county group owns \(DiGi\.GIS\.PostgreSQL\#127\)\. No I/O: the caller reads both sides \- the dataset from Storage, BDOT10k from Main \- and hands them over\.
+
+<b>Edges.</b> Candidate pairs come from an STR tree over the BDOT10k envelopes. A pair is joined when its overlap is positive and covers at least [MinOverlapShare](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatchParameters.MinOverlapShare 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingMatchParameters\.MinOverlapShare') of the smaller footprint, or - only when [MaxCentroidDistance](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatchParameters.MaxCentroidDistance 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingMatchParameters\.MaxCentroidDistance') is positive - when it does not overlap and the centroids are that close. The overlap is measured with NetTopologySuite's robust overlay on geometries converted once per footprint.
+
+<b>Classes.</b> The connected components of the edges: one and one is [OneToOne](DiGi.GIS.PostgreSQL.Enums.md#DiGi.GIS.PostgreSQL.Enums.OpenBuildingMatchClass.OneToOne 'DiGi\.GIS\.PostgreSQL\.Enums\.OpenBuildingMatchClass\.OneToOne') at an intersection over union of at least [IoUThreshold](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatchParameters.IoUThreshold 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingMatchParameters\.IoUThreshold') and [OneToOneWeak](DiGi.GIS.PostgreSQL.Enums.md#DiGi.GIS.PostgreSQL.Enums.OpenBuildingMatchClass.OneToOneWeak 'DiGi\.GIS\.PostgreSQL\.Enums\.OpenBuildingMatchClass\.OneToOneWeak') below it; then one-to-many, many-to-one, many-to-many; a lone BDOT10k footprint is an [Omission](DiGi.GIS.PostgreSQL.Enums.md#DiGi.GIS.PostgreSQL.Enums.OpenBuildingMatchClass.Omission 'DiGi\.GIS\.PostgreSQL\.Enums\.OpenBuildingMatchClass\.Omission') and a lone dataset footprint a [Commission](DiGi.GIS.PostgreSQL.Enums.md#DiGi.GIS.PostgreSQL.Enums.OpenBuildingMatchClass.Commission 'DiGi\.GIS\.PostgreSQL\.Enums\.OpenBuildingMatchClass\.Commission'). A footprint below [MinArea](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatchParameters.MinArea 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingMatchParameters\.MinArea') takes no part and is returned as [Excluded](DiGi.GIS.PostgreSQL.Enums.md#DiGi.GIS.PostgreSQL.Enums.OpenBuildingMatchClass.Excluded 'DiGi\.GIS\.PostgreSQL\.Enums\.OpenBuildingMatchClass\.Excluded'); one without a usable geometry ([Geometry](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatchItem.Geometry 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingMatchItem\.Geometry') null) is not returned at all - the caller counts it as rejected.
+
+<b>Ownership.</b> A component belongs to the county part of its smallest BDOT10k key (county id, then reference, ordinal), or of its smallest dataset key when it has no BDOT10k member, and only the components owned by [countyIds\_Owned](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Query.OpenBuildingMatches(System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatchItem_,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatchItem_,DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatchParameters,System.Collections.Generic.ISet_int_).countyIds_Owned 'DiGi\.GIS\.PostgreSQL\.Query\.OpenBuildingMatches\(System\.Collections\.Generic\.IEnumerable\<DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingMatchItem\>, System\.Collections\.Generic\.IEnumerable\<DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingMatchItem\>, DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingMatchParameters, System\.Collections\.Generic\.ISet\<int\>\)\.countyIds\_Owned') are returned. A group that reads a margin across its edge therefore never returns a component the neighbouring group returns too, and nothing is counted twice. The owning footprint's centroid is the component's representative point.
+
+<b>Determinism.</b> Both sides are de-duplicated on (county id, key) and ordered ordinally before anything else, components are numbered in that order from one, and a component's rows are ordered by their BDOT10k then dataset member - the output is the same for the same input, under any culture.
+
+```csharp
+public static System.Collections.Generic.List<DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatch>? OpenBuildingMatches(System.Collections.Generic.IEnumerable<DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatchItem>? openBuildingMatchItems_Dataset, System.Collections.Generic.IEnumerable<DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatchItem>? openBuildingMatchItems_BDOT, DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatchParameters? openBuildingMatchParameters, System.Collections.Generic.ISet<int>? countyIds_Owned);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Query.OpenBuildingMatches(System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatchItem_,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatchItem_,DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatchParameters,System.Collections.Generic.ISet_int_).openBuildingMatchItems_Dataset'></a>
+
+`openBuildingMatchItems_Dataset` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[OpenBuildingMatchItem](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatchItem 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingMatchItem')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The dataset footprints of the group and its margin\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.OpenBuildingMatches(System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatchItem_,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatchItem_,DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatchParameters,System.Collections.Generic.ISet_int_).openBuildingMatchItems_BDOT'></a>
+
+`openBuildingMatchItems_BDOT` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[OpenBuildingMatchItem](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatchItem 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingMatchItem')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The BDOT10k footprints of the group and its margin\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.OpenBuildingMatches(System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatchItem_,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatchItem_,DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatchParameters,System.Collections.Generic.ISet_int_).openBuildingMatchParameters'></a>
+
+`openBuildingMatchParameters` [OpenBuildingMatchParameters](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatchParameters 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingMatchParameters')
+
+The rule parameters\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.OpenBuildingMatches(System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatchItem_,System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatchItem_,DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatchParameters,System.Collections.Generic.ISet_int_).countyIds_Owned'></a>
+
+`countyIds_Owned` [System\.Collections\.Generic\.ISet&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.iset-1 'System\.Collections\.Generic\.ISet\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.iset-1 'System\.Collections\.Generic\.ISet\`1')
+
+The county parts whose components are returned: the group, without the margin's counties\.
+
+#### Returns
+[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[OpenBuildingMatch](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatch 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingMatch')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')  
+The link rows of the owned components, or null when any argument is null\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.OpenBuildingMatchSummaries(System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatch_,string,int,DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatchParameters,System.Nullable_System.DateTimeOffset_)'></a>
+
+## Query\.OpenBuildingMatchSummaries\(IEnumerable\<OpenBuildingMatch\>, string, int, OpenBuildingMatchParameters, Nullable\<DateTimeOffset\>\) Method
+
+Aggregates link rows into the completeness and geometry measures of one dataset \(DiGi\.GIS\.PostgreSQL\#127\): one total row, then one row per normalised primary source in ordinal order\.
+
+The in-memory twin of [GetMatchSummariesAsync\(NpgsqlConnection, string, BoundingBox2D, int, CancellationToken\)](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingPostgreSQLConverter.GetMatchSummariesAsync(Npgsql.NpgsqlConnection,string,DiGi.Geometry.Planar.Classes.BoundingBox2D,int,System.Threading.CancellationToken) 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingPostgreSQLConverter\.GetMatchSummariesAsync\(Npgsql\.NpgsqlConnection, string, DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D, int, System\.Threading\.CancellationToken\)'): the same counts and the same linear-interpolated percentiles (`percentile_cont`), so a run that does not store its links (a sensitivity run) still reports its measures, and a fact can check the SQL against it. The definitions are those of [OpenBuildingMatchSummaryResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatchSummaryResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingMatchSummaryResult'): footprints are counted distinctly by (county id, key), classes by component, geometry measures over the one-to-one rows only, and a per-source row carries no BDOT10k figure.
+
+```csharp
+public static System.Collections.Generic.List<DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatchSummaryResult>? OpenBuildingMatchSummaries(System.Collections.Generic.IEnumerable<DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatch>? openBuildingMatches, string? datasetKey, int datasetId, DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatchParameters? openBuildingMatchParameters, System.Nullable<System.DateTimeOffset> computedAt);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Query.OpenBuildingMatchSummaries(System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatch_,string,int,DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatchParameters,System.Nullable_System.DateTimeOffset_).openBuildingMatches'></a>
+
+`openBuildingMatches` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[OpenBuildingMatch](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatch 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingMatch')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The link rows of the dataset over the scope\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.OpenBuildingMatchSummaries(System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatch_,string,int,DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatchParameters,System.Nullable_System.DateTimeOffset_).datasetKey'></a>
+
+`datasetKey` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The dataset key the rows belong to\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.OpenBuildingMatchSummaries(System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatch_,string,int,DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatchParameters,System.Nullable_System.DateTimeOffset_).datasetId'></a>
+
+`datasetId` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The `building_dataset` register row the rows belong to\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.OpenBuildingMatchSummaries(System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatch_,string,int,DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatchParameters,System.Nullable_System.DateTimeOffset_).openBuildingMatchParameters'></a>
+
+`openBuildingMatchParameters` [OpenBuildingMatchParameters](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatchParameters 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingMatchParameters')
+
+The rule parameters the rows were computed with\.
+
+<a name='DiGi.GIS.PostgreSQL.Query.OpenBuildingMatchSummaries(System.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatch_,string,int,DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatchParameters,System.Nullable_System.DateTimeOffset_).computedAt'></a>
+
+`computedAt` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.DateTimeOffset](https://learn.microsoft.com/en-us/dotnet/api/system.datetimeoffset 'System\.DateTimeOffset')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+When the rows were computed, or null when not known\.
+
+#### Returns
+[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[OpenBuildingMatchSummaryResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatchSummaryResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingMatchSummaryResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')  
+The total row followed by one row per primary source, or null when the rows are null\.
 
 <a name='DiGi.GIS.PostgreSQL.Query.OpenBuildingTableName(string)'></a>
 
