@@ -14,6 +14,35 @@ public static class Query
 Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → Query
 ### Methods
 
+<a name='DiGi.GIS.PostgreSQL.Solar.Query.IsHighMemoryLoad(long,long)'></a>
+
+## Query\.IsHighMemoryLoad\(long, long\) Method
+
+Determines whether the machine's memory load has reached the threshold at which the garbage collector itself treats memory as scarce \- the point past which the batch solar radiation solve warns \(DiGi\.GIS\.PostgreSQL\#167\)\.
+
+Both figures come from [System\.GCMemoryInfo](https://learn.microsoft.com/en-us/dotnet/api/system.gcmemoryinfo 'System\.GCMemoryInfo') ([System\.GCMemoryInfo\.MemoryLoadBytes](https://learn.microsoft.com/en-us/dotnet/api/system.gcmemoryinfo.memoryloadbytes 'System\.GCMemoryInfo\.MemoryLoadBytes') and [System\.GCMemoryInfo\.HighMemoryLoadThresholdBytes](https://learn.microsoft.com/en-us/dotnet/api/system.gcmemoryinfo.highmemoryloadthresholdbytes 'System\.GCMemoryInfo\.HighMemoryLoadThresholdBytes')): the load is the physical memory in use on the whole machine, not by the process alone, so a starved pagefile is seen whatever holds the memory. The threshold is the runtime's own (90 % of physical memory by default, `GCHighMemoryPercent`), so the solve sets no number of its own.
+
+```csharp
+public static bool IsHighMemoryLoad(long memoryLoadBytes, long highMemoryLoadThresholdBytes);
+```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Query.IsHighMemoryLoad(long,long).memoryLoadBytes'></a>
+
+`memoryLoadBytes` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+The memory load of the machine, in bytes\.
+
+<a name='DiGi.GIS.PostgreSQL.Solar.Query.IsHighMemoryLoad(long,long).highMemoryLoadThresholdBytes'></a>
+
+`highMemoryLoadThresholdBytes` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+The high memory load threshold, in bytes\. 0 or less \- no collection has run yet, so the figures are unknown \- is never a high load\.
+
+#### Returns
+[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')  
+True when [highMemoryLoadThresholdBytes](DiGi.GIS.PostgreSQL.Solar.md#DiGi.GIS.PostgreSQL.Solar.Query.IsHighMemoryLoad(long,long).highMemoryLoadThresholdBytes 'DiGi\.GIS\.PostgreSQL\.Solar\.Query\.IsHighMemoryLoad\(long, long\)\.highMemoryLoadThresholdBytes') is positive and [memoryLoadBytes](DiGi.GIS.PostgreSQL.Solar.md#DiGi.GIS.PostgreSQL.Solar.Query.IsHighMemoryLoad(long,long).memoryLoadBytes 'DiGi\.GIS\.PostgreSQL\.Solar\.Query\.IsHighMemoryLoad\(long, long\)\.memoryLoadBytes') is at or above it; otherwise, false\.
+
 <a name='DiGi.GIS.PostgreSQL.Solar.Query.SolarSolveTiles(thisSystem.Collections.Generic.IEnumerable_DiGi.GIS.PostgreSQL.Classes.Building2DCentroid_,double,System.Nullable_int_)'></a>
 
 ## Query\.SolarSolveTiles\(this IEnumerable\<Building2DCentroid\>, double, Nullable\<int\>\) Method
