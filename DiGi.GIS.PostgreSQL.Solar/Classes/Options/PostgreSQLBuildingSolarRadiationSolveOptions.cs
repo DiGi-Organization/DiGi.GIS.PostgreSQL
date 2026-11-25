@@ -84,7 +84,7 @@ namespace DiGi.GIS.PostgreSQL.Solar.Classes
         public HashSet<int>? CountyIds { get; set; } = null;
 
         /// <summary>
-        /// Gets or sets the largest number of building and radius solves of a batch run at once. 0 or less is automatic - half the logical processors, since the solver also parallelises inside each solve; 1 solves one at a time, as before DiGi.GIS.PostgreSQL#139.
+        /// Gets or sets the largest number of work items of a batch run at once - the building and radius solves and the solver's work inside them share this many slots, so a heavy batch never runs more (DiGi.GIS.PostgreSQL#167). 0 or less is automatic - half the logical processors; 1 solves one at a time, each on one thread, as before DiGi.GIS.PostgreSQL#139.
         /// <para>The stored results do not depend on it: each solve builds its own shading model and only reads the building models.</para>
         /// </summary>
         [JsonInclude, JsonPropertyName(nameof(MaxDegreeOfParallelism))]
