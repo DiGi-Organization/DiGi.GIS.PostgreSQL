@@ -168,6 +168,7 @@ Derived
 ↳ [OpenBuildingImportResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingImportResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingImportResult')  
 ↳ [OpenBuildingMatchParameters](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatchParameters 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingMatchParameters')  
 ↳ [OpenBuildingMatchResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatchResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingMatchResult')  
+↳ [OpenBuildingMatchSizeClassResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatchSizeClassResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingMatchSizeClassResult')  
 ↳ [OpenBuildingMatchSummaryResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingMatchSummaryResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingMatchSummaryResult')  
 ↳ [OpenBuildingTableSizeResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OpenBuildingTableSizeResult 'DiGi\.GIS\.PostgreSQL\.Classes\.OpenBuildingTableSizeResult')  
 ↳ [OrtoArea](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.OrtoArea 'DiGi\.GIS\.PostgreSQL\.Classes\.OrtoArea')  

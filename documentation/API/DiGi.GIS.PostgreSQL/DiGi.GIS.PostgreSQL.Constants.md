@@ -42,6 +42,34 @@ public const string PostgreSQL_Storage = "GIS_PostgreSQL_Storage.conf";
 #### Field Value
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
+<a name='DiGi.GIS.PostgreSQL.Constants.OpenBuildingMatchSizeClass'></a>
+
+## OpenBuildingMatchSizeClass Class
+
+The footprint size classes the open building matching reports omission and commission by \(DiGi\.GIS\.PostgreSQL\#127\)\.
+
+Detection of buildings is reliable above 50 m² and not below it (ISPRS urban object detection benchmark, Rottensteiner et al., 2014), and BDOT10k holds many small farm and utility buildings, so a single minimum-area cut hides where the datasets disagree. The classes are reported rather than excluded: below 10 m², 10 to 50 m², and 50 m² and more.
+
+```csharp
+public static class OpenBuildingMatchSizeClass
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → OpenBuildingMatchSizeClass
+### Fields
+
+<a name='DiGi.GIS.PostgreSQL.Constants.OpenBuildingMatchSizeClass.Bounds'></a>
+
+## OpenBuildingMatchSizeClass\.Bounds Field
+
+The upper bounds in square metres of every size class but the last, ascending: a footprint belongs to the first class whose bound exceeds its area, and to the last class when none does\.
+
+```csharp
+public static readonly IReadOnlyList<double> Bounds;
+```
+
+#### Field Value
+[System\.Collections\.Generic\.IReadOnlyList&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ireadonlylist-1 'System\.Collections\.Generic\.IReadOnlyList\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ireadonlylist-1 'System\.Collections\.Generic\.IReadOnlyList\`1')
+
 <a name='DiGi.GIS.PostgreSQL.Constants.PopulationDensity'></a>
 
 ## PopulationDensity Class
