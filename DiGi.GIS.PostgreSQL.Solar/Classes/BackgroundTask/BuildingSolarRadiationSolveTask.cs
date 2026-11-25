@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Runtime;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -21,7 +22,7 @@ namespace DiGi.GIS.PostgreSQL.Solar.Classes
     /// <para>Every read and the write is a protected hook: <see cref="PostgreSQLBuildingSolarRadiationSolveTask"/> implements them with the storage database converters, a client implements them with the GIS Web API. The walk, the skip of stored results, the tiling, the batching and read-ahead, the parallel solve, the counting and the logging are this class's alone, so a result and every count do not depend on the transport.</para>
     /// <para>Each building is solved exactly as the viewer solves it (DiGi.GIS.WebAPI.UI <c>SolarController</c>): the same building model detail level, the same neighbour circle (<c>DiGi.GIS.Analytical.Solar.Query.SolarNeighbourCircle</c>), the same nearest EPW station, the same solver options and solver version, and the same stored form - so a result does not depend on which of the two produced it. Radius 0 solves the building alone (<c>SolarRadiusIsolated</c>): it still shades and blocks the view of its own surfaces, but no neighbour does.</para>
     /// <para>A county part is solved in square tiles of <see cref="PostgreSQLBuildingSolarRadiationSolveOptions.TileSize"/>, by the centroid of each building, at most <see cref="PostgreSQLBuildingSolarRadiationSolveOptions.BatchSize"/> buildings at a time: one read of the batch's models, one read of every neighbour any of them can see at the largest radius, and one write of the batch's results. The neighbours of each building and radius are then picked in memory, as <c>gis/buildingmodel/itemsbycircle</c> picks them - every model whose bounding box lies within or intersects the building's circle.</para>
-    /// <para>The jobs of a batch - one per building and pending radius - are solved several at a time (<see cref="PostgreSQLBuildingSolarRadiationSolveOptions.MaxDegreeOfParallelism"/>, <see cref="Query.BuildingSolarRadiationSolveOutcomes"/>), and the next batch is read while they run; the results are still written one batch at a time, in order, and counted in job order, so the counts, failure samples and stored results are those of a sequential run (DiGi.GIS.PostgreSQL#139). Each batch logs the time spent waiting for its read, solving and writing, its neighbour and caster triangle counts, and the process memory - working set, managed heap after the last collection and after the last full collection, fragmentation, committed memory, GC pause share, full collection count and thread count - so a slow batch can be told apart as heavy geometry or a grown process (DiGi.GIS.PostgreSQL#167). A cancellation waits for the solves in flight.</para>
+    /// <para>The jobs of a batch - one per building and pending radius - are solved several at a time (<see cref="PostgreSQLBuildingSolarRadiationSolveOptions.MaxDegreeOfParallelism"/>, <see cref="Query.BuildingSolarRadiationSolveOutcomes"/>), and the next batch is read while they run; the results are still written one batch at a time, in order, and counted in job order, so the counts, failure samples and stored results are those of a sequential run (DiGi.GIS.PostgreSQL#139). Each batch logs the time spent waiting for its read, solving and writing, its neighbour and caster triangle counts, and the process memory - working set, managed heap after the last collection and after the last full collection, fragmentation, committed memory, GC pause share, full collection count and thread count - so a slow batch can be told apart as heavy geometry or a grown process; a batch after which the machine's memory load reaches the garbage collector's high load threshold is also logged as a warning and counted (<see cref="HighMemoryLoadBatchCount"/>), and each part line names the GC mode (DiGi.GIS.PostgreSQL#167). A cancellation waits for the solves in flight.</para>
     /// <para><see cref="PostgreSQLBuildingSolarRadiationSolveOptions.BuildingCountMax"/> cuts the walk of each part after its first buildings in that order (<see cref="Query.SolarSolveTiles"/>), for a pilot that still logs its part and run summaries (DiGi.GIS.PostgreSQL#138).</para>
     /// <para>A building that cannot be solved - no stored model, no location, no closed envelope, no weather, or above a ceiling - is counted and stepped over. A county part whose buildings, models or neighbours cannot be read, or whose results cannot be written, is failed and logged with the exception, and the run keeps going over the other parts; a run with a failed part reports itself as not succeeded.</para>
     /// </summary>
@@ -48,6 +49,12 @@ namespace DiGi.GIS.PostgreSQL.Solar.Classes
         /// Gets a bounded sample of the failures of the last run, at most 50 descriptions; <see cref="FailedCount"/> and <see cref="FailedCountyCount"/> are the full counts.
         /// </summary>
         public IReadOnlyList<string> FailureSamples => failureSamples;
+
+        /// <summary>
+        /// Gets the number of batches of the last run after which the machine's memory load was at or above the garbage collector's high memory load threshold (<see cref="Query.IsHighMemoryLoad"/>); each one is logged as a warning (DiGi.GIS.PostgreSQL#167).
+        /// <para>Such a batch is not failed: the run recovers once the heavy cell is behind it, and a restart resumes where it stopped (<see cref="PostgreSQLBuildingSolarRadiationSolveOptions.SkipExisting"/>).</para>
+        /// </summary>
+        public long HighMemoryLoadBatchCount { get; private set; }
 
         /// <summary>
         /// Gets the number of building and radius solves stepped over during the last run because a ceiling was exceeded: more receiving surfaces than <see cref="PostgreSQLBuildingSolarRadiationSolveOptions.ReceiverCountMax"/> (counted once per radius) or more caster triangles than <see cref="PostgreSQLBuildingSolarRadiationSolveOptions.CasterTriangleCountMax"/>.
@@ -99,6 +106,7 @@ namespace DiGi.GIS.PostgreSQL.Solar.Classes
         {
             FailedCount = 0;
             FailedCountyCount = 0;
+            HighMemoryLoadBatchCount = 0;
             OverCeilingCount = 0;
             NotSolvableCount = 0;
             ProcessedBuildingCount = 0;
@@ -203,6 +211,7 @@ namespace DiGi.GIS.PostgreSQL.Solar.Classes
                 long countyWriteMilliseconds = 0;
                 long countyBuildingCount = 0;
                 long countyPendingCount = 0;
+                long countyHighMemoryLoadBatchCount = 0;
                 bool countyCapped = false;
 
                 // Weather files read for this part, by station id: a part uses a handful of stations, each read once. Only
@@ -375,6 +384,28 @@ namespace DiGi.GIS.PostgreSQL.Solar.Classes
                             pauseTimePercentage,
                             fullCollectionCount,
                             threadCount);
+
+                        // The machine is short of memory: say so beside the batch that got it there, instead of letting
+                        // the next batches crawl through the pagefile unexplained (DiGi.GIS.PostgreSQL#167).
+                        GCMemoryInfo gCMemoryInfo_Load = GC.GetGCMemoryInfo();
+                        if (Query.IsHighMemoryLoad(gCMemoryInfo_Load.MemoryLoadBytes, gCMemoryInfo_Load.HighMemoryLoadThresholdBytes))
+                        {
+                            HighMemoryLoadBatchCount++;
+                            countyHighMemoryLoadBatchCount++;
+
+                            Serilog.Modify.Log(
+                                Serilog.Enums.LogEventLevel.Warning,
+                                "{Type}: county part {CountyId} batch {BatchNumber} of {BatchCount} - machine memory load {MemoryLoadMB} MB is at or above the high load threshold {HighMemoryLoadThresholdMB} MB; working set {WorkingSetMB} MB, largest job {CasterTriangleCountMax} caster triangles, degree of parallelism {DegreeOfParallelism}",
+                                type,
+                                countyId,
+                                batchIndex + 1,
+                                references_Batches.Count,
+                                gCMemoryInfo_Load.MemoryLoadBytes / (1024 * 1024),
+                                gCMemoryInfo_Load.HighMemoryLoadThresholdBytes / (1024 * 1024),
+                                workingSetMB,
+                                casterTriangleCount_Max,
+                                maxDegreeOfParallelism);
+                        }
                     }
                 }
                 catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -414,7 +445,7 @@ namespace DiGi.GIS.PostgreSQL.Solar.Classes
                 (long workingSetMB_County, long heapMB_County, long heapMB_FullCollection_County, long fragmentedMB_County, long committedMB_County, double pauseTimePercentage_County, int fullCollectionCount_County, int threadCount_County) = Memory();
                 Serilog.Modify.Log(
                     Serilog.Enums.LogEventLevel.Information,
-                    "{Type}: county part {CountyId} processed - {BuildingCount} of {PendingCount} pending buildings solved for, capped {Capped}, {SolvedCount} results stored, {SolveMilliseconds} ms solving, {AverageMilliseconds} ms per result, {ReadMilliseconds} ms waiting for reads, {SolveWallMilliseconds} ms solve wall, {WriteMilliseconds} ms writing, degree of parallelism {DegreeOfParallelism}; memory {WorkingSetMB} MB working set, {HeapMB} MB heap, {HeapMBFullCollection} MB heap after the last full collection, {FragmentedMB} MB fragmented, {CommittedMB} MB committed, {PauseTimePercentage} % GC pause, {FullCollectionCount} full collections, {ThreadCount} threads",
+                    "{Type}: county part {CountyId} processed - {BuildingCount} of {PendingCount} pending buildings solved for, capped {Capped}, {SolvedCount} results stored, {SolveMilliseconds} ms solving, {AverageMilliseconds} ms per result, {ReadMilliseconds} ms waiting for reads, {SolveWallMilliseconds} ms solve wall, {WriteMilliseconds} ms writing, degree of parallelism {DegreeOfParallelism}; memory {WorkingSetMB} MB working set, {HeapMB} MB heap, {HeapMBFullCollection} MB heap after the last full collection, {FragmentedMB} MB fragmented, {CommittedMB} MB committed, {PauseTimePercentage} % GC pause, {FullCollectionCount} full collections, {ThreadCount} threads, server GC {IsServerGC}, {HighMemoryLoadBatchCount} batches at high memory load",
                     type,
                     countyId,
                     countyBuildingCount,
@@ -434,7 +465,9 @@ namespace DiGi.GIS.PostgreSQL.Solar.Classes
                     committedMB_County,
                     pauseTimePercentage_County,
                     fullCollectionCount_County,
-                    threadCount_County);
+                    threadCount_County,
+                    GCSettings.IsServerGC,
+                    countyHighMemoryLoadBatchCount);
 
                 ePWFiles.Clear();
 
@@ -570,7 +603,7 @@ namespace DiGi.GIS.PostgreSQL.Solar.Classes
             }
 
             Serilog.Modify.Log(
-                "{Type}: finished - {ProcessedCountyCount} county parts, {FailedCountyCount} failed, {BuildingCount} buildings, {SolvedCount} results stored, {SkippedExistingCount} already stored, {OverCeilingCount} over a ceiling, {NotSolvableCount} not solvable, {FailedCount} failed, {SolveMilliseconds} ms solving",
+                "{Type}: finished - {ProcessedCountyCount} county parts, {FailedCountyCount} failed, {BuildingCount} buildings, {SolvedCount} results stored, {SkippedExistingCount} already stored, {OverCeilingCount} over a ceiling, {NotSolvableCount} not solvable, {FailedCount} failed, {SolveMilliseconds} ms solving, {HighMemoryLoadBatchCount} batches at high memory load",
                 type,
                 ProcessedCountyCount,
                 FailedCountyCount,
@@ -580,7 +613,8 @@ namespace DiGi.GIS.PostgreSQL.Solar.Classes
                 OverCeilingCount,
                 NotSolvableCount,
                 FailedCount,
-                SolveMilliseconds);
+                SolveMilliseconds,
+                HighMemoryLoadBatchCount);
 
             return FailedCountyCount == 0;
 
