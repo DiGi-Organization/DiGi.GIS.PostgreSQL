@@ -877,6 +877,10 @@ namespace DiGi.GIS.PostgreSQL
                     centroid_distance DOUBLE PRECISION,
                     dx DOUBLE PRECISION,
                     dy DOUBLE PRECISION,
+                    bdot_area DOUBLE PRECISION,
+                    source_area DOUBLE PRECISION,
+                    bdot_covered_area DOUBLE PRECISION,
+                    source_covered_area DOUBLE PRECISION,
                     point_x DOUBLE PRECISION NOT NULL,
                     point_y DOUBLE PRECISION NOT NULL,
                     parameters JSONB NOT NULL,
@@ -884,6 +888,13 @@ namespace DiGi.GIS.PostgreSQL
                     PRIMARY KEY (id, county_id),
                     UNIQUE NULLS NOT DISTINCT (dataset_id, county_id, bdot_county_id, bdot_reference, source_county_id, source_id)
                 ) PARTITION BY LIST (county_id);
+
+                -- The footprint areas, added after the first release of the table: a table created before them
+                -- gains them here, and its earlier rows read back null, which the summary reports as unknown.
+                ALTER TABLE {Constants.TableName.BuildingDatasetMatch} ADD COLUMN IF NOT EXISTS bdot_area DOUBLE PRECISION;
+                ALTER TABLE {Constants.TableName.BuildingDatasetMatch} ADD COLUMN IF NOT EXISTS source_area DOUBLE PRECISION;
+                ALTER TABLE {Constants.TableName.BuildingDatasetMatch} ADD COLUMN IF NOT EXISTS bdot_covered_area DOUBLE PRECISION;
+                ALTER TABLE {Constants.TableName.BuildingDatasetMatch} ADD COLUMN IF NOT EXISTS source_covered_area DOUBLE PRECISION;
 
                 -- The box scope of the summary: a component is in a box when its representative point is.
                 CREATE INDEX IF NOT EXISTS idx_{Constants.TableName.BuildingDatasetMatch}_point

@@ -1,6 +1,7 @@
 using DiGi.Core.Classes;
 using DiGi.GIS.PostgreSQL.Interfaces;
 using System;
+using System.Collections.Generic;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 
@@ -10,9 +11,37 @@ namespace DiGi.GIS.PostgreSQL.Classes
     /// The completeness and geometry measures of one open building dataset against BDOT10k over one scope, read from <c>building_dataset_match</c> (DiGi.GIS.PostgreSQL#127; paper 01, result blocks 2–3; endpoint E4, DiGi.GIS.WebAPI#108).
     /// <para>One total row per dataset (<see cref="PrimarySource"/> null) and one row per normalised primary source of the dataset's footprints. A primary source is an attribute of the dataset side, so a per-source row carries the dataset-side figures only: its BDOT10k count, omission count and omission rate are null, because an omission is a BDOT10k footprint no dataset footprint reached and belongs to no source. The footprint counts of the per-source rows (<see cref="DatasetCount"/>, <see cref="DatasetExcludedCount"/>, <see cref="CommissionCount"/>) sum to the total row's; the class counts need not, because a component whose dataset footprints come from two sources is counted under each of them.</para>
     /// <para>Counts: <see cref="BDOTCount"/> and <see cref="DatasetCount"/> are distinct footprints matched or not (the excluded ones are counted apart); the class counts are components, so a one-to-many component of one dataset footprint and three BDOT10k footprints counts once. The geometry measures are over the one-to-one rows only, the weak ones left out; medians and the tenth percentile are linear-interpolated percentiles (<c>percentile_cont</c>).</para>
+    /// <para>The completeness, correctness and quality of the ISPRS urban object detection benchmark (Rottensteiner et al., 2014) are given at object level - a footprint counts as found when any dataset footprint reached it, no 1:1 relation required - and at area level, from the covered areas the links store. Omission and commission are also given per size class, because detection is reliable above 50 m2 and not below it.</para>
     /// </summary>
     public class OpenBuildingMatchSummaryResult : SerializableResult, IGISPostgreSQLSerializableObject
     {
+        [JsonInclude, JsonPropertyName(nameof(AreaCompleteness))]
+        private readonly double? areaCompleteness;
+
+        [JsonInclude, JsonPropertyName(nameof(AreaCorrectness))]
+        private readonly double? areaCorrectness;
+
+        [JsonInclude, JsonPropertyName(nameof(Completeness))]
+        private readonly double? completeness;
+
+        [JsonInclude, JsonPropertyName(nameof(Correctness))]
+        private readonly double? correctness;
+
+        [JsonInclude, JsonPropertyName(nameof(DxRms))]
+        private readonly double? dxRms;
+
+        [JsonInclude, JsonPropertyName(nameof(DyRms))]
+        private readonly double? dyRms;
+
+        [JsonInclude, JsonPropertyName(nameof(PositionRms))]
+        private readonly double? positionRms;
+
+        [JsonInclude, JsonPropertyName(nameof(Quality))]
+        private readonly double? quality;
+
+        [JsonInclude, JsonPropertyName(nameof(SizeClasses))]
+        private readonly List<OpenBuildingMatchSizeClassResult>? sizeClasses;
+
         [JsonInclude, JsonPropertyName(nameof(AreaRatioMedian))]
         private readonly double? areaRatioMedian;
 
@@ -122,6 +151,15 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// <param name="dxMedian">The median X offset of the one-to-one pairs in metres, or null when there is none.</param>
         /// <param name="dyMean">The mean Y offset of the one-to-one pairs in metres (the systematic offset), or null when there is none.</param>
         /// <param name="dyMedian">The median Y offset of the one-to-one pairs in metres, or null when there is none.</param>
+        /// <param name="dxRms">The root mean square X offset of the one-to-one pairs in metres, or null when there is none.</param>
+        /// <param name="dyRms">The root mean square Y offset of the one-to-one pairs in metres, or null when there is none.</param>
+        /// <param name="positionRms">The root mean square centroid distance of the one-to-one pairs in metres (the benchmark's RMSXY), or null when there is none.</param>
+        /// <param name="completeness">The share of BDOT10k footprints a dataset footprint reached (1 - omission rate), or null on a per-source row or when there is no BDOT10k footprint.</param>
+        /// <param name="correctness">The share of dataset footprints that reached a BDOT10k footprint (1 - commission rate), or null when there is no dataset footprint.</param>
+        /// <param name="quality">Completeness and correctness combined as C*R / (C + R - C*R), or null on a per-source row or when either is unknown.</param>
+        /// <param name="areaCompleteness">The share of BDOT10k footprint area covered by dataset footprints, or null on a per-source row, when there is no BDOT10k area or when a link row predates the stored areas.</param>
+        /// <param name="areaCorrectness">The share of dataset footprint area covered by BDOT10k footprints, or null when there is no dataset area or when a link row predates the stored areas.</param>
+        /// <param name="sizeClasses">The omission and commission per footprint size class, or null when a link row predates the stored areas.</param>
         /// <param name="openBuildingMatchParameters">The rule parameters the links were computed with, or null when the scope mixes snapshots computed with different parameters.</param>
         /// <param name="computedAt">When the oldest snapshot in scope was computed, or null when not known.</param>
         public OpenBuildingMatchSummaryResult(
@@ -150,6 +188,15 @@ namespace DiGi.GIS.PostgreSQL.Classes
             double? dxMedian,
             double? dyMean,
             double? dyMedian,
+            double? dxRms,
+            double? dyRms,
+            double? positionRms,
+            double? completeness,
+            double? correctness,
+            double? quality,
+            double? areaCompleteness,
+            double? areaCorrectness,
+            IEnumerable<OpenBuildingMatchSizeClassResult>? sizeClasses,
             OpenBuildingMatchParameters? openBuildingMatchParameters,
             DateTimeOffset? computedAt)
         {
@@ -178,6 +225,15 @@ namespace DiGi.GIS.PostgreSQL.Classes
             this.dxMedian = dxMedian;
             this.dyMean = dyMean;
             this.dyMedian = dyMedian;
+            this.dxRms = dxRms;
+            this.dyRms = dyRms;
+            this.positionRms = positionRms;
+            this.completeness = completeness;
+            this.correctness = correctness;
+            this.quality = quality;
+            this.areaCompleteness = areaCompleteness;
+            this.areaCorrectness = areaCorrectness;
+            this.sizeClasses = sizeClasses is null ? null : [.. sizeClasses];
             this.openBuildingMatchParameters = openBuildingMatchParameters is null ? null : new OpenBuildingMatchParameters(openBuildingMatchParameters);
             this.computedAt = computedAt;
         }
@@ -216,6 +272,25 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 dxMedian = openBuildingMatchSummaryResult.dxMedian;
                 dyMean = openBuildingMatchSummaryResult.dyMean;
                 dyMedian = openBuildingMatchSummaryResult.dyMedian;
+                dxRms = openBuildingMatchSummaryResult.dxRms;
+                dyRms = openBuildingMatchSummaryResult.dyRms;
+                positionRms = openBuildingMatchSummaryResult.positionRms;
+                completeness = openBuildingMatchSummaryResult.completeness;
+                correctness = openBuildingMatchSummaryResult.correctness;
+                quality = openBuildingMatchSummaryResult.quality;
+                areaCompleteness = openBuildingMatchSummaryResult.areaCompleteness;
+                areaCorrectness = openBuildingMatchSummaryResult.areaCorrectness;
+                if (openBuildingMatchSummaryResult.sizeClasses is not null)
+                {
+                    sizeClasses = [];
+                    foreach (OpenBuildingMatchSizeClassResult openBuildingMatchSizeClassResult in openBuildingMatchSummaryResult.sizeClasses)
+                    {
+                        if (Core.Query.Clone(openBuildingMatchSizeClassResult) is OpenBuildingMatchSizeClassResult openBuildingMatchSizeClassResult_Temp)
+                        {
+                            sizeClasses.Add(openBuildingMatchSizeClassResult_Temp);
+                        }
+                    }
+                }
                 openBuildingMatchParameters = Core.Query.Clone(openBuildingMatchSummaryResult.openBuildingMatchParameters);
                 computedAt = openBuildingMatchSummaryResult.computedAt;
             }
@@ -391,5 +466,59 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// </summary>
         [JsonIgnore]
         public string? PrimarySource => primarySource;
+
+        /// <summary>
+        /// Gets the share of BDOT10k footprint area covered by dataset footprints - the benchmark's area-based completeness, which does not depend on how either side splits or merges buildings - or null on a per-source row, when there is no BDOT10k area or when a link row predates the stored areas.
+        /// </summary>
+        [JsonIgnore]
+        public double? AreaCompleteness => areaCompleteness;
+
+        /// <summary>
+        /// Gets the share of dataset footprint area covered by BDOT10k footprints - the benchmark's area-based correctness - or null when there is no dataset area or when a link row predates the stored areas.
+        /// </summary>
+        [JsonIgnore]
+        public double? AreaCorrectness => areaCorrectness;
+
+        /// <summary>
+        /// Gets the share of BDOT10k footprints a dataset footprint reached (1 - omission rate; the benchmark's object-level completeness, no 1:1 relation required), or null on a per-source row or when there is no BDOT10k footprint.
+        /// </summary>
+        [JsonIgnore]
+        public double? Completeness => completeness;
+
+        /// <summary>
+        /// Gets the share of dataset footprints that reached a BDOT10k footprint (1 - commission rate; the benchmark's object-level correctness), or null when there is no dataset footprint.
+        /// </summary>
+        [JsonIgnore]
+        public double? Correctness => correctness;
+
+        /// <summary>
+        /// Gets the root mean square X offset of the one-to-one pairs in metres, or null when there is none.
+        /// </summary>
+        [JsonIgnore]
+        public double? DxRms => dxRms;
+
+        /// <summary>
+        /// Gets the root mean square Y offset of the one-to-one pairs in metres, or null when there is none.
+        /// </summary>
+        [JsonIgnore]
+        public double? DyRms => dyRms;
+
+        /// <summary>
+        /// Gets the root mean square centroid distance of the one-to-one pairs in metres - the benchmark's RMSXY - or null when there is none.
+        /// </summary>
+        [JsonIgnore]
+        public double? PositionRms => positionRms;
+
+        /// <summary>
+        /// Gets completeness and correctness combined as C*R / (C + R - C*R) - the benchmark's quality, equal to TP / (TP + FN + FP) when both sides count the same true positives - or null on a per-source row or when either is unknown.
+        /// </summary>
+        [JsonIgnore]
+        public double? Quality => quality;
+
+        /// <summary>
+        /// Gets the omission and commission per footprint size class (<see cref="Constants.OpenBuildingMatchSizeClass.Bounds"/>), or null when a link row predates the stored areas.
+        /// </summary>
+        [JsonIgnore]
+        public List<OpenBuildingMatchSizeClassResult>? SizeClasses => sizeClasses is null ? null : [.. sizeClasses];
     }
 }

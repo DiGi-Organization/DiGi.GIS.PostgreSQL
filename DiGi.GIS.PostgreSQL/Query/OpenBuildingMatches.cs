@@ -5,6 +5,7 @@ using NetTopologySuite.Index.Strtree;
 using NetTopologySuite.Operation.OverlayNG;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace DiGi.GIS.PostgreSQL
 {
@@ -15,6 +16,7 @@ namespace DiGi.GIS.PostgreSQL
         /// <para><b>Edges.</b> Candidate pairs come from an STR tree over the BDOT10k envelopes. A pair is joined when its overlap is positive and covers at least <see cref="OpenBuildingMatchParameters.MinOverlapShare"/> of the smaller footprint, or - only when <see cref="OpenBuildingMatchParameters.MaxCentroidDistance"/> is positive - when it does not overlap and the centroids are that close. The overlap is measured with NetTopologySuite's robust overlay on geometries converted once per footprint.</para>
         /// <para><b>Classes.</b> The connected components of the edges: one and one is <see cref="OpenBuildingMatchClass.OneToOne"/> at an intersection over union of at least <see cref="OpenBuildingMatchParameters.IoUThreshold"/> and <see cref="OpenBuildingMatchClass.OneToOneWeak"/> below it; then one-to-many, many-to-one, many-to-many; a lone BDOT10k footprint is an <see cref="OpenBuildingMatchClass.Omission"/> and a lone dataset footprint a <see cref="OpenBuildingMatchClass.Commission"/>. A footprint below <see cref="OpenBuildingMatchParameters.MinArea"/> takes no part and is returned as <see cref="OpenBuildingMatchClass.Excluded"/>; one without a usable geometry (<see cref="OpenBuildingMatchItem.Geometry"/> null) is not returned at all - the caller counts it as rejected.</para>
         /// <para><b>Ownership.</b> A component belongs to the county part of its smallest BDOT10k key (county id, then reference, ordinal), or of its smallest dataset key when it has no BDOT10k member, and only the components owned by <paramref name="countyIds_Owned"/> are returned. A group that reads a margin across its edge therefore never returns a component the neighbouring group returns too, and nothing is counted twice. The owning footprint's centroid is the component's representative point.</para>
+        /// <para><b>Areas.</b> Every row carries the area of each of its footprints and the part of it the other side covers - every overlapping footprint counts, linked or not, unioned when there are several - so the area-based completeness and correctness of the ISPRS benchmark (Rottensteiner et al., 2014) are read from the rows alone, as are size classes.</para>
         /// <para><b>Determinism.</b> Both sides are de-duplicated on (county id, key) and ordered ordinally before anything else, components are numbered in that order from one, and a component's rows are ordered by their BDOT10k then dataset member - the output is the same for the same input, under any culture.</para>
         /// </summary>
         /// <param name="openBuildingMatchItems_Dataset">The dataset footprints of the group and its margin.</param>
@@ -123,6 +125,10 @@ namespace DiGi.GIS.PostgreSQL
             // (index of the BDOT10k footprint, index of the dataset footprint, overlap area)
             List<(int B, int D, double Intersection)> edges = [];
 
+            // Every pair with a positive overlap, linked or not: what each footprint has covering it, for the
+            // area-based completeness and correctness (Rottensteiner et al., 2014).
+            List<(int B, int D, double Intersection)> overlaps = [];
+
             if (count_Tree > 0)
             {
                 sTRtree.Build();
@@ -167,6 +173,11 @@ namespace DiGi.GIS.PostgreSQL
                             }
                         }
 
+                        if (intersection > 0)
+                        {
+                            overlaps.Add((b, d, intersection));
+                        }
+
                         bool edge = intersection > 0 && intersection / Math.Min(openBuildingMatchItem_D.Area, openBuildingMatchItem_B.Area) >= minOverlapShare;
 
                         if (!edge && maxCentroidDistance > 0 && !(intersection > 0))
@@ -183,6 +194,42 @@ namespace DiGi.GIS.PostgreSQL
                         }
                     }
                 }
+            }
+
+            // The covered area of each footprint: the part the other side covers. One partner is the overlap already
+            // measured; several are unioned first, so two dataset footprints overlapping each other on one register
+            // building are not counted twice. A footprint without a partner is covered by nothing.
+            double[] coveredAreas_B = new double[count_B];
+            double[] coveredAreas_D = new double[count_D];
+
+            double CoveredArea(NetTopologySuite.Geometries.Geometry geometry, List<NetTopologySuite.Geometries.Geometry> geometries_Partner, double intersection_Sum)
+            {
+                try
+                {
+                    NetTopologySuite.Geometries.Geometry geometry_Union = OverlayNGRobust.Union(geometry.Factory.BuildGeometry(geometries_Partner));
+                    return OverlayNGRobust.Overlay(geometry, geometry_Union, NetTopologySuite.Operation.Overlay.SpatialFunction.Intersection)?.Area ?? 0;
+                }
+                catch (TopologyException)
+                {
+                    // The sum of the pairwise overlaps bounds the union from above; the footprint's area bounds it too.
+                    return Math.Min(intersection_Sum, geometry.Area);
+                }
+            }
+
+            foreach (IGrouping<int, (int B, int D, double Intersection)> grouping in overlaps.GroupBy(x => x.B))
+            {
+                List<(int B, int D, double Intersection)> overlaps_B = [.. grouping];
+                coveredAreas_B[grouping.Key] = overlaps_B.Count == 1
+                    ? overlaps_B[0].Intersection
+                    : CoveredArea(openBuildingMatchItems_B[grouping.Key].Geometry!, overlaps_B.ConvertAll(x => openBuildingMatchItems_D[x.D].Geometry!), overlaps_B.Sum(x => x.Intersection));
+            }
+
+            foreach (IGrouping<int, (int B, int D, double Intersection)> grouping in overlaps.GroupBy(x => x.D))
+            {
+                List<(int B, int D, double Intersection)> overlaps_D = [.. grouping];
+                coveredAreas_D[grouping.Key] = overlaps_D.Count == 1
+                    ? overlaps_D[0].Intersection
+                    : CoveredArea(openBuildingMatchItems_D[grouping.Key].Geometry!, overlaps_D.ConvertAll(x => openBuildingMatchItems_B[x.B].Geometry!), overlaps_D.Sum(x => x.Intersection));
             }
 
             // The members and edges of each component, keyed by its root (its smallest node).
@@ -240,6 +287,10 @@ namespace DiGi.GIS.PostgreSQL
                     Math.Sqrt((dx * dx) + (dy * dy)),
                     dx,
                     dy,
+                    openBuildingMatchItem_B.Area,
+                    openBuildingMatchItem_D.Area,
+                    coveredAreas_B[edge.B],
+                    coveredAreas_D[edge.D],
                     pointX,
                     pointY);
             }
@@ -248,6 +299,9 @@ namespace DiGi.GIS.PostgreSQL
             {
                 OpenBuildingMatchItem openBuildingMatchItem = Item(node);
                 bool isBDOT = node < count_B;
+
+                // An excluded footprint takes no part in the matching, so nothing is said about what covers it.
+                double? coveredArea = openBuildingMatchClass == OpenBuildingMatchClass.Excluded ? null : (isBDOT ? coveredAreas_B[node] : coveredAreas_D[node - count_B]);
 
                 return new OpenBuildingMatch(
                     countyId,
@@ -263,6 +317,10 @@ namespace DiGi.GIS.PostgreSQL
                     null,
                     null,
                     null,
+                    isBDOT ? openBuildingMatchItem.Area : null,
+                    isBDOT ? null : openBuildingMatchItem.Area,
+                    isBDOT ? coveredArea : null,
+                    isBDOT ? null : coveredArea,
                     openBuildingMatchItem.CentroidX,
                     openBuildingMatchItem.CentroidY);
             }

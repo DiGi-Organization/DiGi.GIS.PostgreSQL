@@ -897,7 +897,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 // One COPY per partition: a binary import names a single table, so the rows go straight into
                 // their county's partition rather than through the partitioned parent.
                 string commandText_Copy = $@"
-                    COPY {Constants.TableName.BuildingDatasetMatch}_{countyId} (county_id, dataset_id, bdot_county_id, bdot_reference, source_county_id, source_id, primary_source, match_class, component_id, iou, area_ratio, centroid_distance, dx, dy, point_x, point_y, parameters)
+                    COPY {Constants.TableName.BuildingDatasetMatch}_{countyId} (county_id, dataset_id, bdot_county_id, bdot_reference, source_county_id, source_id, primary_source, match_class, component_id, iou, area_ratio, centroid_distance, dx, dy, bdot_area, source_area, bdot_covered_area, source_covered_area, point_x, point_y, parameters)
                     FROM STDIN (FORMAT BINARY)";
 
                 await using NpgsqlBinaryImporter npgsqlBinaryImporter = await npgsqlConnection.BeginBinaryImportAsync(commandText_Copy, cancellationToken);
@@ -939,17 +939,15 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 return null;
             }
 
-            string commandText = MatchSummaryCommandText("point(m.point_x, m.point_y) <@ box(point(@min_x, @min_y), point(@max_x, @max_y))");
+            void AddParameters(NpgsqlCommand npgsqlCommand)
+            {
+                npgsqlCommand.Parameters.Add(new NpgsqlParameter("min_x", NpgsqlDbType.Double) { Value = boundingBox2D.Min.X });
+                npgsqlCommand.Parameters.Add(new NpgsqlParameter("min_y", NpgsqlDbType.Double) { Value = boundingBox2D.Min.Y });
+                npgsqlCommand.Parameters.Add(new NpgsqlParameter("max_x", NpgsqlDbType.Double) { Value = boundingBox2D.Max.X });
+                npgsqlCommand.Parameters.Add(new NpgsqlParameter("max_y", NpgsqlDbType.Double) { Value = boundingBox2D.Max.Y });
+            }
 
-            await using NpgsqlCommand npgsqlCommand = new(commandText, npgsqlConnection);
-            npgsqlCommand.CommandTimeout = commandTimeout;
-            npgsqlCommand.Parameters.Add(new NpgsqlParameter("dataset_key", NpgsqlDbType.Text) { Value = datasetKey!.Trim() });
-            npgsqlCommand.Parameters.Add(new NpgsqlParameter("min_x", NpgsqlDbType.Double) { Value = boundingBox2D.Min.X });
-            npgsqlCommand.Parameters.Add(new NpgsqlParameter("min_y", NpgsqlDbType.Double) { Value = boundingBox2D.Min.Y });
-            npgsqlCommand.Parameters.Add(new NpgsqlParameter("max_x", NpgsqlDbType.Double) { Value = boundingBox2D.Max.X });
-            npgsqlCommand.Parameters.Add(new NpgsqlParameter("max_y", NpgsqlDbType.Double) { Value = boundingBox2D.Max.Y });
-
-            return await ReadMatchSummariesAsync(npgsqlCommand, datasetKey!.Trim(), cancellationToken);
+            return await ReadMatchSummariesAsync(npgsqlConnection, "point(m.point_x, m.point_y) <@ box(point(@min_x, @min_y), point(@max_x, @max_y))", AddParameters, datasetKey!.Trim(), commandTimeout, cancellationToken);
         }
 
         /// <summary>
@@ -995,14 +993,12 @@ namespace DiGi.GIS.PostgreSQL.Classes
                 return null;
             }
 
-            string commandText = MatchSummaryCommandText("m.county_id = ANY(@county_ids)");
+            void AddParameters(NpgsqlCommand npgsqlCommand)
+            {
+                npgsqlCommand.Parameters.Add(new NpgsqlParameter("county_ids", NpgsqlDbType.Array | NpgsqlDbType.Integer) { Value = countyIds_Array });
+            }
 
-            await using NpgsqlCommand npgsqlCommand = new(commandText, npgsqlConnection);
-            npgsqlCommand.CommandTimeout = commandTimeout;
-            npgsqlCommand.Parameters.Add(new NpgsqlParameter("dataset_key", NpgsqlDbType.Text) { Value = datasetKey!.Trim() });
-            npgsqlCommand.Parameters.Add(new NpgsqlParameter("county_ids", NpgsqlDbType.Array | NpgsqlDbType.Integer) { Value = countyIds_Array });
-
-            return await ReadMatchSummariesAsync(npgsqlCommand, datasetKey!.Trim(), cancellationToken);
+            return await ReadMatchSummariesAsync(npgsqlConnection, "m.county_id = ANY(@county_ids)", AddParameters, datasetKey!.Trim(), commandTimeout, cancellationToken);
         }
 
         /// <summary>
@@ -1892,7 +1888,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
 
         /// <summary>
         /// Builds the summary statement over <c>building_dataset_match</c> for one scope condition: one total row per register row and one row per primary source, through <c>GROUPING SETS</c>.
-        /// <para>The rows of a single footprint on the BDOT10k side (omissions, excluded BDOT10k footprints) carry no primary source and form their own per-source group with a null source; <see cref="ReadMatchSummariesAsync(NpgsqlCommand, string, CancellationToken)"/> drops that group, because it is not a source. <c>GROUPING(primary_source)</c> is what tells it from the total row.</para>
+        /// <para>The rows of a single footprint on the BDOT10k side (omissions, excluded BDOT10k footprints) carry no primary source and form their own per-source group with a null source; <see cref="ReadMatchSummariesAsync(NpgsqlConnection, string, Action{NpgsqlCommand}, string, int, CancellationToken)"/> drops that group, because it is not a source. <c>GROUPING(primary_source)</c> is what tells it from the total row.</para>
         /// </summary>
         /// <param name="condition">The scope condition on the alias <c>m</c>; a fixed text, never user input.</param>
         /// <returns>The statement text.</returns>
@@ -1927,7 +1923,10 @@ namespace DiGi.GIS.PostgreSQL.Classes
                     avg(m.dy) FILTER (WHERE m.match_class = 1),
                     percentile_cont(0.5) WITHIN GROUP (ORDER BY m.dy) FILTER (WHERE m.match_class = 1),
                     CASE WHEN count(DISTINCT m.parameters) = 1 THEN min(m.parameters::text) END,
-                    min(m.computed_at)
+                    min(m.computed_at),
+                    sqrt(avg(m.dx * m.dx) FILTER (WHERE m.match_class = 1)),
+                    sqrt(avg(m.dy * m.dy) FILTER (WHERE m.match_class = 1)),
+                    sqrt(avg(m.dx * m.dx + m.dy * m.dy) FILTER (WHERE m.match_class = 1 AND m.dx IS NOT NULL AND m.dy IS NOT NULL))
                 FROM {Constants.TableName.BuildingDatasetMatch} m
                 WHERE m.dataset_id IN (SELECT id FROM {Constants.TableName.BuildingDataset} WHERE lower(dataset_key) = lower(@dataset_key))
                     AND {condition}
@@ -1936,16 +1935,118 @@ namespace DiGi.GIS.PostgreSQL.Classes
         }
 
         /// <summary>
-        /// Executes a summary statement built by <see cref="MatchSummaryCommandText(string)"/> and turns its rows into results, computing the rates and dropping the null-source group of BDOT10k-only rows.
+        /// Builds the per-footprint statement of one side of the summary: every footprint of the side once (<c>DISTINCT ON</c> its county part and key, excluded footprints left out), then per register row - and, for the dataset side, per primary source - how many lack a stored area or covered area, the total area, the covered area, and the footprint and unmatched counts per size class (<see cref="Constants.OpenBuildingMatchSizeClass.Bounds"/>).
         /// </summary>
-        /// <param name="npgsqlCommand">The prepared command.</param>
-        /// <param name="datasetKey">The dataset key the results carry.</param>
+        /// <param name="condition">The scope condition on the alias <c>m</c>; a fixed text, never user input.</param>
+        /// <param name="isBDOT">True for the BDOT10k side (grouped per register row, unmatched = omission), false for the dataset side (grouped per register row and primary source, unmatched = commission).</param>
+        /// <returns>The statement text.</returns>
+        private static string MatchSummaryFootprintCommandText(string condition, bool isBDOT)
+        {
+            string prefix = isBDOT ? "bdot" : "source";
+            string unmatchedClass = isBDOT ? "6" : "7";
+
+            IReadOnlyList<double> bounds = Constants.OpenBuildingMatchSizeClass.Bounds;
+            List<string> columns_SizeClass = [];
+            for (int i = 0; i <= bounds.Count; i++)
+            {
+                string lower = i == 0 ? "TRUE" : string.Create(CultureInfo.InvariantCulture, $"f.area >= {bounds[i - 1]}");
+                string upper = i == bounds.Count ? "TRUE" : string.Create(CultureInfo.InvariantCulture, $"f.area < {bounds[i]}");
+                columns_SizeClass.Add($"count(*) FILTER (WHERE {lower} AND {upper})");
+                columns_SizeClass.Add($"count(*) FILTER (WHERE {lower} AND {upper} AND f.match_class = {unmatchedClass})");
+            }
+
+            string grouping = isBDOT ? "GROUP BY f.dataset_id" : "GROUP BY GROUPING SETS ((f.dataset_id), (f.dataset_id, f.primary_source))";
+            string select_Source = isBDOT ? "1, NULL::text" : "GROUPING(f.primary_source), f.primary_source";
+
+            return $@"
+                WITH f AS (
+                    SELECT DISTINCT ON (m.dataset_id, m.{prefix}_county_id, m.{(isBDOT ? "bdot_reference" : "source_id")})
+                        m.dataset_id, m.primary_source, m.{prefix}_area AS area, m.{prefix}_covered_area AS covered_area, m.match_class
+                    FROM {Constants.TableName.BuildingDatasetMatch} m
+                    WHERE m.dataset_id IN (SELECT id FROM {Constants.TableName.BuildingDataset} WHERE lower(dataset_key) = lower(@dataset_key))
+                        AND {condition}
+                        AND m.{(isBDOT ? "bdot_reference" : "source_id")} IS NOT NULL
+                        AND m.match_class <> 8
+                    ORDER BY m.dataset_id, m.{prefix}_county_id, m.{(isBDOT ? "bdot_reference" : "source_id")})
+                SELECT
+                    f.dataset_id,
+                    {select_Source},
+                    count(*) FILTER (WHERE f.area IS NULL),
+                    count(*) FILTER (WHERE f.area IS NULL OR f.covered_area IS NULL),
+                    sum(f.area),
+                    sum(f.covered_area),
+                    {string.Join(",\n                    ", columns_SizeClass)}
+                FROM f
+                {grouping};";
+        }
+
+        /// <summary>
+        /// Runs the summary statements for one scope and assembles the results: the per-footprint statements of both sides first (<see cref="MatchSummaryFootprintCommandText(string, bool)"/>), then the main statement (<see cref="MatchSummaryCommandText(string)"/>), one after another on the one connection.
+        /// <para>From the counts it derives the rates and the benchmark's object-level completeness, correctness and quality; from the areas the area-based completeness and correctness; and the size classes. An area figure is null rather than partial when any footprint of the side lacks its stored area - a link row written before the areas were stored. The null-source group of BDOT10k-only rows is dropped, because it is not a source.</para>
+        /// </summary>
+        /// <param name="npgsqlConnection">The open connection.</param>
+        /// <param name="condition">The scope condition on the alias <c>m</c>; a fixed text, never user input.</param>
+        /// <param name="addParameters">Adds the scope condition's parameters to a command; <c>@dataset_key</c> is added here.</param>
+        /// <param name="datasetKey">The dataset key, trimmed.</param>
+        /// <param name="commandTimeout">The timeout in seconds for the execution of each command. A value of 0 disables the timeout.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> to monitor for cancellation requests.</param>
         /// <returns>The summaries, total row first for each register row.</returns>
-        private static async Task<List<OpenBuildingMatchSummaryResult>> ReadMatchSummariesAsync(NpgsqlCommand npgsqlCommand, string datasetKey, CancellationToken cancellationToken)
+        private static async Task<List<OpenBuildingMatchSummaryResult>> ReadMatchSummariesAsync(NpgsqlConnection npgsqlConnection, string condition, Action<NpgsqlCommand> addParameters, string datasetKey, int commandTimeout, CancellationToken cancellationToken)
         {
+            int count_SizeClass = Constants.OpenBuildingMatchSizeClass.Bounds.Count + 1;
+
+            NpgsqlCommand Command(string commandText)
+            {
+                NpgsqlCommand npgsqlCommand = new(commandText, npgsqlConnection);
+                npgsqlCommand.CommandTimeout = commandTimeout;
+                npgsqlCommand.Parameters.Add(new NpgsqlParameter("dataset_key", NpgsqlDbType.Text) { Value = datasetKey });
+                addParameters(npgsqlCommand);
+                return npgsqlCommand;
+            }
+
+            // Per register row and primary source (null = the register row's total): the side's footprint figures.
+            async Task<Dictionary<(int, string?), (long MissingArea, long MissingCovered, double? Area, double? CoveredArea, long[] Counts, long[] Unmatched)>> FootprintsAsync(bool isBDOT)
+            {
+                Dictionary<(int, string?), (long, long, double?, double?, long[], long[])> result = [];
+
+                await using NpgsqlCommand npgsqlCommand = Command(MatchSummaryFootprintCommandText(condition, isBDOT));
+                await using NpgsqlDataReader npgsqlDataReader = await npgsqlCommand.ExecuteReaderAsync(cancellationToken);
+                while (await npgsqlDataReader.ReadAsync(cancellationToken))
+                {
+                    bool isTotal = npgsqlDataReader.GetInt32(1) == 1;
+                    string? primarySource = npgsqlDataReader.IsDBNull(2) ? null : npgsqlDataReader.GetString(2);
+
+                    long[] counts = new long[count_SizeClass];
+                    long[] unmatched = new long[count_SizeClass];
+                    for (int i = 0; i < count_SizeClass; i++)
+                    {
+                        counts[i] = npgsqlDataReader.GetInt64(7 + (2 * i));
+                        unmatched[i] = npgsqlDataReader.GetInt64(8 + (2 * i));
+                    }
+
+                    result[(npgsqlDataReader.GetInt32(0), isTotal ? null : primarySource)] = (
+                        npgsqlDataReader.GetInt64(3),
+                        npgsqlDataReader.GetInt64(4),
+                        npgsqlDataReader.IsDBNull(5) ? null : npgsqlDataReader.GetDouble(5),
+                        npgsqlDataReader.IsDBNull(6) ? null : npgsqlDataReader.GetDouble(6),
+                        counts,
+                        unmatched);
+                }
+
+                return result;
+            }
+
+            Dictionary<(int, string?), (long MissingArea, long MissingCovered, double? Area, double? CoveredArea, long[] Counts, long[] Unmatched)> footprints_BDOT = await FootprintsAsync(true);
+            Dictionary<(int, string?), (long MissingArea, long MissingCovered, double? Area, double? CoveredArea, long[] Counts, long[] Unmatched)> footprints_Dataset = await FootprintsAsync(false);
+
+            static double? AreaShare((long MissingArea, long MissingCovered, double? Area, double? CoveredArea, long[] Counts, long[] Unmatched) footprints)
+            {
+                return footprints.MissingCovered == 0 && footprints.Area is double area && area > 0 && footprints.CoveredArea is double area_Covered ? area_Covered / area : null;
+            }
+
             List<OpenBuildingMatchSummaryResult> result = [];
 
+            await using NpgsqlCommand npgsqlCommand = Command(MatchSummaryCommandText(condition));
             await using NpgsqlDataReader npgsqlDataReader = await npgsqlCommand.ExecuteReaderAsync(cancellationToken);
             while (await npgsqlDataReader.ReadAsync(cancellationToken))
             {
@@ -1963,6 +2064,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
                     return npgsqlDataReader.IsDBNull(ordinal) ? null : npgsqlDataReader.GetDouble(ordinal);
                 }
 
+                int datasetId = npgsqlDataReader.GetInt32(0);
                 long bDOTCount = npgsqlDataReader.GetInt64(3);
                 long datasetCount = npgsqlDataReader.GetInt64(4);
                 long omissionCount = npgsqlDataReader.GetInt64(12);
@@ -1976,9 +2078,42 @@ namespace DiGi.GIS.PostgreSQL.Classes
 
                 DateTimeOffset? computedAt = npgsqlDataReader.IsDBNull(24) ? null : npgsqlDataReader.GetFieldValue<DateTimeOffset>(24);
 
+                double? completeness = isTotal && bDOTCount > 0 ? (double)(bDOTCount - omissionCount) / bDOTCount : null;
+                double? correctness = datasetCount > 0 ? (double)(datasetCount - commissionCount) / datasetCount : null;
+
+                double? quality = null;
+                if (isTotal && completeness is double c && correctness is double r && (c + r - (c * r)) > 0)
+                {
+                    quality = c * r / (c + r - (c * r));
+                }
+
+                bool hasBDOT = footprints_BDOT.TryGetValue((datasetId, null), out (long MissingArea, long MissingCovered, double? Area, double? CoveredArea, long[] Counts, long[] Unmatched) bDOT);
+                bool hasDataset = footprints_Dataset.TryGetValue((datasetId, isTotal ? null : primarySource), out (long MissingArea, long MissingCovered, double? Area, double? CoveredArea, long[] Counts, long[] Unmatched) dataset);
+
+                // A side with no footprint at all has nothing missing; a per-source row reports no BDOT10k figure.
+                bool isKnown_BDOT = !isTotal || !hasBDOT || bDOT.MissingArea == 0;
+                bool isKnown_Dataset = !hasDataset || dataset.MissingArea == 0;
+
+                List<OpenBuildingMatchSizeClassResult>? sizeClasses = null;
+                if (isKnown_BDOT && isKnown_Dataset)
+                {
+                    IReadOnlyList<double> bounds = Constants.OpenBuildingMatchSizeClass.Bounds;
+                    sizeClasses = [];
+                    for (int i = 0; i < count_SizeClass; i++)
+                    {
+                        sizeClasses.Add(new OpenBuildingMatchSizeClassResult(
+                            i == 0 ? 0 : bounds[i - 1],
+                            i < bounds.Count ? bounds[i] : null,
+                            isTotal ? (hasBDOT ? bDOT.Counts[i] : 0) : null,
+                            isTotal ? (hasBDOT ? bDOT.Unmatched[i] : 0) : null,
+                            hasDataset ? dataset.Counts[i] : 0,
+                            hasDataset ? dataset.Unmatched[i] : 0));
+                    }
+                }
+
                 result.Add(new OpenBuildingMatchSummaryResult(
                     datasetKey,
-                    npgsqlDataReader.GetInt32(0),
+                    datasetId,
                     isTotal ? null : primarySource,
                     isTotal ? bDOTCount : null,
                     datasetCount,
@@ -2002,6 +2137,15 @@ namespace DiGi.GIS.PostgreSQL.Classes
                     Double(20),
                     Double(21),
                     Double(22),
+                    Double(25),
+                    Double(26),
+                    Double(27),
+                    completeness,
+                    correctness,
+                    quality,
+                    isTotal && hasBDOT ? AreaShare(bDOT) : null,
+                    hasDataset ? AreaShare(dataset) : null,
+                    sizeClasses,
                     openBuildingMatchParameters,
                     computedAt));
             }
@@ -2048,6 +2192,10 @@ namespace DiGi.GIS.PostgreSQL.Classes
             await WriteAsync(openBuildingMatch.CentroidDistance, NpgsqlDbType.Double);
             await WriteAsync(openBuildingMatch.Dx, NpgsqlDbType.Double);
             await WriteAsync(openBuildingMatch.Dy, NpgsqlDbType.Double);
+            await WriteAsync(openBuildingMatch.BDOTArea, NpgsqlDbType.Double);
+            await WriteAsync(openBuildingMatch.SourceArea, NpgsqlDbType.Double);
+            await WriteAsync(openBuildingMatch.BDOTCoveredArea, NpgsqlDbType.Double);
+            await WriteAsync(openBuildingMatch.SourceCoveredArea, NpgsqlDbType.Double);
             await npgsqlBinaryImporter.WriteAsync(openBuildingMatch.PointX, NpgsqlDbType.Double, cancellationToken);
             await npgsqlBinaryImporter.WriteAsync(openBuildingMatch.PointY, NpgsqlDbType.Double, cancellationToken);
             await npgsqlBinaryImporter.WriteAsync(parameters, NpgsqlDbType.Jsonb, cancellationToken);

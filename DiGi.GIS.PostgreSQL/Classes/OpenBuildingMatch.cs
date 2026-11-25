@@ -5,7 +5,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
     /// <summary>
     /// One row of <c>building_dataset_match</c> (DiGi.GIS.PostgreSQL#127): a pair of overlapping footprints joined by an edge of the overlap graph, or a single footprint that is an omission, a commission or excluded by the minimum area.
     /// <para>A BDOT10k footprint is named by (<see cref="BDOTCountyId"/>, <see cref="BDOTReference"/>) and a dataset footprint by (<see cref="SourceCountyId"/>, <see cref="SourceId"/>) - keys are unique only per county part, and a <c>building_2d.id</c> is renumbered by a BDOT10k re-import, so neither side is keyed by a row id. A component of several footprints is one row per edge, every row carrying the component's class and identifier, so a footprint is counted once by counting its key distinctly.</para>
-    /// <para>The measures (<see cref="IoU"/>, <see cref="AreaRatio"/>, <see cref="CentroidDistance"/>, <see cref="Dx"/>, <see cref="Dy"/>) describe the pair of the row and are null on a single-footprint row. <see cref="PointX"/> and <see cref="PointY"/> are the representative point of the component - the centroid of its owning footprint - shared by every row of it, so a box scope takes a component whole or not at all.</para>
+    /// <para>The measures (<see cref="IoU"/>, <see cref="AreaRatio"/>, <see cref="CentroidDistance"/>, <see cref="Dx"/>, <see cref="Dy"/>) describe the pair of the row and are null on a single-footprint row. The areas (<see cref="BDOTArea"/>, <see cref="SourceArea"/>) and covered areas (<see cref="BDOTCoveredArea"/>, <see cref="SourceCoveredArea"/>) describe each footprint of the row and repeat on every row it appears in; a footprint is counted once by its key. The covered area is the part of a footprint that the other side covers - every overlapping footprint, linked or not - so the area-based completeness and correctness of the ISPRS benchmark (Rottensteiner et al., 2014) can be read from the links alone. <see cref="PointX"/> and <see cref="PointY"/> are the representative point of the component - the centroid of its owning footprint - shared by every row of it, so a box scope takes a component whole or not at all.</para>
     /// </summary>
     public class OpenBuildingMatch
     {
@@ -25,6 +25,10 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// <param name="centroidDistance">The distance between the two centroids in metres, or null on a single-footprint row.</param>
         /// <param name="dx">The X offset of the dataset centroid from the BDOT10k centroid in metres, or null on a single-footprint row.</param>
         /// <param name="dy">The Y offset of the dataset centroid from the BDOT10k centroid in metres, or null on a single-footprint row.</param>
+        /// <param name="bDOTArea">The area of the BDOT10k footprint in square metres, or null when the row has none.</param>
+        /// <param name="sourceArea">The area of the dataset footprint in square metres, or null when the row has none.</param>
+        /// <param name="bDOTCoveredArea">The part of the BDOT10k footprint covered by the dataset footprints in square metres, or null when the row has none or the footprint is excluded.</param>
+        /// <param name="sourceCoveredArea">The part of the dataset footprint covered by the BDOT10k footprints in square metres, or null when the row has none or the footprint is excluded.</param>
         /// <param name="pointX">The X ordinate of the component's representative point in EPSG:2180.</param>
         /// <param name="pointY">The Y ordinate of the component's representative point in EPSG:2180.</param>
         public OpenBuildingMatch(
@@ -41,6 +45,10 @@ namespace DiGi.GIS.PostgreSQL.Classes
             double? centroidDistance,
             double? dx,
             double? dy,
+            double? bDOTArea,
+            double? sourceArea,
+            double? bDOTCoveredArea,
+            double? sourceCoveredArea,
             double pointX,
             double pointY)
         {
@@ -57,6 +65,10 @@ namespace DiGi.GIS.PostgreSQL.Classes
             CentroidDistance = centroidDistance;
             Dx = dx;
             Dy = dy;
+            BDOTArea = bDOTArea;
+            SourceArea = sourceArea;
+            BDOTCoveredArea = bDOTCoveredArea;
+            SourceCoveredArea = sourceCoveredArea;
             PointX = pointX;
             PointY = pointY;
         }
@@ -65,6 +77,16 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// Gets the dataset footprint's area divided by the BDOT10k footprint's area, or null on a single-footprint row.
         /// </summary>
         public double? AreaRatio { get; }
+
+        /// <summary>
+        /// Gets the area of the BDOT10k footprint in square metres, or null when the row has none.
+        /// </summary>
+        public double? BDOTArea { get; }
+
+        /// <summary>
+        /// Gets the part of the BDOT10k footprint covered by the dataset footprints in square metres, or null when the row has none or the footprint is excluded.
+        /// </summary>
+        public double? BDOTCoveredArea { get; }
 
         /// <summary>
         /// Gets the county part of the BDOT10k footprint, or null when the row has none.
@@ -127,9 +149,19 @@ namespace DiGi.GIS.PostgreSQL.Classes
         public string? PrimarySource { get; }
 
         /// <summary>
+        /// Gets the area of the dataset footprint in square metres, or null when the row has none.
+        /// </summary>
+        public double? SourceArea { get; }
+
+        /// <summary>
         /// Gets the county part of the dataset footprint, or null when the row has none.
         /// </summary>
         public int? SourceCountyId { get; }
+
+        /// <summary>
+        /// Gets the part of the dataset footprint covered by the BDOT10k footprints in square metres, or null when the row has none or the footprint is excluded.
+        /// </summary>
+        public double? SourceCoveredArea { get; }
 
         /// <summary>
         /// Gets the source identifier of the dataset footprint, or null when the row has none.
