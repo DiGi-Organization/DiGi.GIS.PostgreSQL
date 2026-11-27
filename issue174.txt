@@ -1,0 +1,37 @@
+## Context
+
+Production-run follow-up of DiGi-Organization/DiGi.GIS.PostgreSQL#127 (matching of the open building footprints to BDOT10k: `building_dataset_match`, `PostgreSQLOpenBuildingMatchTask`, pushed on `0.8.11` as `6a5d9f8`), filed under `GitHub - Issues.md` §3: the code issue closes on its own and this issue owns everything that happens on the server. It completes #127's acceptance "link table and measures computed for the pilot scope" and gives paper 01 (result blocks 2–3) its figures through E4.
+
+Inputs are the pilot import of DiGi-Organization/DiGi.GIS.PostgreSQL#126: 16 county parts (the 15 `county_id` values of the T30 pilot areas plus sibling part 29861 of krakowski), five footprint datasets on the Storage database (`gis_storage`), BDOT10k `building_2d` on Main (`gis_main`). The nationwide import (#173) is parked until this run and #128 are in.
+
+## Preconditions (blocked by)
+
+- DiGi-Organization/DiGi.GIS.PostgreSQL#127 — the code, and **the matching rule agreed with the paper 01 co-author** (its acceptance box 1). The stored snapshot is what the paper cites, so the production run uses the agreed parameters, not provisional ones.
+- DiGi-Organization/DiGi.GIS.PostgreSQL.UI#57 — the tray row and options window for the task.
+- DiGi-Organization/DiGi.GIS.WebAPI#108 — E4 `gis/openbuilding/matchsummary`, the only way the figures are read (production is never read through a `*.conf`, `Coding - PostgreSQL.md` §6).
+
+## Scope
+
+1. **Deploy** the tray (and the API host for E4) built from the version branches carrying #127, after `git pull --ff-only` in every repository built (`GitHub - Branches and Commits.md` §2). Record `/information/version` of the API host.
+2. **Pre-flight on the database server:** free space on the Storage volume with the date; the pilot row counts per dataset through `gis/openbuilding/summariesbycountyids` (one county part at a time, sequentially — Warszawa took 184 s in #126); no county part of the pilot holds rows of two releases of one dataset (the task refuses such a group).
+3. **Runs**, one dataset at a time, smallest first (`microsoft`, `osm`, `eubucco`, `dbsm`, `overture`), scope = the 16 county parts by `id`, parameters = the agreed defaults, **Store links** checked. Keep the per-group log lines and the report; record for every run the elapsed time, the peak memory of the tray process, `FailedGroupCount` and the `MarginReachCount` per group.
+4. **Margin check:** if any group reports `MarginReachCount > 0`, re-run that dataset with a larger `BoundaryMargin` and record whether the summaries change.
+5. **Evidence through E4 only:** per T30 area (box scope) and per dataset — total row and per-`primary_source` rows — posted here as one table per dataset. The stratum of a T30 area comes from `Pilotaz_T30_obszary.tsv` (it is not stored). Check on every row that the per-source `DatasetCount` and `CommissionCount` sum to the total (the class counts need not — a component of two sources counts under each).
+6. **Sensitivity runs** (paper 01 §4.9), with **Store links** unchecked so the stored snapshot stays the cited one: `IoUThreshold` 0.4 / 0.6, `MinOverlapShare` 0.1 / 0.5, `MinArea` 10 / 25 m². Post their summaries (from the run report) beside the stored ones.
+7. **Wiki:** add a matching section to `Open-Building-Datasets-Import` (rule and parameters, run times, the per-dataset totals, the limits below).
+
+## Limits to state with the figures
+
+- EUBUCCO v0.2 for Poland is 64–71 % `gov-poland` (BDOT10k-derived): its agreement is high by construction — read it per `primary_source`.
+- The offsets dx/dy include the ETRS89 vs WGS84 residual of DiGi-Organization/DiGi.GIS#21 (~0.9 m, not corrected at import).
+- Links derived from ODbL geometry stay ODbL; paper 01 publishes aggregates only (DiGi-Organization/DiGi.Maintenance#18 §4.4).
+- A BDOT10k re-import on Main does not invalidate the links on Storage; `ComputedAt` on every summary row dates the snapshot.
+
+## Acceptance criteria
+
+- [ ] Five datasets matched for all 16 county parts on production, `FailedGroupCount` 0, reports kept.
+- [ ] Time and peak memory per run recorded, the largest group named; `MarginReachCount` recorded and resolved.
+- [ ] E4 figures per T30 area and dataset posted here, per-source dataset counts summing to the totals.
+- [ ] Sensitivity summaries posted (stored snapshot unchanged afterwards).
+- [ ] Wiki page updated; a comment on #127 links this issue's results.
+
