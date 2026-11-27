@@ -36843,11 +36843,13 @@ public string? SourcePath { get; set; }
 
 Represents a background task that creates the PostgreSQL table for statistical data collections\.
 
+Cancelable, so a run stopped by the operator, or declined by a subclass before it did any work (a cancelled folder dialog), ends as canceled rather than as a failure (DiGi-Organization/DiGi.GIS.PostgreSQL.UI#77).
+
 ```csharp
-public class PostgreSQLStatisticalDataCollectionCreateTableTask : DiGi.Core.Classes.BackgroundTask, DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLObject, DiGi.Core.Interfaces.IObject
+public class PostgreSQLStatisticalDataCollectionCreateTableTask : DiGi.Core.Classes.CancelableBackgroundTask, DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLObject, DiGi.Core.Interfaces.IObject
 ```
 
-Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [DiGi\.Core\.Classes\.BackgroundTask](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.backgroundtask 'DiGi\.Core\.Classes\.BackgroundTask') → PostgreSQLStatisticalDataCollectionCreateTableTask
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [DiGi\.Core\.Classes\.BackgroundTask](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.backgroundtask 'DiGi\.Core\.Classes\.BackgroundTask') → [DiGi\.Core\.Classes\.CancelableBackgroundTask](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.cancelablebackgroundtask 'DiGi\.Core\.Classes\.CancelableBackgroundTask') → PostgreSQLStatisticalDataCollectionCreateTableTask
 
 Implements [IGISPostgreSQLObject](DiGi.GIS.PostgreSQL.Interfaces.md#DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLObject 'DiGi\.GIS\.PostgreSQL\.Interfaces\.IGISPostgreSQLObject'), [DiGi\.Core\.Interfaces\.IObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iobject 'DiGi\.Core\.Interfaces\.IObject')
 ### Constructors
@@ -36887,15 +36889,22 @@ public PostgreSQLStatisticalDataCollectionCreateTableTask(DiGi.GIS.PostgreSQL.Cl
 The statistical data collection PostgreSQL converter used to create the table\.
 ### Methods
 
-<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLStatisticalDataCollectionCreateTableTask.ExecuteAsync()'></a>
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLStatisticalDataCollectionCreateTableTask.ExecuteAsync(System.Threading.CancellationToken)'></a>
 
-## PostgreSQLStatisticalDataCollectionCreateTableTask\.ExecuteAsync\(\) Method
+## PostgreSQLStatisticalDataCollectionCreateTableTask\.ExecuteAsync\(CancellationToken\) Method
 
 Executes the background task to create the statistical data collection table in PostgreSQL\.
 
 ```csharp
-protected override System.Threading.Tasks.Task<bool> ExecuteAsync();
+protected override System.Threading.Tasks.Task<bool> ExecuteAsync(System.Threading.CancellationToken token);
 ```
+#### Parameters
+
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLStatisticalDataCollectionCreateTableTask.ExecuteAsync(System.Threading.CancellationToken).token'></a>
+
+`token` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The cancellation token to observe\.
 
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
