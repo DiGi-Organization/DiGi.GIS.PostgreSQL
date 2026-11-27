@@ -1,14 +1,16 @@
 using DiGi.Core.Classes;
 using DiGi.GIS.PostgreSQL.Interfaces;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DiGi.GIS.PostgreSQL.Classes
 {
     /// <summary>
     /// Represents a background task that creates the PostgreSQL table for statistical data collections.
+    /// <para>Cancelable, so a run stopped by the operator, or declined by a subclass before it did any work (a cancelled folder dialog), ends as canceled rather than as a failure (DiGi-Organization/DiGi.GIS.PostgreSQL.UI#77).</para>
     /// </summary>
-    public class PostgreSQLStatisticalDataCollectionCreateTableTask : BackgroundTask, IGISPostgreSQLObject
+    public class PostgreSQLStatisticalDataCollectionCreateTableTask : CancelableBackgroundTask, IGISPostgreSQLObject
     {
         private readonly StatisticalDataCollectionPostgreSQLConverter statisticalDataCollectionPostgreSQLConverter;
 
@@ -35,10 +37,11 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// <summary>
         /// Executes the background task to create the statistical data collection table in PostgreSQL.
         /// </summary>
+        /// <param name="token">The cancellation token to observe.</param>
         /// <returns>A task representing the asynchronous operation. Returns true if the table was created successfully; otherwise, false.</returns>
-        protected override async Task<bool> ExecuteAsync()
+        protected override async Task<bool> ExecuteAsync(CancellationToken token)
         {
-            return await statisticalDataCollectionPostgreSQLConverter.CreateTableAsync(600);
+            return await statisticalDataCollectionPostgreSQLConverter.CreateTableAsync(600, token);
         }
     }
 }
