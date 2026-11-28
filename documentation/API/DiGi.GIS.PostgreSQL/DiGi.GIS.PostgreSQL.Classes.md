@@ -35694,6 +35694,19 @@ public int LastYear { get; set; }
 #### Property Value
 [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
 
+<a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoDatasAcquisitionUpdateOptions.MaxDegreeOfParallelism'></a>
+
+## PostgreSQLOrtoDatasAcquisitionUpdateOptions\.MaxDegreeOfParallelism Property
+
+Gets or sets how many county parts are walked at once\. Zero uses half of the logical processors, one walks one part at a time as before\. The stored rows do not depend on it; memory grows with the degree times [PageSize](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoDatasAcquisitionUpdateOptions.PageSize 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLOrtoDatasAcquisitionUpdateOptions\.PageSize') stored pages \(DiGi\.GIS\.PostgreSQL\#177\)\.
+
+```csharp
+public int MaxDegreeOfParallelism { get; set; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
 <a name='DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoDatasAcquisitionUpdateOptions.PageSize'></a>
 
 ## PostgreSQLOrtoDatasAcquisitionUpdateOptions\.PageSize Property
@@ -35711,9 +35724,11 @@ public int PageSize { get; set; }
 
 ## PostgreSQLOrtoDatasAcquisitionUpdateTask Class
 
-Represents a background task that backfills the acquisition date, sheet and content hash of the stored images of the selected county parts from `orto_sheet` into `orto_data_acquisition` \([UpdateOrtoDatasAcquisitionAsync\(this OrtoDatasPostgreSQLConverter, OrtoSheetPostgreSQLConverter, IEnumerable&lt;int&gt;, int, int, int, CancellationToken\)](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Modify.UpdateOrtoDatasAcquisitionAsync(thisDiGi.GIS.PostgreSQL.Classes.OrtoDatasPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OrtoSheetPostgreSQLConverter,System.Collections.Generic.IEnumerable_int_,int,int,int,System.Threading.CancellationToken) 'DiGi\.GIS\.PostgreSQL\.Modify\.UpdateOrtoDatasAcquisitionAsync\(this DiGi\.GIS\.PostgreSQL\.Classes\.OrtoDatasPostgreSQLConverter, DiGi\.GIS\.PostgreSQL\.Classes\.OrtoSheetPostgreSQLConverter, System\.Collections\.Generic\.IEnumerable\<int\>, int, int, int, System\.Threading\.CancellationToken\)')\), one county part after another\.
+Represents a background task that backfills the acquisition date, sheet and content hash of the stored images of the selected county parts from `orto_sheet` into `orto_data_acquisition` \([UpdateOrtoDatasAcquisitionAsync\(this OrtoDatasPostgreSQLConverter, OrtoSheetPostgreSQLConverter, IEnumerable&lt;int&gt;, int, int, int, CancellationToken\)](DiGi.GIS.PostgreSQL.md#DiGi.GIS.PostgreSQL.Modify.UpdateOrtoDatasAcquisitionAsync(thisDiGi.GIS.PostgreSQL.Classes.OrtoDatasPostgreSQLConverter,DiGi.GIS.PostgreSQL.Classes.OrtoSheetPostgreSQLConverter,System.Collections.Generic.IEnumerable_int_,int,int,int,System.Threading.CancellationToken) 'DiGi\.GIS\.PostgreSQL\.Modify\.UpdateOrtoDatasAcquisitionAsync\(this DiGi\.GIS\.PostgreSQL\.Classes\.OrtoDatasPostgreSQLConverter, DiGi\.GIS\.PostgreSQL\.Classes\.OrtoSheetPostgreSQLConverter, System\.Collections\.Generic\.IEnumerable\<int\>, int, int, int, System\.Threading\.CancellationToken\)')\), one county part after another or several at once \(DiGi\.GIS\.PostgreSQL\#177\)\.
 
 Progress is the number of county parts done; every part is logged with its counters, and the totals are in [OrtoDatasAcquisitionUpdateResult](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoDatasAcquisitionUpdateTask.OrtoDatasAcquisitionUpdateResult 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLOrtoDatasAcquisitionUpdateTask\.OrtoDatasAcquisitionUpdateResult'). Import the sheet index first ([PostgreSQLOrtoSheetUpdateTask](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoSheetUpdateTask 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLOrtoSheetUpdateTask')): without it every image is recorded as undated. Re-running is safe: an acquisition row that does not change is not written.
+
+How many parts walk at once comes from [MaxDegreeOfParallelism](DiGi.GIS.PostgreSQL.Classes.md#DiGi.GIS.PostgreSQL.Classes.PostgreSQLOrtoDatasAcquisitionUpdateOptions.MaxDegreeOfParallelism 'DiGi\.GIS\.PostgreSQL\.Classes\.PostgreSQLOrtoDatasAcquisitionUpdateOptions\.MaxDegreeOfParallelism'): one walks them one after another exactly as before, a higher degree walks several parts concurrently - each part still runs inside its own Modify.UpdateOrtoDatasAcquisitionAsync call with its own read, write and sheet connections, the side table and every partition created before the workers start, the counters accumulated with Interlocked and the progress reported under a lock. The stored rows do not depend on the degree; memory grows with the degree times the page size.
 
 ```csharp
 public class PostgreSQLOrtoDatasAcquisitionUpdateTask : DiGi.Core.Classes.ReportableBackgroundTask<long>, DiGi.GIS.PostgreSQL.Interfaces.IGISPostgreSQLObject, DiGi.Core.Interfaces.IObject

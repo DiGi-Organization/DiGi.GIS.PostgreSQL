@@ -39,6 +39,7 @@ namespace DiGi.GIS.PostgreSQL.Classes
             {
                 CountyIds = postgreSQLOrtoDatasAcquisitionUpdateOptions.CountyIds is null ? null : [.. postgreSQLOrtoDatasAcquisitionUpdateOptions.CountyIds];
                 LastYear = postgreSQLOrtoDatasAcquisitionUpdateOptions.LastYear;
+                MaxDegreeOfParallelism = postgreSQLOrtoDatasAcquisitionUpdateOptions.MaxDegreeOfParallelism;
                 PageSize = postgreSQLOrtoDatasAcquisitionUpdateOptions.PageSize;
                 CommandTimeout = postgreSQLOrtoDatasAcquisitionUpdateOptions.CommandTimeout;
             }
@@ -61,6 +62,12 @@ namespace DiGi.GIS.PostgreSQL.Classes
         /// </summary>
         [JsonInclude, JsonPropertyName(nameof(LastYear))]
         public int LastYear { get; set; } = DateTime.Now.Year;
+
+        /// <summary>
+        /// Gets or sets how many county parts are walked at once. Zero uses half of the logical processors, one walks one part at a time as before. The stored rows do not depend on it; memory grows with the degree times <see cref="PageSize"/> stored pages (DiGi.GIS.PostgreSQL#177).
+        /// </summary>
+        [JsonInclude, JsonPropertyName(nameof(MaxDegreeOfParallelism))]
+        public int MaxDegreeOfParallelism { get; set; } = 0;
 
         /// <summary>
         /// Gets or sets the number of rows read per page; a stored series is several hundred kilobytes.
